@@ -199,4 +199,100 @@ test.describe('Learner App vs Admin Console Separation E2E Flows', () => {
       await expect(page.locator('h1')).toContainText('สวัสดี');
     }
   });
+
+  test('6. User Registration & Password Strength Validation Flow', async ({ page }) => {
+    await page.goto('/register');
+    await expect(page.getByText('สร้างบัญชีผู้เรียนใหม่')).toBeVisible();
+
+    // Fill form with weak password
+    await page.locator('input[type="text"]').fill('ทดสอบ นักเรียน');
+    await page.locator('input[type="email"]').fill(`newstudent_${Date.now()}@example.com`);
+    await page.locator('input[type="password"]').first().fill('weak');
+
+    // Password strength indicator appears
+    await expect(page.getByText('ระดับความปลอดภัย:')).toBeVisible();
+
+    // Fill strong password
+    await page.locator('input[type="password"]').first().fill('StrongP@ssw0rd2026!');
+    await page.locator('input[type="password"]').nth(1).fill('StrongP@ssw0rd2026!');
+
+    // Submit Registration
+    await page.locator('button[type="submit"]').click();
+    await page.waitForURL('**/dashboard');
+    await expect(page.locator('h1')).toContainText('สวัสดี');
+  });
+
+  test('7. Password Reset & Forgot Password Flow', async ({ page }) => {
+    await page.goto('/forgot-password');
+    await expect(page.getByRole('heading', { name: /รีเซ็ตรหัสผ่าน/ })).toBeVisible();
+
+    // Fill email
+    await page.locator('input[type="email"]').fill('student@example.com');
+    await page.locator('button[type="submit"]').click();
+
+    // Sent confirmation visible
+    await expect(page.getByText('ส่งคำขอรีเซ็ตรหัสผ่านแล้ว!')).toBeVisible();
+
+    // Click demo reset link
+    await page.locator('a:has-text("เปิดหน้ารีเซ็ตรหัสผ่าน")').click();
+    await page.waitForURL('**/reset-password?token=*');
+
+    // Fill new password
+    await page.locator('input[type="password"]').first().fill('BrandNewP@ss2026!');
+    await page.locator('input[type="password"]').nth(1).fill('BrandNewP@ss2026!');
+    await page.locator('button[type="submit"]').click();
+
+    // Success notice
+    await expect(page.getByText('ตั้งรหัสผ่านใหม่สำเร็จ!')).toBeVisible();
+  });
+
+  test('8. Email Verification Page Flow', async ({ page }) => {
+    await page.goto('/verify-email?token=vfy_demo_test_token_123');
+    await expect(page.getByText('ยืนยันที่อยู่อีเมล')).toBeVisible();
+
+    // Click Verify
+    await page.locator('button:has-text("ยืนยันอีเมลทันที")').click();
+    await expect(page.getByText('ยืนยันอีเมลสำเร็จเรียบร้อย!')).toBeVisible();
+  });
+
+  test('9. Account Settings Security & Session Management Flow', async ({ page }) => {
+    // Login as student
+    await page.goto('/login');
+    await page.locator('button:has-text("เข้าเป็น Student")').click();
+    await page.waitForURL('**/dashboard');
+
+    // Go to Settings
+    await page.goto('/settings');
+    await expect(page.getByText('การตั้งค่าบัญชีและความปลอดภัย')).toBeVisible();
+
+    // Check Profile tab
+    await expect(page.getByText('ข้อมูลโปรไฟล์ (Profile Details)')).toBeVisible();
+
+    // Switch to Security Tab
+    await page.getByRole('button', { name: /ความปลอดภัย & รหัสผ่าน/ }).click();
+    await expect(page.getByText('เปลี่ยนรหัสผ่าน (Change Password)')).toBeVisible();
+
+    // Switch to Sessions Tab
+    await page.getByRole('button', { name: /อุปกรณ์ที่ใช้งาน/ }).click();
+    await expect(page.getByText('รายการอุปกรณ์และเซสชันที่ใช้งานอยู่')).toBeVisible();
+    await expect(page.getByText('อุปกรณ์ปัจจุบัน')).toBeVisible();
+  });
+
+  test('10. Admin Audit Logs & Auth Security Audit Viewer', async ({ page }) => {
+    // Login as admin
+    await page.goto('/login');
+    await page.locator('button:has-text("เข้าเป็น Admin")').click();
+    await page.waitForURL('**/admin');
+
+    // Navigate to Audit Logs
+    await page.goto('/admin/audit-logs');
+    await expect(page.locator('h1')).toContainText('บันทึกประวัติการทำงานและความปลอดภัย');
+
+    // Verify Content Logs Tab
+    await expect(page.getByText('การจัดการเนื้อหาและข้อสอบ')).toBeVisible();
+
+    // Switch to Auth Security Logs Tab
+    await page.getByRole('button', { name: /ความปลอดภัย & การเข้าสู่ระบบ/ }).click();
+    await expect(page.getByText('รายการบันทึกความปลอดภัยและการยืนยันตัวตน')).toBeVisible();
+  });
 });

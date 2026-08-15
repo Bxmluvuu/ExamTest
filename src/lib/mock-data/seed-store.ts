@@ -1,5 +1,8 @@
 import type {
   Profile,
+  UserSession,
+  PasswordHistory,
+  AuthAuditLog,
   Subject,
   Chapter,
   Topic,
@@ -21,6 +24,9 @@ import type {
 
 export interface DataStore {
   profiles: Profile[];
+  user_sessions: UserSession[];
+  password_history: PasswordHistory[];
+  auth_audit_logs: AuthAuditLog[];
   subjects: Subject[];
   chapters: Chapter[];
   topics: Topic[];
@@ -47,6 +53,10 @@ export function createInitialSeedData(): DataStore {
     email: 'student@example.com',
     full_name: 'สมชาย รักเรียน',
     role: 'student',
+    is_email_verified: true,
+    password_hash: 'password123',
+    failed_login_attempts: 0,
+    locked_until: null,
     created_at: '2026-08-01T08:00:00Z',
     updated_at: '2026-08-01T08:00:00Z',
   };
@@ -56,6 +66,10 @@ export function createInitialSeedData(): DataStore {
     email: 'admin@example.com',
     full_name: 'ดร. วิชาญ ผู้ดูแลระบบ',
     role: 'admin',
+    is_email_verified: true,
+    password_hash: 'password123',
+    failed_login_attempts: 0,
+    locked_until: null,
     created_at: '2026-08-01T08:00:00Z',
     updated_at: '2026-08-01T08:00:00Z',
   };
@@ -807,8 +821,69 @@ export function createInitialSeedData(): DataStore {
     },
   ];
 
+  // Initial User Sessions
+  const user_sessions: UserSession[] = [
+    {
+      id: 'sess-001',
+      user_id: 'u-student-001',
+      session_token_hash: 'hash-mock-session-001',
+      device_name: 'MacBook Pro',
+      browser: 'Chrome 128',
+      ip_address: '127.0.0.1',
+      last_active_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      is_revoked: false,
+      created_at: '2026-08-01T08:00:00Z',
+    },
+    {
+      id: 'sess-002',
+      user_id: 'u-admin-001',
+      session_token_hash: 'hash-mock-session-002',
+      device_name: 'Desktop Workstation',
+      browser: 'Safari 18',
+      ip_address: '127.0.0.1',
+      last_active_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      is_revoked: false,
+      created_at: '2026-08-01T08:00:00Z',
+    },
+  ];
+
+  // Password History
+  const password_history: PasswordHistory[] = [
+    {
+      id: 'ph-001',
+      user_id: 'u-student-001',
+      password_hash: 'password123',
+      created_at: '2026-08-01T08:00:00Z',
+    },
+    {
+      id: 'ph-002',
+      user_id: 'u-admin-001',
+      password_hash: 'password123',
+      created_at: '2026-08-01T08:00:00Z',
+    },
+  ];
+
+  // Auth Security Audit Logs
+  const auth_audit_logs: AuthAuditLog[] = [
+    {
+      id: 'auth-log-001',
+      user_id: 'u-student-001',
+      email: 'student@example.com',
+      event_type: 'login_success',
+      ip_address: '127.0.0.1',
+      user_agent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+      metadata: { method: 'password' },
+      created_at: '2026-08-01T08:05:00Z',
+    },
+  ];
+
   return {
     profiles: [studentUser, adminUser],
+    user_sessions,
+    password_history,
+    auth_audit_logs,
     subjects: [subDb, subNet],
     chapters: [chDb1, chDb2, chDb3, chNet1, chNet2],
     topics: [topDb1_1, topDb1_2, topDb2_1, topDb2_2, topDb3_1, topDb3_2, topNet1_1, topNet2_1],

@@ -1,24 +1,32 @@
 import { NextResponse } from 'next/server';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { setServerSessionUser } from '@/lib/auth/session';
+import { safeRedirectPath } from '@/lib/auth/server-guard';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
   const next = searchParams.get('next') || '/dashboard';
 
-  // Open Redirect Protection
-  let safeRedirectUrl = '/dashboard';
+  let safeRedirect = safeRedirectPath(next, '/dashboard');
 
-  if (next.startsWith('/') && !next.startsWith('//')) {
-    safeRedirectUrl = next;
-  } else {
+  if (code) {
     try {
-      const parsedUrl = new URL(next);
-      if (parsedUrl.origin === origin) {
-        safeRedirectUrl = parsedUrl.pathname + parsedUrl.search;
+      const supabase = await createServerSupabaseClient();
+      if (supabase) {
+        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        if (!error && data?.user) {
+          await setServerSessionUser(data.user.id);
+          const role = data.user.user_metadata?.role || 'student';
+          if (role === 'admin' && !safeRedirect.startsWith('/admin')) {
+            safeRedirect = '/admin';
+          }
+        }
       }
     } catch {
-      safeRedirectUrl = '/dashboard';
+      // Ignore fallback
     }
   }
 
-  return NextResponse.redirect(new URL(safeRedirectUrl, origin));
+  return NextResponse.redirect(new URL(safeRedirect, origin));
 }

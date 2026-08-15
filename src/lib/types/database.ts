@@ -14,8 +14,56 @@ export interface Profile {
   full_name: string;
   role: UserRole;
   avatar_url?: string;
+  is_email_verified?: boolean;
+  password_hash?: string;
+  failed_login_attempts?: number;
+  locked_until?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserSession {
+  id: string;
+  user_id: string;
+  session_token_hash: string;
+  device_name: string;
+  browser: string;
+  ip_address: string;
+  last_active_at: string;
+  expires_at: string;
+  is_revoked: boolean;
+  created_at: string;
+}
+
+export interface PasswordHistory {
+  id: string;
+  user_id: string;
+  password_hash: string;
+  created_at: string;
+}
+
+export type AuthAuditEventType =
+  | 'login_success'
+  | 'login_failed'
+  | 'account_locked'
+  | 'account_unlocked'
+  | 'logout'
+  | 'register'
+  | 'password_reset_request'
+  | 'password_reset_success'
+  | 'password_change'
+  | 'email_verify_success'
+  | 'session_revoked';
+
+export interface AuthAuditLog {
+  id: string;
+  user_id?: string;
+  email?: string;
+  event_type: AuthAuditEventType;
+  ip_address?: string;
+  user_agent?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
 }
 
 export interface Subject {
@@ -105,20 +153,31 @@ export interface ExamBlueprint {
 }
 
 export interface QuestionChoice {
-  id: string;
-  question_id: string;
-  choice_key: 'A' | 'B' | 'C' | 'D';
-  choice_text: string;
-  sequence_order: number;
+  id?: string;
+  question_id?: string;
+  choice_key?: 'A' | 'B' | 'C' | 'D';
+  key?: any;
+  choice_text?: string;
+  text?: string;
+  sequence_order?: number;
 }
 
 export interface QuestionSource {
-  id: string;
+  id?: string;
   question_id: string;
-  document_id?: string;
   file_name: string;
   page_numbers: number[];
+  pages?: number[];
   evidence_text: string;
+  evidence?: string;
+  created_at?: string;
+}
+
+export interface QuestionAnswerKey {
+  id: string;
+  question_id: string;
+  correct_choice_key: 'A' | 'B' | 'C' | 'D';
+  explanation: string;
   created_at?: string;
 }
 
@@ -137,29 +196,19 @@ export interface Question {
   subject_id: string;
   chapter_id: string;
   topic_id?: string;
+  chapter_title?: string;
+  topic_title?: string;
   question_text: string;
+  text?: string;
   question_type: QuestionType;
   difficulty: QuestionDifficulty;
   status: QuestionStatus;
   is_ai_generated: boolean;
   created_at: string;
   updated_at: string;
-  
-  // Relations
   choices?: QuestionChoice[];
   source?: QuestionSource;
   quality_flags?: QuestionQualityFlag[];
-  chapter_title?: string;
-  topic_title?: string;
-  subject_name?: string;
-}
-
-export interface QuestionAnswerKey {
-  id: string;
-  question_id: string;
-  correct_choice_key: string;
-  explanation: string;
-  created_at?: string;
 }
 
 export interface ExamAttempt {
@@ -167,60 +216,60 @@ export interface ExamAttempt {
   user_id: string;
   subject_id: string;
   blueprint_id?: string;
+  blueprint_name?: string;
+  subject_name?: string;
   mode: ExamMode;
   total_questions: number;
   duration_minutes: number;
   time_spent_seconds: number;
   started_at: string;
+  submitted_at?: string;
   completed_at?: string;
   status: AttemptStatus;
   score_total: number;
   score_max: number;
   score_percentage: number;
   is_graded: boolean;
-  metadata?: Record<string, unknown>;
-  
-  // Joins
-  subject_name?: string;
-  blueprint_name?: string;
 }
 
 export interface AttemptQuestion {
   id: string;
   attempt_id: string;
   question_id: string;
-  sequence_order: number;
-  shuffled_choices: Array<{
-    key: string;
-    text: string;
-  }>;
-  question_snapshot: {
-    text: string;
-    difficulty: QuestionDifficulty;
-    chapter_title: string;
-    topic_title: string;
-    question_type: QuestionType;
-  };
-  // Runtime answer info
-  selected_choice_key?: string;
+  sequence_number?: number;
+  sequence_order?: number;
+  question_text?: string;
+  question_type?: QuestionType;
+  difficulty?: QuestionDifficulty;
+  chapter_title?: string;
+  topic_title?: string;
+  choices?: QuestionChoice[];
+  shuffled_choices: QuestionChoice[];
+  user_selected_key?: 'A' | 'B' | 'C' | 'D' | null;
+  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | null;
+  is_marked_for_review?: boolean;
+  time_spent_seconds?: number;
   is_correct?: boolean;
-  correct_choice_key?: string; // only populated after submit
-  explanation?: string;        // only populated after submit
-  source_citation?: {
-    file_name: string;
-    pages: number[];
-    evidence: string;
-  };
+  correct_choice_key?: 'A' | 'B' | 'C' | 'D';
+  explanation?: string;
+  source?: QuestionSource;
+  source_citation?: any;
+  question_snapshot: any;
 }
 
 export interface AttemptAnswer {
-  id: string;
+  id?: string;
   attempt_id: string;
   question_id: string;
-  selected_choice_key: string;
+  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | null;
+  numeric_answer?: number | null;
   is_correct?: boolean;
-  answered_at: string;
+  time_spent_seconds?: number;
   response_time_seconds?: number;
+  is_marked_for_review?: boolean;
+  answered_at?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Bookmark {

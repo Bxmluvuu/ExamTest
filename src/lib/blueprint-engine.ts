@@ -239,8 +239,8 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
       const displayKey = (['A', 'B', 'C', 'D'][index] || 'A') as 'A' | 'B' | 'C' | 'D';
       return {
         key: displayKey,
-        text: c.choice_text,
-        originalKey: c.choice_key,
+        text: c.choice_text || c.text || '',
+        originalKey: (c.choice_key || c.key || displayKey) as 'A' | 'B' | 'C' | 'D',
       };
     });
 

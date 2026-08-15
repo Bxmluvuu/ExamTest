@@ -45,7 +45,10 @@ export function QuestionEditModal({
       setDifficulty(question.difficulty || 'medium');
       setStatus(question.status || 'draft');
       if (question.choices && question.choices.length === 4) {
-        setChoices(question.choices.map(c => ({ key: c.choice_key, text: c.choice_text })));
+        setChoices(question.choices.map((c, i) => ({
+          key: (c.choice_key || c.key || ['A', 'B', 'C', 'D'][i]) as 'A' | 'B' | 'C' | 'D',
+          text: c.choice_text || c.text || '',
+        })));
       }
       setExplanation(question.source?.evidence_text || 'คำอธิบายหลักการของข้อสอบนี้');
       if (question.source) {

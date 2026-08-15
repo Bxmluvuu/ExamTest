@@ -74,9 +74,9 @@ export function gradeExamAttempt(
     const explanation = keyRecord?.explanation || 'ไม่มีคำอธิบายเพิ่มเติม';
     const sourceCitation = sources[qId] || q.source_citation;
 
-    const diff = q.question_snapshot.difficulty || 'medium';
-    const chapterName = q.question_snapshot.chapter_title || 'General';
-    const topicName = q.question_snapshot.topic_title || 'General';
+    const diff = (q.question_snapshot?.difficulty || q.difficulty || 'medium') as QuestionDifficulty;
+    const chapterName = q.question_snapshot?.chapter_title || q.chapter_title || 'General';
+    const topicName = q.question_snapshot?.topic_title || q.topic_title || 'General';
 
     // Update difficulty total
     if (difficultyStats[diff]) {

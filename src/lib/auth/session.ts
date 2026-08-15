@@ -32,6 +32,7 @@ export async function getServerProfile(): Promise<Profile | null> {
           email: user.email || '',
           full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
           role: (user.user_metadata?.role as UserRole) || 'student',
+          is_email_verified: Boolean(user.email_confirmed_at),
           created_at: user.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
         };
@@ -63,15 +64,19 @@ export async function getServerProfile(): Promise<Profile | null> {
 /**
  * Sets the active session user cookie.
  */
-export async function setServerSessionUser(userId: string): Promise<void> {
+export async function setServerSessionUser(
+  userId: string,
+  maxAgeSeconds: number = 60 * 60 * 24 * 7 // 7 days default
+): Promise<void> {
   setCurrentSessionUser(userId);
   try {
     const cookieStore = await cookies();
     cookieStore.set(SESSION_COOKIE_NAME, userId, {
       path: '/',
       httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
+      maxAge: maxAgeSeconds,
     });
   } catch {
     // Called in client or environment where cookies() cannot be mutated directly

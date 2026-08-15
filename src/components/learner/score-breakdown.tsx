@@ -10,7 +10,7 @@ export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) 
   const topicStats = React.useMemo(() => {
     const map = new Map<string, { correct: number; total: number }>();
     questions.forEach(q => {
-      const top = q.question_snapshot.topic_title || 'General';
+      const top = q.question_snapshot?.topic_title || q.topic_title || q.chapter_title || 'General';
       const cur = map.get(top) || { correct: 0, total: 0 };
       cur.total += 1;
       if (q.is_correct) cur.correct += 1;
@@ -32,7 +32,7 @@ export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) 
       hard: { correct: 0, total: 0 },
     };
     questions.forEach(q => {
-      const d = q.question_snapshot.difficulty || 'medium';
+      const d = ((q.question_snapshot?.difficulty || q.difficulty || 'medium') as QuestionDifficulty);
       if (map[d]) {
         map[d].total += 1;
         if (q.is_correct) map[d].correct += 1;
