@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { getDataStore, getCurrentSessionUser, setCurrentSessionUser } from '@/lib/db-adapter';
+import { getDataStore, setCurrentSessionUser } from '@/lib/db-adapter';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import type { Profile, UserRole } from '@/lib/types/database';
 
@@ -7,7 +7,8 @@ export const SESSION_COOKIE_NAME = 'exam_session_user';
 
 /**
  * Reads the active user profile on the server.
- * Checks Supabase Auth session first, falls back to session cookie or in-memory store.
+ * Checks Supabase Auth session first, then session cookie.
+ * Returns null if the visitor is anonymous (not logged in).
  */
 export async function getServerProfile(): Promise<Profile | null> {
   try {
@@ -39,10 +40,10 @@ export async function getServerProfile(): Promise<Profile | null> {
       }
     }
   } catch {
-    // Supabase auth check failed or not configured, continue to cookie/store fallback
+    // Supabase auth check failed or not configured, continue to cookie check
   }
 
-  // 2. Cookie or Store fallback (for local development & tests)
+  // 2. Cookie check (reads HTTP-only session cookie)
   try {
     const cookieStore = await cookies();
     const sessionUserId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -56,9 +57,8 @@ export async function getServerProfile(): Promise<Profile | null> {
     // cookies() may fail outside request context
   }
 
-  // 3. Fallback to default in-memory active user
-  const defaultUser = getCurrentSessionUser();
-  return defaultUser || null;
+  // 3. Anonymous visitor (not logged in) -> MUST return null
+  return null;
 }
 
 /**
@@ -87,6 +87,7 @@ export async function setServerSessionUser(
  * Clears the active session user cookie.
  */
 export async function clearServerSessionUser(): Promise<void> {
+  setCurrentSessionUser('');
   try {
     const cookieStore = await cookies();
     cookieStore.delete(SESSION_COOKIE_NAME);

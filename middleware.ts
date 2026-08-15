@@ -55,6 +55,13 @@ export function middleware(request: NextRequest) {
     }
   }
 
+  // Root path redirect for unauthenticated visitors
+  if (pathname === '/') {
+    if (!sessionUser) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
+
   return response;
 }
 

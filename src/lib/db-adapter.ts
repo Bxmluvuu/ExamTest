@@ -43,13 +43,16 @@ export function resetDataStore(): DataStore {
   return globalStore;
 }
 
-// Simulated active session (defaults to demo student)
-let currentSessionUserId = 'u-student-001';
+// Simulated active session (empty by default for unauthenticated visitors)
+let currentSessionUserId = '';
 
 export function getCurrentSessionUser(): Profile {
   const store = getDataStore();
-  const found = store.profiles.find(p => p.id === currentSessionUserId);
-  return found || store.profiles[0];
+  if (currentSessionUserId) {
+    const found = store.profiles.find(p => p.id === currentSessionUserId);
+    if (found) return found;
+  }
+  return store.profiles[0];
 }
 
 export function setCurrentSessionUser(userId: string): void {

@@ -2,6 +2,18 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Learner App vs Admin Console Separation E2E Flows', () => {
 
+  test('0. Unauthenticated Visitor on Root / is Redirected to /login', async ({ page, context }) => {
+    // Clear cookies to ensure fresh unauthenticated state
+    await context.clearCookies();
+
+    // Navigate to root /
+    await page.goto('/');
+
+    // Verify redirected to /login
+    await page.waitForURL('**/login');
+    await expect(page.getByText('เข้าสู่ระบบ ExamPlatform')).toBeVisible();
+  });
+
   test('1. Student Authentication, Dashboard & Strict UI Separation', async ({ page }, testInfo) => {
     // Navigate to Login page
     await page.goto('/login');
