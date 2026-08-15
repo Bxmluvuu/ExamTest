@@ -1,0 +1,18 @@
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+
+// Server-only Admin Client with Service Role Key (NEVER expose to client)
+export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey || supabaseUrl.includes('your-project')) {
+    return null;
+  }
+
+  return createSupabaseClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+}

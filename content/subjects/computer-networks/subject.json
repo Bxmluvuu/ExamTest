@@ -1,0 +1,53 @@
+{
+  "name": "Computer Networks",
+  "slug": "computer-networks",
+  "description": "สถาปัตยกรรมเครือข่ายคอมพิวเตอร์ OSI Model, TCP/IP, Routing Protocols, DNS, HTTP/HTTPS และ Network Security",
+  "language": "th",
+  "questionTarget": 500,
+  "chapters": [
+    {
+      "sequenceOrder": 1,
+      "title": "Network Models & Physical/Data Link Layer",
+      "description": "OSI 7 Layers, TCP/IP Model, Framing, MAC Addressing และ CSMA/CD",
+      "topics": [
+        "OSI vs TCP/IP Architecture",
+        "Data Encapsulation & PDU",
+        "MAC Address & Ethernet",
+        "Error Detection & CRC"
+      ]
+    },
+    {
+      "sequenceOrder": 2,
+      "title": "Network Layer & IP Addressing",
+      "description": "IPv4, IPv6, Subnetting, CIDR, NAT และ Routing Concepts (OSPF, BGP)",
+      "topics": [
+        "IPv4 Structure & Subnetting",
+        "CIDR Notation & Route Summarization",
+        "NAT & Private IP Ranges",
+        "Routing Algorithms & Forwarding"
+      ]
+    },
+    {
+      "sequenceOrder": 3,
+      "title": "Transport Layer (TCP & UDP)",
+      "description": "Three-way Handshake, Flow Control (Sliding Window), Congestion Control และ Port Numbers",
+      "topics": [
+        "TCP vs UDP Characteristics",
+        "Three-Way Handshake & Teardown",
+        "Flow Control & Sliding Window",
+        "TCP Congestion Control"
+      ]
+    },
+    {
+      "sequenceOrder": 4,
+      "title": "Application Layer & Network Security",
+      "description": "DNS Resolution, HTTP/1.1 vs HTTP/2/3, TLS Handshake และ Firewall Basics",
+      "topics": [
+        "DNS Hierarchy & Record Types",
+        "HTTP/HTTPS Protocols & Status Codes",
+        "TLS/SSL Handshake & Certificates",
+        "Network Security & Firewalls"
+      ]
+    }
+  ]
+}

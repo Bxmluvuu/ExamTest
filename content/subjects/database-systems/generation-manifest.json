@@ -1,0 +1,30 @@
+{
+  "subject": "database-systems",
+  "generatedAt": "2026-08-15T15:40:23.617Z",
+  "batches": [
+    {
+      "batchId": "batch-database-systems-ch01",
+      "chapter": "Introduction to Databases & Relational Model",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-database-systems-ch02",
+      "chapter": "SQL & Query Formulation",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-database-systems-ch03",
+      "chapter": "Relational Database Design & Normalization",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-database-systems-ch04",
+      "chapter": "Transaction Management & Concurrency Control",
+      "targetQuestions": 25,
+      "status": "ready"
+    }
+  ]
+}

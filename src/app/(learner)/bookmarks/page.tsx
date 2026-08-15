@@ -1,0 +1,116 @@
+'use client';
+
+import * as React from 'react';
+import { LearnerPageHeader } from '@/components/learner/learner-page-header';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DifficultyBadge } from '@/components/ui/status-badge';
+import { getBookmarks, toggleBookmarkAction, getCurrentSessionUser } from '@/lib/db-adapter';
+import { Bookmark, Trash2, FileText } from 'lucide-react';
+import type { Bookmark as BookmarkType } from '@/lib/types/database';
+
+export default function BookmarksPage() {
+  const [bookmarks, setBookmarks] = React.useState<BookmarkType[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const user = getCurrentSessionUser();
+    setIsLoading(true);
+    getBookmarks(user.id).then(res => {
+      setBookmarks(res);
+      setIsLoading(false);
+    });
+  }, []);
+
+  const handleRemoveBookmark = async (questionId: string) => {
+    const user = getCurrentSessionUser();
+    await toggleBookmarkAction(user.id, questionId);
+    setBookmarks(prev => prev.filter(b => b.question_id !== questionId));
+  };
+
+  return (
+    <div className="space-y-6">
+      <LearnerPageHeader
+        title="ข้อสอบที่บันทึกไว้ (Bookmarked Questions)"
+        description="รายการข้อสอบที่คุณติดดาวไว้สำหรับการทบทวนซ้ำและการทำความเข้าใจเพิ่มเติม"
+      />
+
+      {bookmarks.length === 0 ? (
+        <EmptyState
+          icon={Bookmark}
+          title="ยังไม่มีข้อสอบที่บันทึกไว้"
+          description="คุณสามารถกดปุ่ม 'บันทึกข้อนี้' ระหว่างการทำข้อสอบ เพื่อเก็บข้อที่น่าสนใจหรือข้อที่สงสัยไว้ทบทวนที่นี่"
+          actionLabel="เริ่มทำข้อสอบ"
+          actionHref="/practice/new"
+        />
+      ) : (
+        <div className="space-y-4">
+          {bookmarks.map((bm, idx) => {
+            const q = bm.question;
+            if (!q) return null;
+
+            return (
+              <Card key={bm.id} className="p-5 space-y-4 border-[var(--border)]">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded bg-[var(--primary-subtle)] text-xs font-bold text-[var(--primary)] border border-blue-200">
+                      ข้อที่ {idx + 1}
+                    </span>
+                    <DifficultyBadge difficulty={q.difficulty} />
+                    <span className="text-xs text-[var(--foreground-muted)]">
+                      {q.topic_title || 'General'}
+                    </span>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleRemoveBookmark(q.id)}
+                    className="text-[var(--danger)] hover:bg-red-50 text-xs h-7 px-2"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    <span>ลบออก</span>
+                  </Button>
+                </div>
+
+                <div className="text-base font-medium text-[var(--foreground)] leading-relaxed">
+                  {q.question_text}
+                </div>
+
+                {/* Choices list */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {q.choices?.map(c => (
+                    <div
+                      key={c.choice_key}
+                      className="p-2.5 rounded bg-[var(--surface-subtle)] border border-[var(--border)] text-xs flex items-center gap-2"
+                    >
+                      <span className="h-5 w-5 rounded bg-white text-xs font-bold flex items-center justify-center border shrink-0">
+                        {c.choice_key}
+                      </span>
+                      <span className="truncate">{c.choice_text}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Notes / Citation */}
+                {bm.notes && (
+                  <div className="p-3 rounded bg-amber-50/60 border border-amber-200 text-xs text-amber-900">
+                    <strong>บันทึกช่วยจำ:</strong> {bm.notes}
+                  </div>
+                )}
+
+                {q.source && (
+                  <div className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-1.5 pt-1">
+                    <FileText className="h-3.5 w-3.5 text-[var(--primary)]" />
+                    <span>อ้างอิง: {q.source.file_name} (หน้าที่ {q.source.page_numbers.join(', ')})</span>
+                  </div>
+                )}
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

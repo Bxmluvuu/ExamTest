@@ -1,0 +1,54 @@
+{
+  "name": "Database Systems",
+  "slug": "database-systems",
+  "description": "หลักการและทฤษฎีระบบจัดการฐานข้อมูล แบบจำลองข้อมูลเชิงสัมพันธ์ SQL ภาษาสอบถามข้อมูล และการทำ Normalization",
+  "language": "th",
+  "questionTarget": 500,
+  "chapters": [
+    {
+      "sequenceOrder": 1,
+      "title": "Introduction to Databases & Relational Model",
+      "description": "พื้นฐานระบบฐานข้อมูล โครงสร้างตาราง Primary Key, Foreign Key และ Integrity Constraints",
+      "topics": [
+        "Database Architecture & Schema",
+        "Relational Model Concepts",
+        "Primary & Foreign Keys",
+        "Referential Integrity"
+      ]
+    },
+    {
+      "sequenceOrder": 2,
+      "title": "SQL & Query Formulation",
+      "description": "การเขียนคำสั่ง SQL (DDL, DML, DQL), Subqueries, Aggregate Functions และ JOIN Operations",
+      "topics": [
+        "SELECT & Filtering with WHERE",
+        "INNER & OUTER JOINs",
+        "GROUP BY & HAVING Clauses",
+        "Subqueries & Correlated Subqueries"
+      ]
+    },
+    {
+      "sequenceOrder": 3,
+      "title": "Relational Database Design & Normalization",
+      "description": "Functional Dependencies, การลดความซ้ำซ้อนของข้อมูล และขั้นตอน 1NF, 2NF, 3NF, BCNF",
+      "topics": [
+        "Functional Dependencies",
+        "First Normal Form (1NF)",
+        "Second Normal Form (2NF)",
+        "Third Normal Form (3NF)",
+        "Boyce-Codd Normal Form (BCNF)"
+      ]
+    },
+    {
+      "sequenceOrder": 4,
+      "title": "Transaction Management & Concurrency Control",
+      "description": "คุณสมบัติ ACID, Serializability, Locking Protocols และ Deadlock Handling",
+      "topics": [
+        "ACID Properties",
+        "Concurrency Anomalies",
+        "Two-Phase Locking (2PL)",
+        "Deadlock Prevention & Detection"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "subject": "computer-networks",
+  "generatedAt": "2026-08-15T15:40:23.616Z",
+  "batches": [
+    {
+      "batchId": "batch-computer-networks-ch01",
+      "chapter": "Network Models & Physical/Data Link Layer",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-computer-networks-ch02",
+      "chapter": "Network Layer & IP Addressing",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-computer-networks-ch03",
+      "chapter": "Transport Layer (TCP & UDP)",
+      "targetQuestions": 25,
+      "status": "ready"
+    },
+    {
+      "batchId": "batch-computer-networks-ch04",
+      "chapter": "Application Layer & Network Security",
+      "targetQuestions": 25,
+      "status": "ready"
+    }
+  ]
+}

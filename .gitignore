@@ -1,41 +1,186 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==============================================================================
+# ExamPlatform - Comprehensive .gitignore
+# Next.js + Supabase + Vercel + Bun + Playwright + Vitest
+# ==============================================================================
 
-# dependencies
-/node_modules
-/.pnp
+# ------------------------------------------------------------------------------
+# 1. Dependencies & Package Managers
+# ------------------------------------------------------------------------------
+node_modules/
+.pnp
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
 
-# testing
-/coverage
+# Note: Lockfiles (bun.lock, package-lock.json, pnpm-lock.yaml, yarn.lock) are tracked.
 
-# next.js
-/.next/
-/out/
+# ------------------------------------------------------------------------------
+# 2. Framework & Build Output (Next.js, TypeScript, Turbopack)
+# ------------------------------------------------------------------------------
+.next/
+out/
+build/
+dist/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
 
-# production
-/build
+# ------------------------------------------------------------------------------
+# 3. Environment Variables & Secrets
+# ------------------------------------------------------------------------------
+# Ignore all local environment files
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+.env.*.local
+*.env.local
 
-# misc
-.DS_Store
-*.pem
+# Explicitly permit environment example and template files
+!.env.example
+!.env.sample
+!.env.test.example
 
-# debug
+# Local secrets and overrides
+*.secret
+*.secrets
+secrets/
+.credentials/
+
+# ------------------------------------------------------------------------------
+# 4. Supabase Local Development & Runtime
+# ------------------------------------------------------------------------------
+# Ignore local runtime cache and branch states (keep migrations, seeds, and config)
+supabase/.temp/
+supabase/.branches/
+
+# ------------------------------------------------------------------------------
+# 5. Vercel Deployment Metadata
+# ------------------------------------------------------------------------------
+.vercel/
+
+# ------------------------------------------------------------------------------
+# 6. Testing, Coverage & Playwright Reports
+# ------------------------------------------------------------------------------
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+screenshots/
+artifacts/
+
+# Visual regression baseline exceptions (if added in the future)
+!tests/visual/baselines/
+!tests/visual/baselines/**
+
+# ------------------------------------------------------------------------------
+# 7. AI Pipeline Runtime & Temporary Extraction Output
+# ------------------------------------------------------------------------------
+generation-output/
+generation-runs/
+.ai-cache/
+.ai-tmp/
+content/.generated/
+content/.extracted/
+content/.ocr/
+
+# ------------------------------------------------------------------------------
+# 8. Private Learning Materials & Source Documents
+# ------------------------------------------------------------------------------
+# Ignore actual private lecture slides and past exams stored in local workspace
+content/subjects/*/slides/*
+content/subjects/*/past-exams/*
+content/subjects/*/private/*
+
+# Preserve directory placeholders and safe example PDFs
+!content/subjects/*/slides/.gitkeep
+!content/subjects/*/past-exams/.gitkeep
+!content/subjects/*/slides/*.example.pdf
+!content/subjects/*/past-exams/*.example.pdf
+
+# ------------------------------------------------------------------------------
+# 9. Database Dumps & Backups
+# ------------------------------------------------------------------------------
+*.dump
+*.backup
+*.bak
+*.sqlite
+*.sqlite3
+*.db
+backups/
+dumps/
+
+# ------------------------------------------------------------------------------
+# 10. Logs & Performance Traces
+# ------------------------------------------------------------------------------
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
+bun.report-*
 
-# env files (can opt-in for committing if needed)
-.env*
+# ------------------------------------------------------------------------------
+# 11. Cache & Temporary Files
+# ------------------------------------------------------------------------------
+.cache/
+.eslintcache
+.stylelintcache
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.tmp/
+tmp/
+temp/
 
-# vercel
-.vercel
+# ------------------------------------------------------------------------------
+# 12. Operating System & Editor Files
+# ------------------------------------------------------------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Editors (VSCode, JetBrains, Sublime)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# ------------------------------------------------------------------------------
+# 13. Certificates, Private Keys & Cloud Credentials
+# ------------------------------------------------------------------------------
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.mobileprovision
+*.ovpn
+service-account*.json
+*service-account*.json
+google-credentials*.json
+firebase-adminsdk*.json

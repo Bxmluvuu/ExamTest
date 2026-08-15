@@ -1,0 +1,594 @@
+import { createInitialSeedData, type DataStore } from './mock-data/seed-store';
+import { selectQuestionsForAttempt } from './blueprint-engine';
+import { gradeExamAttempt } from './scoring-engine';
+import { computeUserAnalytics } from './analytics-engine';
+import type {
+  Profile,
+  Subject,
+  Chapter,
+  Topic,
+  SourceDocument,
+  ExamBlueprint,
+  Question,
+  QuestionChoice,
+  QuestionAnswerKey,
+  QuestionSource,
+  ExamAttempt,
+  AttemptQuestion,
+  AttemptAnswer,
+  Bookmark,
+  AdminAuditLog,
+  UserAnalyticsSummary,
+  QuestionStatus,
+  QuestionDifficulty,
+  ExamMode,
+} from './types/database';
+
+// Global in-memory singleton for robust local state and tests
+let globalStore: DataStore | null = null;
+
+export function getDataStore(): DataStore {
+  if (!globalStore) {
+    globalStore = createInitialSeedData();
+  }
+  return globalStore;
+}
+
+export function resetDataStore(): DataStore {
+  globalStore = createInitialSeedData();
+  return globalStore;
+}
+
+// Simulated active session (defaults to demo student)
+let currentSessionUserId = 'u-student-001';
+
+export function getCurrentSessionUser(): Profile {
+  const store = getDataStore();
+  const found = store.profiles.find(p => p.id === currentSessionUserId);
+  return found || store.profiles[0];
+}
+
+export function setCurrentSessionUser(userId: string): void {
+  currentSessionUserId = userId;
+}
+
+// ----------------------------------------------------
+// SUBJECTS & MATERIALS
+// ----------------------------------------------------
+export async function getSubjects(): Promise<Subject[]> {
+  const store = getDataStore();
+  return [...store.subjects];
+}
+
+export async function getSubjectBySlug(slug: string): Promise<{
+  subject: Subject;
+  chapters: Array<Chapter & { topics: Topic[] }>;
+  documents: SourceDocument[];
+  blueprints: ExamBlueprint[];
+} | null> {
+  const store = getDataStore();
+  const subject = store.subjects.find(s => s.slug === slug);
+  if (!subject) return null;
+
+  const chapters = store.chapters
+    .filter(c => c.subject_id === subject.id)
+    .sort((a, b) => a.sequence_order - b.sequence_order)
+    .map(c => ({
+      ...c,
+      topics: store.topics.filter(t => t.chapter_id === c.id),
+    }));
+
+  const documents = store.source_documents.filter(d => d.subject_id === subject.id);
+  const blueprints = store.exam_blueprints.filter(b => b.subject_id === subject.id && b.is_active);
+
+  return { subject, chapters, documents, blueprints };
+}
+
+export async function getDocumentById(id: string): Promise<SourceDocument | null> {
+  const store = getDataStore();
+  return store.source_documents.find(d => d.id === id) || null;
+}
+
+// ----------------------------------------------------
+// EXAM BLUEPRINTS & PRACTICE
+// ----------------------------------------------------
+export async function getBlueprintById(id: string): Promise<ExamBlueprint | null> {
+  const store = getDataStore();
+  return store.exam_blueprints.find(b => b.id === id) || null;
+}
+
+export async function createExamAttemptAction(params: {
+  userId: string;
+  subjectId: string;
+  blueprintId?: string;
+  mode: ExamMode;
+  targetCount?: number;
+  chapterId?: string;
+  topicIds?: string[];
+  difficulty?: QuestionDifficulty;
+}): Promise<{ success: boolean; attemptId?: string; error?: string }> {
+  const store = getDataStore();
+  const subject = store.subjects.find(s => s.id === params.subjectId);
+  if (!subject) return { success: false, error: 'Subject not found' };
+
+  let blueprint: ExamBlueprint | undefined;
+  if (params.blueprintId) {
+    blueprint = store.exam_blueprints.find(b => b.id === params.blueprintId);
+  }
+
+  // Get user past attempts for recent questions avoiding
+  const userPastAttempts = store.exam_attempts.filter(a => a.user_id === params.userId);
+  const pastAttemptIds = new Set(userPastAttempts.map(a => a.id));
+  const recentAnswerRecords = store.attempt_answers.filter(ans => pastAttemptIds.has(ans.attempt_id));
+  const recentQuestionIds = recentAnswerRecords.map(ans => ans.question_id);
+
+  // Mistakes list
+  const mistakeQuestionIds = recentAnswerRecords.filter(ans => ans.is_correct === false).map(ans => ans.question_id);
+
+  const subjectQuestions = store.questions.filter(q => q.subject_id === params.subjectId);
+
+  const targetCount = params.targetCount || blueprint?.question_count || 10;
+  const duration = blueprint?.duration_minutes || (targetCount * 2);
+
+  const selectedItems = selectQuestionsForAttempt({
+    blueprint,
+    allQuestions: subjectQuestions,
+    mode: params.mode,
+    targetCount,
+    selectedChapterId: params.chapterId,
+    selectedTopicIds: params.topicIds,
+    selectedDifficulty: params.difficulty,
+    recentQuestionIds,
+    mistakeQuestionIds,
+  });
+
+  if (selectedItems.length === 0) {
+    return { success: false, error: 'ไม่พบข้อสอบที่เผยแพร่ตรงตามเงื่อนไขที่เลือก' };
+  }
+
+  const attemptId = `att-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const newAttempt: ExamAttempt = {
+    id: attemptId,
+    user_id: params.userId,
+    subject_id: params.subjectId,
+    blueprint_id: blueprint?.id,
+    mode: params.mode,
+    total_questions: selectedItems.length,
+    duration_minutes: duration,
+    time_spent_seconds: 0,
+    started_at: new Date().toISOString(),
+    status: 'in_progress',
+    score_total: 0,
+    score_max: selectedItems.length,
+    score_percentage: 0,
+    is_graded: false,
+    subject_name: subject.name,
+    blueprint_name: blueprint?.name,
+  };
+
+  store.exam_attempts.push(newAttempt);
+
+  // Insert attempt questions with randomized choices & snapshots
+  selectedItems.forEach((item, index) => {
+    store.attempt_questions.push({
+      id: `attq-${attemptId}-${index + 1}`,
+      attempt_id: attemptId,
+      question_id: item.question.id,
+      sequence_order: index + 1,
+      shuffled_choices: item.shuffledChoices,
+      question_snapshot: item.snapshot,
+    });
+  });
+
+  return { success: true, attemptId };
+}
+
+export async function getExamAttempt(attemptId: string, userId: string): Promise<{
+  attempt: ExamAttempt;
+  questions: AttemptQuestion[];
+  answers: AttemptAnswer[];
+} | null> {
+  const store = getDataStore();
+  const attempt = store.exam_attempts.find(a => a.id === attemptId);
+  if (!attempt) return null;
+
+  // Security check
+  const currentUser = getCurrentSessionUser();
+  if (attempt.user_id !== userId && currentUser.role !== 'admin') {
+    throw new Error('Unauthorized attempt access');
+  }
+
+  const questions = store.attempt_questions
+    .filter(q => q.attempt_id === attemptId)
+    .sort((a, b) => a.sequence_order - b.sequence_order);
+
+  const answers = store.attempt_answers.filter(a => a.attempt_id === attemptId);
+
+  // If already submitted, attach solution reviews securely
+  if (attempt.status === 'submitted') {
+    const keyMap = new Map<string, QuestionAnswerKey>();
+    store.question_answer_keys.forEach(k => keyMap.set(k.question_id, k));
+
+    const sourceMap = new Map<string, any>();
+    store.question_sources.forEach(s => sourceMap.set(s.question_id, s));
+
+    const populatedQuestions = questions.map(q => {
+      const userAns = answers.find(a => a.question_id === q.question_id);
+      const key = keyMap.get(q.question_id);
+      const src = sourceMap.get(q.question_id);
+      return {
+        ...q,
+        selected_choice_key: userAns?.selected_choice_key,
+        is_correct: userAns?.is_correct,
+        correct_choice_key: key?.correct_choice_key,
+        explanation: key?.explanation,
+        source_citation: src ? {
+          file_name: src.file_name,
+          pages: src.page_numbers,
+          evidence: src.evidence_text,
+        } : undefined,
+      };
+    });
+
+    return { attempt, questions: populatedQuestions, answers };
+  }
+
+  // If in-progress, NEVER populate correct_choice_key or explanation!
+  const populatedQuestions = questions.map(q => {
+    const userAns = answers.find(a => a.question_id === q.question_id);
+    return {
+      ...q,
+      selected_choice_key: userAns?.selected_choice_key,
+      // No answer keys!
+    };
+  });
+
+  return { attempt, questions: populatedQuestions, answers };
+}
+
+export async function saveAttemptAnswerAction(params: {
+  attemptId: string;
+  questionId: string;
+  selectedChoiceKey: 'A' | 'B' | 'C' | 'D';
+  userId: string;
+  responseTimeSeconds?: number;
+}): Promise<{ success: boolean; error?: string }> {
+  const store = getDataStore();
+  const attempt = store.exam_attempts.find(a => a.id === params.attemptId);
+  if (!attempt) return { success: false, error: 'Attempt not found' };
+
+  if (attempt.user_id !== params.userId) {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  if (attempt.status !== 'in_progress') {
+    return { success: false, error: 'Cannot modify submitted attempt' };
+  }
+
+  const existingIndex = store.attempt_answers.findIndex(
+    a => a.attempt_id === params.attemptId && a.question_id === params.questionId
+  );
+
+  const newAnswer: AttemptAnswer = {
+    id: existingIndex >= 0 ? store.attempt_answers[existingIndex].id : `ans-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    attempt_id: params.attemptId,
+    question_id: params.questionId,
+    selected_choice_key: params.selectedChoiceKey,
+    answered_at: new Date().toISOString(),
+    response_time_seconds: params.responseTimeSeconds || 0,
+  };
+
+  if (existingIndex >= 0) {
+    store.attempt_answers[existingIndex] = newAnswer;
+  } else {
+    store.attempt_answers.push(newAnswer);
+  }
+
+  return { success: true };
+}
+
+export async function submitExamAttemptAction(params: {
+  attemptId: string;
+  userId: string;
+  timeSpentSeconds: number;
+}): Promise<{ success: boolean; result?: any; error?: string }> {
+  const store = getDataStore();
+  const attempt = store.exam_attempts.find(a => a.id === params.attemptId);
+  if (!attempt) return { success: false, error: 'Attempt not found' };
+
+  if (attempt.user_id !== params.userId && getCurrentSessionUser().role !== 'admin') {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  if (attempt.status === 'submitted') {
+    return { success: true, result: { score_total: attempt.score_total, score_percentage: attempt.score_percentage } };
+  }
+
+  const questions = store.attempt_questions.filter(q => q.attempt_id === params.attemptId);
+  const answers = store.attempt_answers.filter(a => a.attempt_id === params.attemptId);
+
+  const answerKeys: Record<string, QuestionAnswerKey> = {};
+  store.question_answer_keys.forEach(k => {
+    answerKeys[k.question_id] = k;
+  });
+
+  const sources: Record<string, any> = {};
+  store.question_sources.forEach(s => {
+    sources[s.question_id] = {
+      file_name: s.file_name,
+      pages: s.page_numbers,
+      evidence: s.evidence_text,
+    };
+  });
+
+  // Server-side grading
+  const gradingResult = gradeExamAttempt(questions, answers, answerKeys, sources);
+
+  // Update answers is_correct in store
+  for (const graded of gradingResult.graded_answers) {
+    const ans = store.attempt_answers.find(
+      a => a.attempt_id === params.attemptId && a.question_id === graded.question_id
+    );
+    if (ans) {
+      ans.is_correct = graded.is_correct;
+    } else {
+      // Unanswered question record
+      store.attempt_answers.push({
+        id: `ans-unans-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        attempt_id: params.attemptId,
+        question_id: graded.question_id,
+        selected_choice_key: '' as any,
+        is_correct: false,
+        answered_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  // Update Attempt
+  attempt.status = 'submitted';
+  attempt.completed_at = new Date().toISOString();
+  attempt.time_spent_seconds = params.timeSpentSeconds;
+  attempt.score_total = gradingResult.score_total;
+  attempt.score_max = gradingResult.score_max;
+  attempt.score_percentage = gradingResult.score_percentage;
+  attempt.is_graded = true;
+
+  return { success: true, result: gradingResult };
+}
+
+// ----------------------------------------------------
+// USER ANALYTICS & HISTORY
+// ----------------------------------------------------
+export async function getUserAnalyticsData(userId: string): Promise<UserAnalyticsSummary> {
+  const store = getDataStore();
+  return computeUserAnalytics(
+    userId,
+    store.exam_attempts,
+    store.attempt_answers,
+    store.subjects,
+    store.questions
+  );
+}
+
+export async function getUserAttempts(userId: string): Promise<ExamAttempt[]> {
+  const store = getDataStore();
+  return store.exam_attempts
+    .filter(a => a.user_id === userId)
+    .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime());
+}
+
+// ----------------------------------------------------
+// BOOKMARKS
+// ----------------------------------------------------
+export async function getBookmarks(userId: string): Promise<Bookmark[]> {
+  const store = getDataStore();
+  return store.bookmarks
+    .filter(b => b.user_id === userId)
+    .map(b => ({
+      ...b,
+      question: store.questions.find(q => q.id === b.question_id),
+    }));
+}
+
+export async function toggleBookmarkAction(userId: string, questionId: string, notes?: string): Promise<{ isBookmarked: boolean }> {
+  const store = getDataStore();
+  const existingIdx = store.bookmarks.findIndex(b => b.user_id === userId && b.question_id === questionId);
+
+  if (existingIdx >= 0) {
+    store.bookmarks.splice(existingIdx, 1);
+    return { isBookmarked: false };
+  } else {
+    store.bookmarks.push({
+      id: `bm-${Date.now()}`,
+      user_id: userId,
+      question_id: questionId,
+      notes,
+      created_at: new Date().toISOString(),
+    });
+    return { isBookmarked: true };
+  }
+}
+
+// ----------------------------------------------------
+// ADMIN OPERATIONS
+// ----------------------------------------------------
+export async function getAdminQuestions(filters: {
+  subjectId?: string;
+  status?: QuestionStatus;
+  difficulty?: QuestionDifficulty;
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{ questions: Question[]; total: number; page: number; pageSize: number }> {
+  const store = getDataStore();
+  let list = [...store.questions];
+
+  if (filters.subjectId) {
+    list = list.filter(q => q.subject_id === filters.subjectId);
+  }
+  if (filters.status) {
+    list = list.filter(q => q.status === filters.status);
+  }
+  if (filters.difficulty) {
+    list = list.filter(q => q.difficulty === filters.difficulty);
+  }
+  if (filters.search) {
+    const s = filters.search.toLowerCase();
+    list = list.filter(q => 
+      q.question_text.toLowerCase().includes(s) ||
+      q.topic_title?.toLowerCase().includes(s) ||
+      q.chapter_title?.toLowerCase().includes(s)
+    );
+  }
+
+  const total = list.length;
+  const page = filters.page || 1;
+  const pageSize = filters.pageSize || 20;
+  const start = (page - 1) * pageSize;
+  const paged = list.slice(start, start + pageSize);
+
+  // Attach quality flags
+  const flagsMap = new Map<string, any[]>();
+  store.question_quality_flags.forEach(f => {
+    const arr = flagsMap.get(f.question_id) || [];
+    arr.push(f);
+    flagsMap.set(f.question_id, arr);
+  });
+
+  const enriched = paged.map(q => ({
+    ...q,
+    quality_flags: flagsMap.get(q.id) || [],
+  }));
+
+  return { questions: enriched, total, page, pageSize };
+}
+
+export async function updateQuestionStatusAction(
+  questionIds: string[],
+  newStatus: QuestionStatus,
+  adminUserId: string
+): Promise<{ success: boolean; count: number }> {
+  const store = getDataStore();
+  let updatedCount = 0;
+
+  for (const qId of questionIds) {
+    const q = store.questions.find(item => item.id === qId);
+    if (q) {
+      const prev = q.status;
+      q.status = newStatus;
+      q.updated_at = new Date().toISOString();
+      updatedCount += 1;
+
+      store.admin_audit_logs.push({
+        id: `log-${Date.now()}-${updatedCount}`,
+        admin_user_id: adminUserId,
+        action: `update_status_to_${newStatus}`,
+        target_entity: 'questions',
+        target_id: qId,
+        details: { previous_status: prev, new_status: newStatus },
+        created_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  return { success: true, count: updatedCount };
+}
+
+export async function saveQuestionAction(
+  questionData: Omit<Partial<Question>, 'choices'> & {
+    choices: Array<{ key: 'A' | 'B' | 'C' | 'D'; text: string }>;
+    correctChoice: 'A' | 'B' | 'C' | 'D';
+    explanation: string;
+    sourceCitation?: { file_name: string; pages: number[]; evidence_text: string };
+  },
+  adminUserId: string
+): Promise<{ success: boolean; questionId: string }> {
+  const store = getDataStore();
+  const isNew = !questionData.id;
+  const qId = questionData.id || `q-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+
+  const chapter = store.chapters.find(c => c.id === questionData.chapter_id);
+  const topic = store.topics.find(t => t.id === questionData.topic_id);
+
+  const questionObj: Question = {
+    id: qId,
+    subject_id: questionData.subject_id || store.subjects[0].id,
+    chapter_id: questionData.chapter_id || store.chapters[0].id,
+    topic_id: questionData.topic_id,
+    chapter_title: chapter?.title || 'Chapter',
+    topic_title: topic?.title || 'Topic',
+    question_text: questionData.question_text || '',
+    question_type: questionData.question_type || 'single_choice',
+    difficulty: questionData.difficulty || 'medium',
+    status: questionData.status || 'draft',
+    is_ai_generated: Boolean(questionData.is_ai_generated),
+    created_at: questionData.created_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    choices: questionData.choices.map((c, idx) => ({
+      id: `c-${qId}-${c.key}`,
+      question_id: qId,
+      choice_key: c.key,
+      choice_text: c.text,
+      sequence_order: idx + 1,
+    })),
+  };
+
+  if (isNew) {
+    store.questions.unshift(questionObj);
+  } else {
+    const idx = store.questions.findIndex(q => q.id === qId);
+    if (idx >= 0) store.questions[idx] = questionObj;
+    else store.questions.unshift(questionObj);
+  }
+
+  // Answer Key
+  const akIdx = store.question_answer_keys.findIndex(ak => ak.question_id === qId);
+  const akObj: QuestionAnswerKey = {
+    id: akIdx >= 0 ? store.question_answer_keys[akIdx].id : `ak-${qId}`,
+    question_id: qId,
+    correct_choice_key: questionData.correctChoice,
+    explanation: questionData.explanation,
+  };
+  if (akIdx >= 0) store.question_answer_keys[akIdx] = akObj;
+  else store.question_answer_keys.push(akObj);
+
+  // Source Citation
+  if (questionData.sourceCitation) {
+    const srcIdx = store.question_sources.findIndex(s => s.question_id === qId);
+    const srcObj: QuestionSource = {
+      id: srcIdx >= 0 ? store.question_sources[srcIdx].id : `src-${qId}`,
+      question_id: qId,
+      file_name: questionData.sourceCitation.file_name,
+      page_numbers: questionData.sourceCitation.pages,
+      evidence_text: questionData.sourceCitation.evidence_text,
+    };
+    if (srcIdx >= 0) store.question_sources[srcIdx] = srcObj;
+    else store.question_sources.push(srcObj);
+    questionObj.source = srcObj;
+  }
+
+  // Audit Log
+  store.admin_audit_logs.push({
+    id: `log-${Date.now()}`,
+    admin_user_id: adminUserId,
+    action: isNew ? 'create_question' : 'edit_question',
+    target_entity: 'questions',
+    target_id: qId,
+    details: { status: questionObj.status, difficulty: questionObj.difficulty },
+    created_at: new Date().toISOString(),
+  });
+
+  return { success: true, questionId: qId };
+}
+
+export async function getAdminAuditLogs(): Promise<AdminAuditLog[]> {
+  const store = getDataStore();
+  return [...store.admin_audit_logs].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export async function getGenerationRuns(): Promise<any[]> {
+  const store = getDataStore();
+  return [...store.generation_runs];
+}

@@ -1,0 +1,21 @@
+{
+  "name": "Database Systems Standard Midterm Exam",
+  "slug": "db-midterm-blueprint",
+  "description": "แบบทดสอบมาตรฐานวิชาระบบฐานข้อมูล ครอบคลุม Relational Model, SQL และ Normalization",
+  "questionCount": 25,
+  "durationMinutes": 45,
+  "difficultyDistribution": {
+    "easy": 0.20,
+    "medium": 0.60,
+    "hard": 0.20
+  },
+  "topicDistribution": [
+    { "topic": "Relational Model Concepts", "weight": 0.15 },
+    { "topic": "Primary & Foreign Keys", "weight": 0.15 },
+    { "topic": "INNER & OUTER JOINs", "weight": 0.20 },
+    { "topic": "GROUP BY & HAVING Clauses", "weight": 0.15 },
+    { "topic": "Functional Dependencies", "weight": 0.15 },
+    { "topic": "Third Normal Form (3NF)", "weight": 0.20 }
+  ],
+  "avoidRecentQuestionCount": 30
+}

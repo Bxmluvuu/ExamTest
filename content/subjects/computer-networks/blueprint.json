@@ -1,0 +1,19 @@
+{
+  "name": "Computer Networks Comprehensive Exam",
+  "slug": "cn-comprehensive-blueprint",
+  "description": "แบบทดสอบวัดความรู้เครือข่ายคอมพิวเตอร์ ครอบคลุม OSI, Subnetting, TCP/IP และ DNS/HTTP",
+  "questionCount": 20,
+  "durationMinutes": 40,
+  "difficultyDistribution": {
+    "easy": 0.25,
+    "medium": 0.50,
+    "hard": 0.25
+  },
+  "topicDistribution": [
+    { "topic": "OSI vs TCP/IP Architecture", "weight": 0.25 },
+    { "topic": "IPv4 Structure & Subnetting", "weight": 0.30 },
+    { "topic": "Three-Way Handshake & Teardown", "weight": 0.25 },
+    { "topic": "DNS Hierarchy & Record Types", "weight": 0.20 }
+  ],
+  "avoidRecentQuestionCount": 25
+}
