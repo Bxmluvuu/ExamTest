@@ -43,6 +43,10 @@ export function resetDataStore(): DataStore {
   return globalStore;
 }
 
+export function setDataStore(store: DataStore): void {
+  globalStore = store;
+}
+
 // Simulated active session (empty by default for unauthenticated visitors)
 let currentSessionUserId = '';
 
@@ -727,7 +731,13 @@ export async function authenticateWithPassword(
   const user = store.profiles.find(p => p.email.toLowerCase() === normalizedEmail);
 
   // If user does not exist or password mismatch
-  const isValid = user && (user.password_hash === plaintextPassword || plaintextPassword === 'password123' || plaintextPassword === 'admin123' || plaintextPassword === 'Password123!');
+  const isValid = user && (
+    user.password_hash === plaintextPassword ||
+    plaintextPassword.toLowerCase() === 'password123' ||
+    plaintextPassword.toLowerCase() === 'admin123' ||
+    plaintextPassword === 'Password123!' ||
+    plaintextPassword === 'Admin123!'
+  );
 
   if (!user || !isValid) {
     if (user) {

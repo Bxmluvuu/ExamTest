@@ -47,9 +47,21 @@ export async function getServerProfile(): Promise<Profile | null> {
   try {
     const cookieStore = await cookies();
     const sessionUserId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-    const store = getDataStore();
 
     if (sessionUserId) {
+      // Check Supabase profiles table directly
+      const supabase = await createServerSupabaseClient();
+      if (supabase) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', sessionUserId)
+          .single();
+
+        if (profile) return profile as Profile;
+      }
+
+      const store = getDataStore();
       const found = store.profiles.find(p => p.id === sessionUserId);
       if (found) return found;
     }

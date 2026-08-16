@@ -1,5 +1,9 @@
+'use client';
+
 import * as React from 'react';
-import { Target, CheckCircle2, Calendar, Award, TrendingUp } from 'lucide-react';
+import { Target, CheckCircle2, Calendar, Award } from 'lucide-react';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { MetricSkeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 export function MetricStrip({
@@ -7,18 +11,30 @@ export function MetricStrip({
   totalQuestionsAnswered,
   totalPracticeDays,
   overallAccuracy,
+  isLoading = false,
   className,
 }: {
   averageScore: number;
   totalQuestionsAnswered: number;
   totalPracticeDays: number;
   overallAccuracy: number;
+  isLoading?: boolean;
   className?: string;
 }) {
+  if (isLoading) {
+    return (
+      <div className={cn('grid grid-cols-2 lg:grid-cols-4 gap-3', className)}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <MetricSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   const metrics = [
     {
       label: 'คะแนนเฉลี่ย',
-      value: `${averageScore}%`,
+      valueComponent: <AnimatedNumber value={averageScore} suffix="%" />,
       subtext: 'จากการสอบทั้งหมด',
       icon: Award,
       color: 'text-[var(--primary)]',
@@ -26,7 +42,7 @@ export function MetricStrip({
     },
     {
       label: 'จำนวนข้อที่ฝึกฝน',
-      value: totalQuestionsAnswered.toLocaleString(),
+      valueComponent: <AnimatedNumber value={totalQuestionsAnswered} />,
       subtext: 'ข้อสอบที่ตอบแล้ว',
       icon: Target,
       color: 'text-[var(--accent-cyan)]',
@@ -34,7 +50,7 @@ export function MetricStrip({
     },
     {
       label: 'ความแม่นยำรวม',
-      value: `${overallAccuracy}%`,
+      valueComponent: <AnimatedNumber value={overallAccuracy} suffix="%" />,
       subtext: 'อัตราตอบถูก',
       icon: CheckCircle2,
       color: 'text-[var(--success)]',
@@ -42,7 +58,7 @@ export function MetricStrip({
     },
     {
       label: 'วันที่ฝึกฝน',
-      value: `${totalPracticeDays} วัน`,
+      valueComponent: <AnimatedNumber value={totalPracticeDays} suffix=" วัน" />,
       subtext: 'สะสมการเรียนรู้',
       icon: Calendar,
       color: 'text-[var(--accent-amber)]',
@@ -65,7 +81,7 @@ export function MetricStrip({
             <div className="min-w-0">
               <div className="text-xs text-[var(--foreground-muted)] font-medium truncate">{m.label}</div>
               <div className="text-xl sm:text-2xl font-semibold tracking-tight text-[var(--foreground)] mt-0.5">
-                {m.value}
+                {m.valueComponent}
               </div>
               <div className="text-[11px] text-[var(--foreground-muted)] truncate">{m.subtext}</div>
             </div>

@@ -2,16 +2,17 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { safeRedirectPath } from '@/lib/auth/server-guard';
 import {
   getDataStore,
-  resetDataStore,
+  setDataStore,
   getExamAttempt,
   createExamAttemptAction,
   setCurrentSessionUser,
   getAdminQuestions,
 } from '@/lib/db-adapter';
+import { createTestFixtureStore } from './fixtures';
 
 describe('Server-side Authorization & Security Boundaries', () => {
   beforeEach(() => {
-    resetDataStore();
+    setDataStore(createTestFixtureStore());
   });
 
   describe('Open Redirect Protection (safeRedirectPath)', () => {

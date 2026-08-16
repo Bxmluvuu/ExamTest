@@ -21,7 +21,7 @@ export default function ResetPasswordPage() {
 function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get('token') || 'demo_token';
+  const token = searchParams.get('token') || '';
 
   const [newPassword, setNewPassword] = React.useState('');
   const [confirmPassword, setConfirmPassword] = React.useState('');
@@ -33,6 +33,12 @@ function ResetPasswordForm() {
     e.preventDefault();
     setIsLoading(true);
     setError('');
+
+    if (!token) {
+      setError('ไม่พบรหัสโทเค็นสำหรับรีเซ็ตรหัสผ่าน กรุณาขอลิงก์ใหม่จากหน้าลืมรหัสผ่าน');
+      setIsLoading(false);
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
       setError('รหัสผ่านทั้งสองช่องไม่ตรงกัน');
@@ -61,7 +67,7 @@ function ResetPasswordForm() {
         router.push('/login');
       }, 2000);
     } else {
-      setError(res.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ โทเค็นอาจหมดอายุ');
+      setError(res.error || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ โทเค็นอาจหมดอายุหรือถูกใช้ไปแล้ว');
     }
   };
 

@@ -6,6 +6,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DifficultyBadge } from '@/components/ui/status-badge';
+import { PageTransition } from '@/components/ui/page-transition';
+import { ListSkeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import { getBookmarks, toggleBookmarkAction, getCurrentSessionUser } from '@/lib/db-adapter';
 import { Bookmark, Trash2, FileText } from 'lucide-react';
 import type { Bookmark as BookmarkType } from '@/lib/types/database';
@@ -13,6 +16,7 @@ import type { Bookmark as BookmarkType } from '@/lib/types/database';
 export default function BookmarksPage() {
   const [bookmarks, setBookmarks] = React.useState<BookmarkType[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
+  const { showToast } = useToast();
 
   React.useEffect(() => {
     const user = getCurrentSessionUser();
@@ -23,20 +27,35 @@ export default function BookmarksPage() {
     });
   }, []);
 
+  // Optimistic UI for removing bookmark with rollback on error
   const handleRemoveBookmark = async (questionId: string) => {
     const user = getCurrentSessionUser();
-    await toggleBookmarkAction(user.id, questionId);
+    const previousBookmarks = [...bookmarks];
+
+    // Optimistic Update: remove immediately
     setBookmarks(prev => prev.filter(b => b.question_id !== questionId));
+
+    try {
+      await toggleBookmarkAction(user.id, questionId);
+      showToast('ลบข้อสอบออกจากรายการที่บันทึกแล้ว', 'info');
+    } catch (err) {
+      console.error('Failed to remove bookmark:', err);
+      // Rollback
+      setBookmarks(previousBookmarks);
+      showToast('ไม่สามารถลบข้อสอบได้ กรุณาลองใหม่อีกครั้ง', 'error');
+    }
   };
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <LearnerPageHeader
         title="ข้อสอบที่บันทึกไว้ (Bookmarked Questions)"
         description="รายการข้อสอบที่คุณติดดาวไว้สำหรับการทบทวนซ้ำและการทำความเข้าใจเพิ่มเติม"
       />
 
-      {bookmarks.length === 0 ? (
+      {isLoading ? (
+        <ListSkeleton rows={4} />
+      ) : bookmarks.length === 0 ? (
         <EmptyState
           icon={Bookmark}
           title="ยังไม่มีข้อสอบที่บันทึกไว้"
@@ -51,7 +70,7 @@ export default function BookmarksPage() {
             if (!q) return null;
 
             return (
-              <Card key={bm.id} className="p-5 space-y-4 border-[var(--border)]">
+              <Card key={bm.id} className="p-5 space-y-4 border-[var(--border)] motion-slide-up">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded bg-[var(--primary-subtle)] text-xs font-bold text-[var(--primary)] border border-blue-200">
@@ -111,6 +130,6 @@ export default function BookmarksPage() {
           })}
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

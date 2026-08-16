@@ -17,7 +17,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { quickDemoLoginAction, logoutAction } from '@/lib/auth/auth-actions';
+import { logoutAction } from '@/lib/auth/auth-actions';
 import type { Profile } from '@/lib/types/database';
 
 export function LearnerMobileNav({ profile }: { profile: Profile }) {
@@ -124,13 +124,14 @@ export function LearnerMobileNav({ profile }: { profile: Profile }) {
 
             {profile.role === 'admin' && (
               <div className="pt-2 border-t border-[var(--border)]">
-                <button
-                  onClick={() => quickDemoLoginAction('admin', '/admin')}
+                <Link
+                  href="/admin"
+                  onClick={() => setMoreMenuOpen(false)}
                   className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
                 >
                   <ShieldCheck className="h-4 w-4" />
                   <span>เปิดมุมมองผู้ดูแล (Admin Console)</span>
-                </button>
+                </Link>
               </div>
             )}
 

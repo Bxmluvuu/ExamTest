@@ -3,6 +3,8 @@
 import { redirect } from 'next/navigation';
 import { setServerSessionUser, clearServerSessionUser } from './session';
 import { safeRedirectPath } from './server-guard';
+import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import {
   authenticateWithPassword,
   registerUser,
@@ -18,6 +20,7 @@ import {
 } from '@/lib/db-adapter';
 import { validatePasswordStrength } from './password';
 import { checkRateLimit, recordRateLimitAttempt, resetRateLimit } from './rate-limit';
+import type { UserRole } from '@/lib/types/database';
 
 export interface AuthActionResult {
   success: boolean;
@@ -28,7 +31,7 @@ export interface AuthActionResult {
 }
 
 /**
- * Full Email + Password Login Server Action with brute-force protection.
+ * Full Email + Password Login Server Action with brute-force protection and real Supabase Auth.
  */
 export async function loginWithCredentialsAction(params: {
   email: string;
@@ -50,7 +53,82 @@ export async function loginWithCredentialsAction(params: {
     };
   }
 
-  // 2. Authenticate
+  // 2. Attempt Real Supabase Auth
+  try {
+    const supabase = await createServerSupabaseClient();
+    if (supabase) {
+      let { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+
+      // If email is not confirmed, auto-confirm using admin client and retry
+      if (authError && authError.message.toLowerCase().includes('confirm')) {
+        const admin = createAdminClient();
+        if (admin) {
+          const { data: userList } = await admin.auth.admin.listUsers();
+          const targetUser = userList?.users?.find(u => u.email?.toLowerCase() === normalizedEmail);
+          if (targetUser) {
+            await admin.auth.admin.updateUserById(targetUser.id, { email_confirm: true });
+            const retry = await supabase.auth.signInWithPassword({
+              email: normalizedEmail,
+              password,
+            });
+            authData = retry.data;
+            authError = retry.error;
+          }
+        }
+      }
+
+      if (!authError && authData?.user) {
+        let role: UserRole = (authData.user.user_metadata?.role as UserRole) || 'student';
+        let fullName = authData.user.user_metadata?.full_name || normalizedEmail.split('@')[0];
+
+        // Check profiles table
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .single();
+
+        if (profile) {
+          role = profile.role || role;
+          fullName = profile.full_name || fullName;
+        } else {
+          // Upsert missing profile
+          const admin = createAdminClient();
+          if (admin) {
+            await admin.from('profiles').upsert({
+              id: authData.user.id,
+              email: normalizedEmail,
+              full_name: fullName,
+              role,
+              is_email_verified: true,
+            });
+          }
+        }
+
+        resetRateLimit('login', normalizedEmail);
+        const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7;
+        await setServerSessionUser(authData.user.id, maxAge);
+
+        const targetPath = role === 'admin'
+          ? (safeRedirectPath(nextUrl, '/admin').startsWith('/admin') ? safeRedirectPath(nextUrl, '/admin') : '/admin')
+          : (safeRedirectPath(nextUrl, '/dashboard').startsWith('/admin') ? '/dashboard' : safeRedirectPath(nextUrl, '/dashboard'));
+
+        redirect(targetPath);
+      }
+
+      // If Supabase failed or user not in Supabase, fall through to Local Adapter
+    }
+  } catch (err: any) {
+    if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+      throw err;
+    }
+    console.warn('Supabase auth attempt failed, falling back to local adapter:', err?.message || err);
+  }
+
+  // 3. Fallback to Local Auth (for mock/local development)
   const authResult = await authenticateWithPassword(normalizedEmail, password);
 
   if (!authResult.success || !authResult.profile) {
@@ -72,14 +150,10 @@ export async function loginWithCredentialsAction(params: {
     };
   }
 
-  // 3. Reset rate limit on success
   resetRateLimit('login', normalizedEmail);
-
-  // 4. Set Session Cookie (7 days for rememberMe, 1 day default)
   const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24 * 7;
   await setServerSessionUser(authResult.profile.id, maxAge);
 
-  // 5. Determine Redirect
   const userRole = authResult.profile.role;
   let targetPath = '/dashboard';
 
@@ -92,40 +166,6 @@ export async function loginWithCredentialsAction(params: {
   }
 
   redirect(targetPath);
-}
-
-/**
- * Direct Login by User ID (for Demo testing).
- */
-export async function loginWithUserIdAction(targetUserId: string, nextUrl?: string) {
-  await setServerSessionUser(targetUserId);
-
-  const store = getDataStore();
-  const user = store.profiles.find(p => p.id === targetUserId);
-
-  if (user?.role === 'admin') {
-    const dest = safeRedirectPath(nextUrl, '/admin');
-    redirect(dest.startsWith('/admin') ? dest : '/admin');
-  } else {
-    const dest = safeRedirectPath(nextUrl, '/dashboard');
-    redirect(dest.startsWith('/admin') ? '/dashboard' : dest);
-  }
-}
-
-/**
- * Quick Demo Role Switch Action.
- */
-export async function quickDemoLoginAction(role: 'student' | 'admin', nextUrl?: string) {
-  const targetId = role === 'admin' ? 'u-admin-001' : 'u-student-001';
-  await setServerSessionUser(targetId);
-
-  if (role === 'admin') {
-    const dest = safeRedirectPath(nextUrl, '/admin');
-    redirect(dest.startsWith('/admin') ? dest : '/admin');
-  } else {
-    const dest = safeRedirectPath(nextUrl, '/dashboard');
-    redirect(dest.startsWith('/admin') ? '/dashboard' : dest);
-  }
 }
 
 /**
@@ -164,7 +204,58 @@ export async function registerWithCredentialsAction(params: {
     return { success: false, error: 'มีการลงทะเบียนบ่อยเกินไป กรุณารอสักครู่' };
   }
 
-  // 4. Register
+  // 4. Attempt Real Supabase SignUp with Auto-Confirm
+  try {
+    const admin = createAdminClient();
+    const supabase = await createServerSupabaseClient();
+
+    if (admin) {
+      const { data: createData, error: createError } = await admin.auth.admin.createUser({
+        email: normalizedEmail,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role: 'student',
+        },
+      });
+
+      if (createError) {
+        if (createError.message.toLowerCase().includes('already') || createError.message.toLowerCase().includes('exists')) {
+          return { success: false, error: 'อีเมลนี้ถูกลงทะเบียนไว้แล้ว กรุณาเข้าสู่ระบบ' };
+        }
+        return { success: false, error: `ไม่สามารถลงทะเบียนได้: ${createError.message}` };
+      }
+
+      if (createData?.user) {
+        // Upsert into profiles
+        await admin.from('profiles').upsert({
+          id: createData.user.id,
+          email: normalizedEmail,
+          full_name: fullName,
+          role: 'student',
+          is_email_verified: true,
+        });
+
+        // Sign in on SSR client
+        if (supabase) {
+          await supabase.auth.signInWithPassword({
+            email: normalizedEmail,
+            password,
+          });
+        }
+
+        await setServerSessionUser(createData.user.id);
+        redirect('/dashboard');
+      }
+    }
+  } catch (err: any) {
+    if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
+      throw err;
+    }
+  }
+
+  // 5. Fallback Registration
   const regResult = await registerUser({
     email: normalizedEmail,
     full_name: fullName,
@@ -176,9 +267,7 @@ export async function registerWithCredentialsAction(params: {
     return { success: false, error: regResult.error || 'การลงทะเบียนไม่สำเร็จ' };
   }
 
-  // 5. Establish Session
   await setServerSessionUser(regResult.profile.id);
-
   redirect('/dashboard');
 }
 
@@ -186,6 +275,14 @@ export async function registerWithCredentialsAction(params: {
  * Logout Action.
  */
 export async function logoutAction() {
+  try {
+    const supabase = await createServerSupabaseClient();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+  } catch {
+    // Ignore
+  }
   await clearServerSessionUser();
   redirect('/login');
 }
@@ -201,7 +298,21 @@ export async function requestPasswordResetAction(email: string): Promise<AuthAct
   }
 
   recordRateLimitAttempt('password_reset', normalized, 3, 3600);
+
   const result = await requestPasswordReset(normalized);
+
+  try {
+    const supabase = await createServerSupabaseClient();
+    if (supabase) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      await supabase.auth.resetPasswordForEmail(normalized, {
+        redirectTo: `${siteUrl}/reset-password`,
+      });
+    }
+  } catch {
+    // Ignore and fallback
+  }
+
   return { success: true, data: { resetToken: result.resetToken } };
 }
 

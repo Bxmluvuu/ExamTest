@@ -6,6 +6,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { QuestionStatusBadge, DifficultyBadge } from '@/components/ui/status-badge';
 import { QuestionEditModal } from '@/components/admin/question-edit-modal';
+import { PageTransition } from '@/components/ui/page-transition';
+import { TableSkeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/toast';
 import {
   getAdminQuestions,
   updateQuestionStatusAction,
@@ -26,6 +29,7 @@ export default function AdminQuestionsPage() {
   const [questions, setQuestions] = React.useState<Question[]>([]);
   const [total, setTotal] = React.useState(0);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
+  const { showToast } = useToast();
 
   // Filters
   const [search, setSearch] = React.useState('');
@@ -35,6 +39,7 @@ export default function AdminQuestionsPage() {
 
   // Bulk Selection
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [isBatchUpdating, setIsBatchUpdating] = React.useState(false);
 
   // Edit Modal
   const [editingQuestion, setEditingQuestion] = React.useState<Question | null>(null);
@@ -79,11 +84,20 @@ export default function AdminQuestionsPage() {
   };
 
   const handleBatchStatus = async (status: QuestionStatus) => {
-    if (selectedIds.size === 0) return;
-    const user = getCurrentSessionUser();
-    await updateQuestionStatusAction(Array.from(selectedIds), status, user.id);
-    setSelectedIds(new Set());
-    fetchQuestions();
+    if (selectedIds.size === 0 || isBatchUpdating) return;
+    setIsBatchUpdating(true);
+    try {
+      const user = getCurrentSessionUser();
+      await updateQuestionStatusAction(Array.from(selectedIds), status, user.id);
+      showToast(`เปลี่ยนสถานะ ${selectedIds.size} ข้อสอบเป็น "${status}" เรียบร้อยแล้ว`, 'success');
+      setSelectedIds(new Set());
+      fetchQuestions();
+    } catch (err) {
+      console.error('Batch status update error:', err);
+      showToast('ไม่สามารถอัปเดตสถานะข้อสอบได้', 'error');
+    } finally {
+      setIsBatchUpdating(false);
+    }
   };
 
   const user = getCurrentSessionUser();
@@ -92,7 +106,7 @@ export default function AdminQuestionsPage() {
   const reviewCount = questions.filter(q => q.status === 'needs_review').length;
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <AdminPageHeader
         breadcrumbs={[{ label: 'ข้อสอบ' }, { label: 'คลังคำถาม' }]}
         title="คลังคำถามและจัดการข้อสอบ (Question Bank)"
@@ -120,6 +134,7 @@ export default function AdminQuestionsPage() {
               setEditingQuestion(null);
               setIsModalOpen(true);
             }}
+            className="shadow-xs"
           >
             <Plus className="h-4 w-4 mr-1.5" />
             <span>เพิ่มคำถามใหม่</span>
@@ -179,19 +194,38 @@ export default function AdminQuestionsPage() {
 
         {/* Bulk Action Bar (When selected) */}
         {selectedIds.size > 0 && (
-          <div className="p-2.5 rounded bg-[var(--primary-subtle)] border border-blue-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="p-2.5 rounded bg-[var(--primary-subtle)] border border-blue-200 flex flex-wrap items-center justify-between gap-2 text-xs motion-slide-up">
             <span className="font-semibold text-[var(--primary)]">
               เลือกแล้ว {selectedIds.size} รายการ:
             </span>
             <div className="flex items-center gap-1.5">
-              <Button variant="primary" size="sm" className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700" onClick={() => handleBatchStatus('published')}>
+              <Button
+                variant="primary"
+                size="sm"
+                className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700"
+                disabled={isBatchUpdating}
+                isLoading={isBatchUpdating}
+                onClick={() => handleBatchStatus('published')}
+              >
                 <CheckCircle2 className="h-3 w-3 mr-1" />
                 <span>Batch Publish</span>
               </Button>
-              <Button variant="secondary" size="sm" className="h-7 text-xs" onClick={() => handleBatchStatus('approved')}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={isBatchUpdating}
+                onClick={() => handleBatchStatus('approved')}
+              >
                 <span>Batch Approve</span>
               </Button>
-              <Button variant="outline" size="sm" className="h-7 text-xs text-rose-600" onClick={() => handleBatchStatus('retired')}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-rose-600 hover:bg-red-50"
+                disabled={isBatchUpdating}
+                onClick={() => handleBatchStatus('retired')}
+              >
                 <Archive className="h-3 w-3 mr-1" />
                 <span>Batch Retire</span>
               </Button>
@@ -201,93 +235,110 @@ export default function AdminQuestionsPage() {
       </Card>
 
       {/* Questions Data Table */}
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold">
-            รายการคำถาม ({questions.length} จากทั้งหมด {total} ข้อ)
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-t border-[var(--border)]">
-              <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
-                <tr>
-                  <th className="p-3 w-10 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.size === questions.length && questions.length > 0}
-                      onChange={handleSelectAll}
-                      className="rounded cursor-pointer"
-                      aria-label="Select all"
-                    />
-                  </th>
-                  <th className="p-3">โจทย์คำถาม</th>
-                  <th className="p-3">หัวข้อ / บท</th>
-                  <th className="p-3">ความยาก</th>
-                  <th className="p-3">สถานะ</th>
-                  <th className="p-3">Citation</th>
-                  <th className="p-3 text-right">การจัดการ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {questions.map(q => {
-                  const isSelected = selectedIds.has(q.id);
-                  return (
-                    <tr key={q.id} className={cn('hover:bg-[var(--surface-subtle)]/70 transition-colors', isSelected && 'bg-blue-50/40')}>
-                      <td className="p-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => handleToggleSelect(q.id)}
-                          className="rounded cursor-pointer"
-                          aria-label={`Select question ${q.id}`}
-                        />
-                      </td>
-                      <td className="p-3 max-w-sm">
-                        <div className="font-medium text-[var(--foreground)] line-clamp-2">
-                          {q.question_text}
-                        </div>
-                        {q.is_ai_generated && (
-                          <span className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded mt-1 inline-block border border-purple-200">
-                            AI Generated
-                          </span>
-                        )}
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <div className="text-[var(--foreground)]">{q.topic_title || '-'}</div>
-                        <div className="text-[10px] text-[var(--foreground-muted)]">{q.chapter_title}</div>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <DifficultyBadge difficulty={q.difficulty} />
-                      </td>
-                      <td className="p-3 whitespace-nowrap">
-                        <QuestionStatusBadge status={q.status} />
-                      </td>
-                      <td className="p-3 whitespace-nowrap text-[11px] text-[var(--foreground-muted)]">
-                        {q.source ? `${q.source.file_name} (p.${q.source.page_numbers.join(',')})` : '-'}
-                      </td>
-                      <td className="p-3 text-right whitespace-nowrap">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 px-2 text-xs"
-                          onClick={() => {
-                            setEditingQuestion(q);
-                            setIsModalOpen(true);
-                          }}
-                        >
-                          <Edit2 className="h-3.5 w-3.5 mr-1" />
-                          <span>แก้ไข</span>
-                        </Button>
+      {isLoading ? (
+        <TableSkeleton rows={8} cols={7} />
+      ) : (
+        <Card>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold">
+              รายการคำถาม ({questions.length} จากทั้งหมด {total} ข้อ)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-t border-[var(--border)]">
+                <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
+                  <tr>
+                    <th className="p-3 w-10 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.size === questions.length && questions.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded cursor-pointer"
+                        aria-label="Select all"
+                      />
+                    </th>
+                    <th className="p-3">โจทย์คำถาม</th>
+                    <th className="p-3">หัวข้อ / บท</th>
+                    <th className="p-3">ความยาก</th>
+                    <th className="p-3">สถานะ</th>
+                    <th className="p-3">Citation</th>
+                    <th className="p-3 text-right">การจัดการ</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {questions.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-xs text-[var(--foreground-muted)]">
+                        ยังไม่มีคำถามในคลังข้อสอบ (คลิก &quot;เพิ่มคำถามใหม่&quot; หรือใช้ AI Generation Runs เพื่อเริ่มต้น)
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                  ) : (
+                    questions.map(q => {
+                    const isSelected = selectedIds.has(q.id);
+                    return (
+                      <tr
+                        key={q.id}
+                        className={cn(
+                          'hover:bg-[var(--surface-subtle)]/70 transition-colors duration-120',
+                          isSelected && 'bg-blue-50/40'
+                        )}
+                      >
+                        <td className="p-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleToggleSelect(q.id)}
+                            className="rounded cursor-pointer"
+                            aria-label={`Select question ${q.id}`}
+                          />
+                        </td>
+                        <td className="p-3 max-w-sm">
+                          <div className="font-medium text-[var(--foreground)] line-clamp-2">
+                            {q.question_text}
+                          </div>
+                          {q.is_ai_generated && (
+                            <span className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded mt-1 inline-block border border-purple-200">
+                              AI Generated
+                            </span>
+                          )}
+                        </td>
+                        <td className="p-3 whitespace-nowrap">
+                          <div className="text-[var(--foreground)]">{q.topic_title || '-'}</div>
+                          <div className="text-[10px] text-[var(--foreground-muted)]">{q.chapter_title}</div>
+                        </td>
+                        <td className="p-3 whitespace-nowrap">
+                          <DifficultyBadge difficulty={q.difficulty} />
+                        </td>
+                        <td className="p-3 whitespace-nowrap">
+                          <QuestionStatusBadge status={q.status} />
+                        </td>
+                        <td className="p-3 whitespace-nowrap text-[11px] text-[var(--foreground-muted)]">
+                          {q.source ? `${q.source.file_name} (p.${q.source.page_numbers.join(',')})` : '-'}
+                        </td>
+                        <td className="p-3 text-right whitespace-nowrap">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs hover:bg-[var(--surface-subtle)]"
+                            onClick={() => {
+                              setEditingQuestion(q);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            <Edit2 className="h-3.5 w-3.5 mr-1" />
+                            <span>แก้ไข</span>
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  }))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Question Edit / Create Drawer Modal */}
       <QuestionEditModal
@@ -298,6 +349,6 @@ export default function AdminQuestionsPage() {
         adminUserId={user.id}
         subjects={subjects}
       />
-    </div>
+    </PageTransition>
   );
 }

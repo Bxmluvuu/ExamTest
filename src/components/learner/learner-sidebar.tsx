@@ -17,7 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { quickDemoLoginAction, logoutAction } from '@/lib/auth/auth-actions';
+import { logoutAction } from '@/lib/auth/auth-actions';
 import type { Profile } from '@/lib/types/database';
 
 export function LearnerSidebar({ profile }: { profile: Profile }) {
@@ -32,10 +32,6 @@ export function LearnerSidebar({ profile }: { profile: Profile }) {
     { label: 'ผลการเรียน & สถิติ', href: '/analytics', icon: BarChart3 },
     { label: 'ข้อที่บันทึกไว้', href: '/bookmarks', icon: Bookmark },
   ];
-
-  const handleSwitchToAdmin = async () => {
-    await quickDemoLoginAction('admin', '/admin');
-  };
 
   const handleLogout = async () => {
     await logoutAction();
@@ -110,16 +106,16 @@ export function LearnerSidebar({ profile }: { profile: Profile }) {
 
         {/* If Admin is viewing learner app, provide clean return action */}
         {profile.role === 'admin' && (
-          <button
-            onClick={handleSwitchToAdmin}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors cursor-pointer"
+          <Link
+            href="/admin"
+            className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-medium rounded-[var(--radius)] bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-colors"
           >
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" />
               <span>เปิดมุมมองผู้ดูแล (Admin)</span>
             </span>
             <ExternalLink className="h-3 w-3" />
-          </button>
+          </Link>
         )}
 
         <div className="flex gap-1 pt-1">

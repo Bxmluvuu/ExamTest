@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 import { LearnerPageHeader } from '@/components/learner/learner-page-header';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/components/ui/page-transition';
+import { HeaderSkeleton, MetricSkeleton, SectionSkeleton } from '@/components/ui/skeleton';
 import { TopicPerformanceList } from '@/components/learner/topic-performance-list';
 import { getSubjectBySlug, getUserAnalyticsData, getCurrentSessionUser } from '@/lib/db-adapter';
 import {
@@ -47,10 +49,14 @@ export default function SubjectWorkspacePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-8 w-64 bg-[var(--surface-strong)] rounded" />
-        <div className="h-4 w-96 bg-[var(--surface-strong)] rounded" />
-        <div className="h-64 bg-[var(--surface)] rounded border border-[var(--border)]" />
+      <div className="space-y-6 motion-fade-in">
+        <HeaderSkeleton />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <MetricSkeleton />
+          <MetricSkeleton />
+          <MetricSkeleton />
+        </div>
+        <SectionSkeleton className="min-h-[300px]" />
       </div>
     );
   }
@@ -71,7 +77,7 @@ export default function SubjectWorkspacePage() {
   const subTopics = analytics?.topic_accuracies || [];
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       {/* Workspace Header */}
       <LearnerPageHeader
         context={
@@ -84,7 +90,7 @@ export default function SubjectWorkspacePage() {
         title={subject.name}
         description={subject.description}
         actions={
-          <Button asChild variant="primary" size="md" className="bg-blue-600 hover:bg-blue-700">
+          <Button asChild variant="primary" size="md" className="bg-blue-600 hover:bg-blue-700 shadow-xs">
             <Link href={`/practice/new?subjectId=${subject.id}`}>
               <GraduationCap className="h-4 w-4 mr-1.5" />
               <span>เริ่มทำข้อสอบจำลอง</span>
@@ -109,7 +115,7 @@ export default function SubjectWorkspacePage() {
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key as any)}
                 className={cn(
-                  'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-colors cursor-pointer select-none whitespace-nowrap',
+                  'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-all duration-150 cursor-pointer select-none whitespace-nowrap',
                   isActive
                     ? 'border-[var(--primary)] text-[var(--primary)] font-semibold'
                     : 'border-transparent text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:border-[var(--border-strong)]'
@@ -125,7 +131,7 @@ export default function SubjectWorkspacePage() {
 
       {/* TAB 1: ภาพรวม (Overview) */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
+        <div className="space-y-6 motion-fade-in">
           {/* Quick Metric Bar */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card className="p-4">
@@ -152,7 +158,7 @@ export default function SubjectWorkspacePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {chapters.map((ch) => (
-                <div key={ch.id} className="p-4 rounded-[var(--radius)] bg-[var(--surface-subtle)] border border-[var(--border)]">
+                <div key={ch.id} className="p-4 rounded-[var(--radius)] bg-[var(--surface-subtle)] border border-[var(--border)] transition-colors hover:border-[var(--border-strong)]">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex items-center gap-2">
                       <span className="h-6 w-6 rounded bg-[var(--primary-subtle)] text-[var(--primary)] font-bold text-xs flex items-center justify-center">
@@ -191,7 +197,7 @@ export default function SubjectWorkspacePage() {
 
       {/* TAB 2: เนื้อหา & สไลด์ (Materials) */}
       {activeTab === 'materials' && (
-        <div className="space-y-4">
+        <div className="space-y-4 motion-fade-in">
           <div className="flex items-center justify-between">
             <p className="text-xs text-[var(--foreground-muted)]">
               เอกสารประกอบการสอนในระบบ Private Storage พร้อมระบบตรวจจับความสมบูรณ์ OCR
@@ -200,7 +206,7 @@ export default function SubjectWorkspacePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {documents.map(doc => (
-              <Card key={doc.id} className="flex flex-col">
+              <Card key={doc.id} className="flex flex-col hover:border-[var(--border-strong)] transition-all">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="h-9 w-9 rounded-md bg-[var(--primary-subtle)] text-[var(--primary)] flex items-center justify-center font-bold">
@@ -230,7 +236,7 @@ export default function SubjectWorkspacePage() {
                   <span className="text-xs text-[var(--foreground-muted)]">
                     Private Secure PDF
                   </span>
-                  <Button asChild variant="primary" size="sm">
+                  <Button asChild variant="primary" size="sm" className="bg-blue-600 hover:bg-blue-700">
                     <Link href={`/subjects/${subject.slug}/materials/${doc.id}`}>
                       <span>เปิดอ่านเอกสาร</span>
                       <ArrowRight className="h-3.5 w-3.5 ml-1" />
@@ -245,9 +251,9 @@ export default function SubjectWorkspacePage() {
 
       {/* TAB 3: แบบฝึกหัด & Blueprint (Practice) */}
       {activeTab === 'practice' && (
-        <div className="space-y-6">
+        <div className="space-y-6 motion-fade-in">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="p-5 flex flex-col justify-between border-blue-200 bg-blue-50/20">
+            <Card className="p-5 flex flex-col justify-between border-blue-200 bg-blue-50/20 hover:border-blue-300 transition-all">
               <div className="space-y-2">
                 <div className="h-9 w-9 rounded bg-[var(--primary)] text-white flex items-center justify-center font-bold">
                   <GraduationCap className="h-5 w-5" />
@@ -264,7 +270,7 @@ export default function SubjectWorkspacePage() {
               </Button>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between">
+            <Card className="p-5 flex flex-col justify-between hover:border-[var(--border-strong)] transition-all">
               <div className="space-y-2">
                 <div className="h-9 w-9 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
                   <Layers className="h-5 w-5" />
@@ -281,7 +287,7 @@ export default function SubjectWorkspacePage() {
               </Button>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between">
+            <Card className="p-5 flex flex-col justify-between hover:border-[var(--border-strong)] transition-all">
               <div className="space-y-2">
                 <div className="h-9 w-9 rounded bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                   <Zap className="h-5 w-5" />
@@ -298,7 +304,7 @@ export default function SubjectWorkspacePage() {
               </Button>
             </Card>
 
-            <Card className="p-5 flex flex-col justify-between">
+            <Card className="p-5 flex flex-col justify-between hover:border-[var(--border-strong)] transition-all">
               <div className="space-y-2">
                 <div className="h-9 w-9 rounded bg-rose-50 text-rose-600 flex items-center justify-center font-bold">
                   <Clock className="h-5 w-5" />
@@ -351,10 +357,10 @@ export default function SubjectWorkspacePage() {
 
       {/* TAB 4: ผลการเรียน (Subject Analytics) */}
       {activeTab === 'analytics' && (
-        <div className="space-y-6">
+        <div className="space-y-6 motion-fade-in">
           <TopicPerformanceList topics={subTopics} />
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

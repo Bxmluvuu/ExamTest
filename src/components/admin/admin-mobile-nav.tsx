@@ -22,7 +22,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { quickDemoLoginAction, logoutAction } from '@/lib/auth/auth-actions';
+import { logoutAction } from '@/lib/auth/auth-actions';
 import type { Profile } from '@/lib/types/database';
 
 export function AdminMobileNav({ profile }: { profile: Profile }) {
@@ -123,16 +123,14 @@ export function AdminMobileNav({ profile }: { profile: Profile }) {
             </nav>
 
             <div className="pt-3 border-t border-[var(--border)] space-y-2">
-              <button
-                onClick={() => {
-                  quickDemoLoginAction('student', '/dashboard');
-                  setDrawerOpen(false);
-                }}
+              <Link
+                href="/dashboard"
+                onClick={() => setDrawerOpen(false)}
                 className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold bg-[var(--primary)] text-white"
               >
                 <GraduationCap className="h-4 w-4" />
                 <span>เปิดมุมมองผู้เรียน (Learner View)</span>
-              </button>
+              </Link>
 
               <button
                 onClick={() => {

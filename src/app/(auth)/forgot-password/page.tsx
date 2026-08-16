@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { requestPasswordResetAction } from '@/lib/auth/auth-actions';
-import { CheckCircle2, ArrowLeft, Mail, AlertCircle, KeyRound, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ArrowLeft, Mail, AlertCircle, KeyRound } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSent, setIsSent] = React.useState(false);
   const [error, setError] = React.useState('');
-  const [generatedResetToken, setGeneratedResetToken] = React.useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,9 +23,6 @@ export default function ForgotPasswordPage() {
 
     if (res.success) {
       setIsSent(true);
-      if (res.data?.resetToken) {
-        setGeneratedResetToken(res.data.resetToken);
-      }
     } else {
       setError(res.error || 'เกิดข้อผิดพลาดในการส่งคำขอ');
     }
@@ -59,21 +55,6 @@ export default function ForgotPasswordPage() {
               หากอีเมล <strong>{email}</strong> มีอยู่ในระบบ คุณจะได้รับลิงก์สำหรับตั้งรหัสผ่านใหม่ทางอีเมล
             </p>
           </div>
-
-          {/* Dev/Demo direct reset link */}
-          {generatedResetToken && (
-            <div className="p-3 rounded-lg bg-[var(--surface-subtle)] border border-[var(--border)] text-xs text-left space-y-2">
-              <div className="text-[11px] font-semibold text-[var(--primary)] uppercase">
-                ลิงก์รีเซ็ตรหัสผ่านสำหรับทดสอบ (Demo Reset Link):
-              </div>
-              <Button asChild variant="primary" size="sm" className="w-full text-xs">
-                <Link href={`/reset-password?token=${generatedResetToken}`}>
-                  <span>เปิดหน้ารีเซ็ตรหัสผ่าน</span>
-                  <ExternalLink className="h-3 w-3 ml-1" />
-                </Link>
-              </Button>
-            </div>
-          )}
 
           <div className="pt-2">
             <Button asChild variant="outline" size="sm" className="w-full">

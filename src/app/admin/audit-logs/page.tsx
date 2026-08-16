@@ -3,9 +3,11 @@
 import * as React from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { PageTransition } from '@/components/ui/page-transition';
+import { TableSkeleton } from '@/components/ui/skeleton';
 import { getAdminAuditLogs, getAuthAuditLogs } from '@/lib/db-adapter';
 import { formatThaiDate, cn } from '@/lib/utils';
-import { FileSpreadsheet, ShieldAlert, Search, Key, UserCheck, Lock } from 'lucide-react';
+import { FileSpreadsheet, ShieldAlert, Search } from 'lucide-react';
 import type { AdminAuditLog, AuthAuditLog } from '@/lib/types/database';
 
 export default function AdminAuditLogsPage() {
@@ -13,10 +15,18 @@ export default function AdminAuditLogsPage() {
   const [adminLogs, setAdminLogs] = React.useState<AdminAuditLog[]>([]);
   const [authLogs, setAuthLogs] = React.useState<AuthAuditLog[]>([]);
   const [search, setSearch] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    getAdminAuditLogs().then(setAdminLogs);
-    getAuthAuditLogs().then(setAuthLogs);
+    setIsLoading(true);
+    Promise.all([
+      getAdminAuditLogs(),
+      getAuthAuditLogs(),
+    ]).then(([admRes, authRes]) => {
+      setAdminLogs(admRes);
+      setAuthLogs(authRes);
+      setIsLoading(false);
+    });
   }, []);
 
   const filteredAdmin = adminLogs.filter(l => {
@@ -40,7 +50,7 @@ export default function AdminAuditLogsPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <AdminPageHeader
         breadcrumbs={[{ label: 'ระบบ' }, { label: 'Audit Logs' }]}
         title="บันทึกประวัติการทำงานและความปลอดภัย (Audit Logs)"
@@ -58,7 +68,7 @@ export default function AdminAuditLogsPage() {
           <button
             onClick={() => setActiveTab('content')}
             className={cn(
-              'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-colors cursor-pointer select-none whitespace-nowrap',
+              'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-all duration-150 cursor-pointer select-none whitespace-nowrap',
               activeTab === 'content'
                 ? 'border-[var(--primary)] text-[var(--primary)] font-semibold'
                 : 'border-transparent text-[var(--foreground-secondary)] hover:text-[var(--foreground)]'
@@ -71,7 +81,7 @@ export default function AdminAuditLogsPage() {
           <button
             onClick={() => setActiveTab('auth')}
             className={cn(
-              'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-colors cursor-pointer select-none whitespace-nowrap',
+              'flex items-center gap-2 py-3 px-1 border-b-2 font-medium transition-all duration-150 cursor-pointer select-none whitespace-nowrap',
               activeTab === 'auth'
                 ? 'border-[var(--primary)] text-[var(--primary)] font-semibold'
                 : 'border-transparent text-[var(--foreground-secondary)] hover:text-[var(--foreground)]'
@@ -103,113 +113,121 @@ export default function AdminAuditLogsPage() {
 
       {/* Content Logs Tab */}
       {activeTab === 'content' && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">รายการบันทึกการจัดการเนื้อหา ({filteredAdmin.length} รายการ)</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-t border-[var(--border)]">
-                <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
-                  <tr>
-                    <th className="p-3">วันเวลา</th>
-                    <th className="p-3">ผู้ปฏิบัติงาน</th>
-                    <th className="p-3">Action</th>
-                    <th className="p-3">Entity</th>
-                    <th className="p-3">Target ID</th>
-                    <th className="p-3">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border)]">
-                  {filteredAdmin.map(log => (
-                    <tr key={log.id} className="hover:bg-[var(--surface-subtle)]">
-                      <td className="p-3 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
-                        {formatThaiDate(log.created_at)}
-                      </td>
-                      <td className="p-3 font-medium whitespace-nowrap">
-                        {log.admin_email || 'admin@example.com'}
-                      </td>
-                      <td className="p-3 font-semibold text-[var(--foreground)] whitespace-nowrap">
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-[var(--primary)] border border-blue-200 font-mono text-[11px]">
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">{log.target_entity}</td>
-                      <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
-                        {log.target_id}
-                      </td>
-                      <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] max-w-xs truncate">
-                        {JSON.stringify(log.details)}
-                      </td>
+        isLoading ? (
+          <TableSkeleton rows={8} cols={6} />
+        ) : (
+          <Card className="motion-fade-in">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold">รายการบันทึกการจัดการเนื้อหา ({filteredAdmin.length} รายการ)</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-t border-[var(--border)]">
+                  <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
+                    <tr>
+                      <th className="p-3">วันเวลา</th>
+                      <th className="p-3">ผู้ปฏิบัติงาน</th>
+                      <th className="p-3">Action</th>
+                      <th className="p-3">Entity</th>
+                      <th className="p-3">Target ID</th>
+                      <th className="p-3">Details</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {filteredAdmin.map(log => (
+                      <tr key={log.id} className="hover:bg-[var(--surface-subtle)] transition-colors duration-120">
+                        <td className="p-3 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
+                          {formatThaiDate(log.created_at)}
+                        </td>
+                        <td className="p-3 font-medium whitespace-nowrap">
+                          {log.admin_email || 'admin@example.com'}
+                        </td>
+                        <td className="p-3 font-semibold text-[var(--foreground)] whitespace-nowrap">
+                          <span className="px-2 py-0.5 rounded bg-blue-50 text-[var(--primary)] border border-blue-200 font-mono text-[11px]">
+                            {log.action}
+                          </span>
+                        </td>
+                        <td className="p-3 whitespace-nowrap">{log.target_entity}</td>
+                        <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
+                          {log.target_id}
+                        </td>
+                        <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] max-w-xs truncate">
+                          {JSON.stringify(log.details)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )
       )}
 
       {/* Auth Security Logs Tab */}
       {activeTab === 'auth' && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">รายการบันทึกความปลอดภัยและการยืนยันตัวตน ({filteredAuth.length} รายการ)</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left border-t border-[var(--border)]">
-                <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
-                  <tr>
-                    <th className="p-3">วันเวลา</th>
-                    <th className="p-3">เหตุการณ์ (Event)</th>
-                    <th className="p-3">อีเมลเป้าหมาย</th>
-                    <th className="p-3">IP Address</th>
-                    <th className="p-3">User Agent</th>
-                    <th className="p-3">Metadata</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[var(--border)]">
-                  {filteredAuth.map(log => {
-                    const isSuccess = log.event_type.includes('success');
-                    const isFailure = log.event_type.includes('failed') || log.event_type.includes('locked');
+        isLoading ? (
+          <TableSkeleton rows={8} cols={6} />
+        ) : (
+          <Card className="motion-fade-in">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold">รายการบันทึกความปลอดภัยและการยืนยันตัวตน ({filteredAuth.length} รายการ)</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs text-left border-t border-[var(--border)]">
+                  <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
+                    <tr>
+                      <th className="p-3">วันเวลา</th>
+                      <th className="p-3">เหตุการณ์ (Event)</th>
+                      <th className="p-3">อีเมลเป้าหมาย</th>
+                      <th className="p-3">IP Address</th>
+                      <th className="p-3">User Agent</th>
+                      <th className="p-3">Metadata</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[var(--border)]">
+                    {filteredAuth.map(log => {
+                      const isSuccess = log.event_type.includes('success');
+                      const isFailure = log.event_type.includes('failed') || log.event_type.includes('locked');
 
-                    return (
-                      <tr key={log.id} className="hover:bg-[var(--surface-subtle)]">
-                        <td className="p-3 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
-                          {formatThaiDate(log.created_at)}
-                        </td>
-                        <td className="p-3 font-semibold whitespace-nowrap">
-                          <span className={cn(
-                            'px-2 py-0.5 rounded font-mono text-[11px] border',
-                            isSuccess && 'bg-emerald-50 text-emerald-700 border-emerald-200',
-                            isFailure && 'bg-rose-50 text-rose-700 border-rose-200',
-                            !isSuccess && !isFailure && 'bg-purple-50 text-purple-700 border-purple-200'
-                          )}>
-                            {log.event_type}
-                          </span>
-                        </td>
-                        <td className="p-3 font-medium whitespace-nowrap">
-                          {log.email || '-'}
-                        </td>
-                        <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
-                          {log.ip_address || '127.0.0.1'}
-                        </td>
-                        <td className="p-3 text-[11px] text-[var(--foreground-muted)] max-w-[200px] truncate">
-                          {log.user_agent || 'Browser'}
-                        </td>
-                        <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] max-w-xs truncate">
-                          {JSON.stringify(log.metadata)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                      return (
+                        <tr key={log.id} className="hover:bg-[var(--surface-subtle)] transition-colors duration-120">
+                          <td className="p-3 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
+                            {formatThaiDate(log.created_at)}
+                          </td>
+                          <td className="p-3 font-semibold whitespace-nowrap">
+                            <span className={cn(
+                              'px-2 py-0.5 rounded font-mono text-[11px] border',
+                              isSuccess && 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                              isFailure && 'bg-rose-50 text-rose-700 border-rose-200',
+                              !isSuccess && !isFailure && 'bg-purple-50 text-purple-700 border-purple-200'
+                            )}>
+                              {log.event_type}
+                            </span>
+                          </td>
+                          <td className="p-3 font-medium whitespace-nowrap">
+                            {log.email || '-'}
+                          </td>
+                          <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
+                            {log.ip_address || '127.0.0.1'}
+                          </td>
+                          <td className="p-3 text-[11px] text-[var(--foreground-muted)] max-w-[200px] truncate">
+                            {log.user_agent || 'Browser'}
+                          </td>
+                          <td className="p-3 font-mono text-[11px] text-[var(--foreground-muted)] max-w-xs truncate">
+                            {JSON.stringify(log.metadata)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )
       )}
-    </div>
+    </PageTransition>
   );
 }

@@ -4,11 +4,10 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { loginWithCredentialsAction, quickDemoLoginAction } from '@/lib/auth/auth-actions';
-import { GraduationCap, ArrowRight, ShieldCheck, AlertCircle, Lock, Mail } from 'lucide-react';
-
+import { loginWithCredentialsAction } from '@/lib/auth/auth-actions';
+import { createClient } from '@/lib/supabase/client';
+import { GraduationCap, ArrowRight, AlertCircle, Lock, Mail } from 'lucide-react';
 export default function LoginPage() {
   return (
     <React.Suspense fallback={<div className="text-center text-xs text-[var(--foreground-muted)]">กำลังโหลดหน้าเข้าสู่ระบบ...</div>}>
@@ -22,22 +21,21 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const nextParam = searchParams.get('next');
 
-  const [email, setEmail] = React.useState('student@example.com');
-  const [password, setPassword] = React.useState('password123');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
   const [rememberMe, setRememberMe] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState('');
   const [isLocked, setIsLocked] = React.useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const performLogin = async (targetEmail: string, targetPass: string) => {
     setIsLoading(true);
     setError('');
 
     try {
       const res = await loginWithCredentialsAction({
-        email,
-        password,
+        email: targetEmail,
+        password: targetPass,
         rememberMe,
         nextUrl: nextParam || undefined,
       });
@@ -57,24 +55,36 @@ function LoginForm() {
     }
   };
 
-  const handleQuickDemo = async (role: 'student' | 'admin') => {
-    setIsLoading(true);
-    try {
-      await quickDemoLoginAction(role, nextParam || undefined);
-    } catch (err: any) {
-      if (err?.message?.includes('NEXT_REDIRECT') || err?.digest?.includes('NEXT_REDIRECT')) {
-        return;
-      }
-      setIsLoading(false);
-    }
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await performLogin(email, password);
   };
 
-  const handleGoogleOAuth = () => {
-    // Simulated Google OAuth provider flow
+  const handleGoogleOAuth = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      quickDemoLoginAction('student', nextParam || undefined);
-    }, 600);
+    setError('');
+    try {
+      const supabase = createClient();
+      if (supabase) {
+        const siteUrl = window.location.origin;
+        const { error: oauthErr } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(nextParam || '/dashboard')}`,
+          },
+        });
+        if (oauthErr) {
+          setError(oauthErr.message || 'ไม่สามารถเข้าสู่ระบบด้วย Google ได้');
+          setIsLoading(false);
+        }
+      } else {
+        setError('ระบบ Google OAuth ยังไม่ได้เปิดใช้งาน กรุณาเข้าสู่ระบบด้วยอีเมลและรหัสผ่าน');
+        setIsLoading(false);
+      }
+    } catch {
+      setError('เกิดข้อผิดพลาดในการเชื่อมต่อ Google OAuth');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,11 +104,14 @@ function LoginForm() {
       <form onSubmit={handleLogin}>
         <CardContent className="space-y-3.5">
           {error && (
-            <div className={`p-3 rounded-lg text-xs border flex items-start gap-2 ${
-              isLocked
-                ? 'bg-red-50 text-red-800 border-red-200'
-                : 'bg-rose-50 text-rose-700 border-rose-200'
-            }`}>
+            <div
+              role="alert"
+              className={`p-3 rounded-lg text-xs border flex items-start gap-2 ${
+                isLocked
+                  ? 'bg-red-50 text-red-800 border-red-200'
+                  : 'bg-rose-50 text-rose-700 border-rose-200'
+              }`}
+            >
               {isLocked ? (
                 <Lock className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
               ) : (
@@ -107,7 +120,6 @@ function LoginForm() {
               <div className="flex-1 leading-relaxed">{error}</div>
             </div>
           )}
-
           <div>
             <label className="block text-xs font-semibold text-[var(--foreground)] mb-1">
               อีเมล (Email Address)
@@ -214,30 +226,6 @@ function LoginForm() {
             </svg>
             <span>ดำเนินการต่อด้วย Google</span>
           </button>
-
-          {/* Quick Demo Access Bar */}
-          <div className="pt-3 border-t border-[var(--border)] space-y-2">
-            <div className="text-[11px] font-semibold text-[var(--foreground-muted)] uppercase text-center">
-              ทดสอบระบบด้วยบัญชีตัวอย่าง
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('student')}
-                className="p-2.5 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] hover:bg-[var(--surface-strong)] text-xs text-center font-medium cursor-pointer transition-colors"
-              >
-                👤 เข้าเป็น Student
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('admin')}
-                className="p-2.5 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-800 text-xs text-center font-semibold cursor-pointer transition-colors flex items-center justify-center gap-1"
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>เข้าเป็น Admin</span>
-              </button>
-            </div>
-          </div>
         </CardContent>
 
         <CardFooter className="flex justify-center border-t border-[var(--border)] pt-4 text-xs text-[var(--foreground-muted)]">

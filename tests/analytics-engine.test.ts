@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { computeUserAnalytics } from '@/lib/analytics-engine';
-import { createInitialSeedData } from '@/lib/mock-data/seed-store';
+import { createTestFixtureStore } from './fixtures';
 
 describe('Analytics Engine', () => {
   it('computes accuracy, coverage, and deterministic recommendations', () => {
-    const store = createInitialSeedData();
+    const store = createTestFixtureStore();
     const analytics = computeUserAnalytics(
       'u-student-001',
       store.exam_attempts,

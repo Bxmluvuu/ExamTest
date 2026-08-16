@@ -5,20 +5,17 @@ import Link from 'next/link';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/components/ui/page-transition';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { MetricSkeleton, TableSkeleton } from '@/components/ui/skeleton';
 import {
-  ShieldAlert,
   Database,
   Sliders,
-  FileText,
   Sparkles,
-  BookOpen,
-  CheckCircle2,
-  AlertTriangle,
   ArrowRight,
-  Flag,
   FileSpreadsheet,
 } from 'lucide-react';
-import { getDataStore, getAdminAuditLogs, getCurrentSessionUser } from '@/lib/db-adapter';
+import { getDataStore, getAdminAuditLogs } from '@/lib/db-adapter';
 import { formatThaiDate } from '@/lib/utils';
 import type { AdminAuditLog } from '@/lib/types/database';
 
@@ -35,8 +32,10 @@ export default function AdminOverviewPage() {
   });
 
   const [logs, setLogs] = React.useState<AdminAuditLog[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
+    setIsLoading(true);
     const store = getDataStore();
     const questions = store.questions;
     setStats({
@@ -49,11 +48,14 @@ export default function AdminOverviewPage() {
       totalBlueprints: store.exam_blueprints.length,
       flaggedCount: store.question_quality_flags.filter(f => !f.is_resolved).length,
     });
-    getAdminAuditLogs().then(setLogs);
+    getAdminAuditLogs().then(res => {
+      setLogs(res);
+      setIsLoading(false);
+    });
   }, []);
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <AdminPageHeader
         title="ภาพรวมระบบ (System Overview)"
         subtitle="ศูนย์ควบคุมการจัดการเนื้อหา คลังคำถาม และสถานะการประมวลผล AI Pipeline ทั่วทั้งระบบ"
@@ -70,7 +72,7 @@ export default function AdminOverviewPage() {
                 <span>คลังคำถาม</span>
               </Link>
             </Button>
-            <Button asChild variant="primary" size="sm" className="bg-purple-600 hover:bg-purple-700">
+            <Button asChild variant="primary" size="sm" className="bg-purple-600 hover:bg-purple-700 shadow-xs">
               <Link href="/admin/generation-runs">
                 <Sparkles className="h-3.5 w-3.5 mr-1" />
                 <span>รัน AI Pipeline</span>
@@ -81,33 +83,50 @@ export default function AdminOverviewPage() {
       />
 
       {/* Operational Metrics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="text-xs text-[var(--foreground-muted)] font-medium">คำถามทั้งหมดในคลัง</div>
-          <div className="text-2xl font-bold text-[var(--foreground)] mt-1">{stats.totalQuestions} ข้อ</div>
-          <div className="text-[11px] text-[var(--primary)] font-semibold mt-0.5">
-            {stats.publishedCount} ข้อ เผยแพร่แล้ว (Published)
-          </div>
-        </Card>
+      {isLoading ? (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricSkeleton />
+          <MetricSkeleton />
+          <MetricSkeleton />
+          <MetricSkeleton />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 hover:border-[var(--border-strong)] transition-colors">
+            <div className="text-xs text-[var(--foreground-muted)] font-medium">คำถามทั้งหมดในคลัง</div>
+            <div className="text-2xl font-bold text-[var(--foreground)] mt-1">
+              <AnimatedNumber value={stats.totalQuestions} suffix=" ข้อ" />
+            </div>
+            <div className="text-[11px] text-[var(--primary)] font-semibold mt-0.5">
+              {stats.publishedCount} ข้อ เผยแพร่แล้ว (Published)
+            </div>
+          </Card>
 
-        <Card className="p-4">
-          <div className="text-xs text-[var(--foreground-muted)] font-medium">รอการตรวจสอบ (Review Queue)</div>
-          <div className="text-2xl font-bold text-amber-600 mt-1">{stats.reviewCount + stats.draftCount} ข้อ</div>
-          <div className="text-[11px] text-[var(--foreground-muted)]">AI Draft {stats.draftCount} • Review {stats.reviewCount}</div>
-        </Card>
+          <Card className="p-4 hover:border-[var(--border-strong)] transition-colors">
+            <div className="text-xs text-[var(--foreground-muted)] font-medium">รอการตรวจสอบ (Review Queue)</div>
+            <div className="text-2xl font-bold text-amber-600 mt-1">
+              <AnimatedNumber value={stats.reviewCount + stats.draftCount} suffix=" ข้อ" />
+            </div>
+            <div className="text-[11px] text-[var(--foreground-muted)]">AI Draft {stats.draftCount} • Review {stats.reviewCount}</div>
+          </Card>
 
-        <Card className="p-4">
-          <div className="text-xs text-[var(--foreground-muted)] font-medium">เอกสารสไลด์ในคลัง (PDFs)</div>
-          <div className="text-2xl font-bold text-[var(--foreground)] mt-1">{stats.totalDocuments} ฉบับ</div>
-          <div className="text-[11px] text-[var(--success)] font-medium">✓ OCR Verified Ready</div>
-        </Card>
+          <Card className="p-4 hover:border-[var(--border-strong)] transition-colors">
+            <div className="text-xs text-[var(--foreground-muted)] font-medium">เอกสารสไลด์ในคลัง (PDFs)</div>
+            <div className="text-2xl font-bold text-[var(--foreground)] mt-1">
+              <AnimatedNumber value={stats.totalDocuments} suffix=" ฉบับ" />
+            </div>
+            <div className="text-[11px] text-[var(--success)] font-medium">✓ OCR Verified Ready</div>
+          </Card>
 
-        <Card className="p-4">
-          <div className="text-xs text-[var(--foreground-muted)] font-medium">Exam Blueprints</div>
-          <div className="text-2xl font-bold text-[var(--foreground)] mt-1">{stats.totalBlueprints} พิมพ์เขียว</div>
-          <div className="text-[11px] text-[var(--foreground-muted)]">พร้อมจำลองการสอบ</div>
-        </Card>
-      </div>
+          <Card className="p-4 hover:border-[var(--border-strong)] transition-colors">
+            <div className="text-xs text-[var(--foreground-muted)] font-medium">Exam Blueprints</div>
+            <div className="text-2xl font-bold text-[var(--foreground)] mt-1">
+              <AnimatedNumber value={stats.totalBlueprints} suffix=" พิมพ์เขียว" />
+            </div>
+            <div className="text-[11px] text-[var(--foreground-muted)]">พร้อมจำลองการสอบ</div>
+          </Card>
+        </div>
+      )}
 
       {/* Admin Quick Action Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -167,51 +186,63 @@ export default function AdminOverviewPage() {
       </div>
 
       {/* Audit Log Table */}
-      <Card>
-        <CardHeader className="pb-3 flex flex-row items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
-            <span>บันทึกการทำงานของระบบ (Admin Audit Logs)</span>
-          </CardTitle>
-          <Link href="/admin/audit-logs" className="text-xs text-[var(--primary)] hover:underline">
-            ดูทั้งหมด ({logs.length})
-          </Link>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left border-t border-[var(--border)]">
-              <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
-                <tr>
-                  <th className="px-3 py-2.5">วันเวลา</th>
-                  <th className="px-3 py-2.5">การกระทำ (Action)</th>
-                  <th className="px-3 py-2.5">เอนทิตี (Entity)</th>
-                  <th className="px-3 py-2.5">รหัสเป้าหมาย</th>
-                  <th className="px-3 py-2.5">รายละเอียด</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {logs.slice(0, 5).map(log => (
-                  <tr key={log.id} className="hover:bg-[var(--surface-subtle)]">
-                    <td className="px-3 py-2.5 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
-                      {formatThaiDate(log.created_at)}
-                    </td>
-                    <td className="px-3 py-2.5 font-semibold text-[var(--foreground)] whitespace-nowrap">
-                      {log.action}
-                    </td>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{log.target_entity}</td>
-                    <td className="px-3 py-2.5 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
-                      {log.target_id}
-                    </td>
-                    <td className="px-3 py-2.5 text-[var(--foreground-muted)] truncate max-w-xs">
-                      {JSON.stringify(log.details)}
-                    </td>
+      {isLoading ? (
+        <TableSkeleton rows={5} cols={5} />
+      ) : (
+        <Card>
+          <CardHeader className="pb-3 flex flex-row items-center justify-between">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <FileSpreadsheet className="h-4 w-4 text-[var(--primary)]" />
+              <span>บันทึกการทำงานของระบบ (Admin Audit Logs)</span>
+            </CardTitle>
+            <Link href="/admin/audit-logs" className="text-xs text-[var(--primary)] hover:underline">
+              ดูทั้งหมด ({logs.length})
+            </Link>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left border-t border-[var(--border)]">
+                <thead className="bg-[var(--surface-subtle)] text-[var(--foreground-muted)] uppercase border-b border-[var(--border)]">
+                  <tr>
+                    <th className="px-3 py-2.5">วันเวลา</th>
+                    <th className="px-3 py-2.5">การกระทำ (Action)</th>
+                    <th className="px-3 py-2.5">เอนทิตี (Entity)</th>
+                    <th className="px-3 py-2.5">รหัสเป้าหมาย</th>
+                    <th className="px-3 py-2.5">รายละเอียด</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]">
+                  {logs.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-3 py-6 text-center text-xs text-[var(--foreground-muted)]">
+                        ยังไม่มีประวัติการทำงานในระบบ
+                      </td>
+                    </tr>
+                  ) : (
+                    logs.slice(0, 5).map(log => (
+                      <tr key={log.id} className="hover:bg-[var(--surface-subtle)] transition-colors">
+                        <td className="px-3 py-2.5 font-mono text-[var(--foreground-muted)] whitespace-nowrap">
+                          {formatThaiDate(log.created_at)}
+                        </td>
+                        <td className="px-3 py-2.5 font-semibold text-[var(--foreground)] whitespace-nowrap">
+                          {log.action}
+                        </td>
+                        <td className="px-3 py-2.5 whitespace-nowrap">{log.target_entity}</td>
+                        <td className="px-3 py-2.5 font-mono text-[11px] text-[var(--foreground-muted)] whitespace-nowrap">
+                          {log.target_id}
+                        </td>
+                        <td className="px-3 py-2.5 text-[var(--foreground-muted)] truncate max-w-xs">
+                          {JSON.stringify(log.details)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </PageTransition>
   );
 }

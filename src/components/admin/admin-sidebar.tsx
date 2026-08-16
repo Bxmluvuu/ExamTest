@@ -21,7 +21,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { quickDemoLoginAction, logoutAction } from '@/lib/auth/auth-actions';
+import { logoutAction } from '@/lib/auth/auth-actions';
 import type { Profile } from '@/lib/types/database';
 
 interface AdminNavItem {
@@ -76,10 +76,6 @@ export function AdminSidebar({ profile }: { profile: Profile }) {
       ],
     },
   ];
-
-  const handleSwitchToLearner = async () => {
-    await quickDemoLoginAction('student', '/dashboard');
-  };
 
   const handleLogout = async () => {
     await logoutAction();
@@ -161,16 +157,16 @@ export function AdminSidebar({ profile }: { profile: Profile }) {
         </div>
 
         {/* Action: เปิดมุมมองผู้เรียน */}
-        <button
-          onClick={handleSwitchToLearner}
-          className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-[var(--radius)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors shadow-xs cursor-pointer"
+        <Link
+          href="/dashboard"
+          className="w-full flex items-center justify-between px-2.5 py-1.5 text-xs font-semibold rounded-[var(--radius)] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors shadow-xs"
         >
           <span className="flex items-center gap-1.5">
             <GraduationCap className="h-3.5 w-3.5" />
             <span>เปิดมุมมองผู้เรียน</span>
           </span>
           <ExternalLink className="h-3 w-3 opacity-80" />
-        </button>
+        </Link>
 
         {/* Logout */}
         <button

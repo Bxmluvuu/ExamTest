@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { LearnerPageHeader } from '@/components/learner/learner-page-header';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/components/ui/page-transition';
+import { FormSkeleton } from '@/components/ui/skeleton';
 import {
   GraduationCap,
   Layers,
@@ -25,7 +27,7 @@ import type { Subject, ExamMode, QuestionDifficulty, Chapter, Topic } from '@/li
 
 export default function ExamSetupPage() {
   return (
-    <React.Suspense fallback={<div className="p-8 text-center text-xs text-[var(--foreground-muted)]">กำลังเตรียมหน้าต่างตั้งค่าการสอบ...</div>}>
+    <React.Suspense fallback={<div className="max-w-4xl mx-auto space-y-6"><FormSkeleton fields={4} /></div>}>
       <ExamSetupForm />
     </React.Suspense>
   );
@@ -81,7 +83,7 @@ function ExamSetupForm() {
   }, [selectedSubjectId]);
 
   const handleStartExam = async () => {
-    if (!selectedSubjectId) return;
+    if (!selectedSubjectId || isStarting) return;
     setIsStarting(true);
     setErrorMsg('');
 
@@ -114,16 +116,19 @@ function ExamSetupForm() {
   const isFormValid = Boolean(selectedSubjectId) && availableQuestionsCount > 0;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageTransition className="max-w-4xl mx-auto space-y-6">
       <LearnerPageHeader
         title="ตั้งค่าและเริ่มทำข้อสอบ (Exam Setup)"
         description="เลือกวิชา รูปแบบการทดสอบ และจำนวนข้อเพื่อสร้างชุดข้อสอบตาม Exam Blueprint"
       />
 
       {errorMsg && (
-        <div className="p-4 rounded-[var(--radius)] bg-red-50 text-red-700 border border-red-200 text-sm flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span>{errorMsg}</span>
+        <div
+          role="alert"
+          className="p-4 rounded-[var(--radius)] bg-red-50 text-red-700 border border-red-200 text-sm flex items-center gap-2 motion-slide-up"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+          <span className="font-medium">{errorMsg}</span>
         </div>
       )}
 
@@ -151,10 +156,10 @@ function ExamSetupForm() {
                       type="button"
                       onClick={() => setMode(item.key as ExamMode)}
                       className={cn(
-                        'p-3 rounded-[var(--radius)] border text-left flex flex-col justify-between transition-all cursor-pointer select-none',
+                        'p-3 rounded-[var(--radius)] border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer select-none',
                         isSelected
                           ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] ring-1 ring-[var(--primary)] font-medium'
-                          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-subtle)]'
+                          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-subtle)] active:scale-[0.98]'
                       )}
                     >
                       <Icon className="h-5 w-5 mb-2" />
@@ -183,10 +188,10 @@ function ExamSetupForm() {
                       key={sub.id}
                       onClick={() => setSelectedSubjectId(sub.id)}
                       className={cn(
-                        'p-3.5 rounded-[var(--radius)] border cursor-pointer transition-all',
+                        'p-3.5 rounded-[var(--radius)] border cursor-pointer transition-all duration-150 select-none',
                         isSelected
-                          ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] ring-1 ring-[var(--primary)]'
-                          : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)]'
+                          ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] ring-1 ring-[var(--primary)] font-medium'
+                          : 'border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] hover:border-[var(--border-strong)]'
                       )}
                     >
                       <div className="font-semibold text-sm text-[var(--foreground)]">{sub.name}</div>
@@ -200,7 +205,7 @@ function ExamSetupForm() {
 
           {/* 3. Chapter Details (If Chapter Mode) */}
           {mode === 'chapter' && chapters.length > 0 && (
-            <Card>
+            <Card className="motion-slide-up">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-semibold">3. เลือกบทเรียนที่ต้องการฝึก</CardTitle>
               </CardHeader>
@@ -238,7 +243,7 @@ function ExamSetupForm() {
                       type="button"
                       onClick={() => setQuestionCount(cnt)}
                       className={cn(
-                        'flex-1 py-1.5 rounded border text-xs font-semibold transition-colors cursor-pointer',
+                        'flex-1 py-1.5 rounded border text-xs font-semibold transition-colors duration-150 cursor-pointer',
                         questionCount === cnt
                           ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
                           : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
@@ -266,7 +271,7 @@ function ExamSetupForm() {
                       type="button"
                       onClick={() => setDifficulty(d.key as any)}
                       className={cn(
-                        'flex-1 py-1.5 rounded border text-xs font-medium transition-colors cursor-pointer',
+                        'flex-1 py-1.5 rounded border text-xs font-medium transition-colors duration-150 cursor-pointer',
                         difficulty === d.key
                           ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-semibold'
                           : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
@@ -318,14 +323,14 @@ function ExamSetupForm() {
                   isLoading={isStarting}
                   variant="primary"
                   size="md"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 shadow-xs"
                 >
-                  <span>เริ่มทำข้อสอบ</span>
-                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                  <span>{isStarting ? 'กำลังจัดเตรียมชุดข้อสอบ...' : 'เริ่มทำข้อสอบ'}</span>
+                  {!isStarting && <ArrowRight className="h-4 w-4 ml-1.5" />}
                 </Button>
 
                 {!isFormValid && (
-                  <p className="text-[11px] text-rose-600 mt-2 text-center">
+                  <p className="text-[11px] text-rose-600 mt-2 text-center font-medium">
                     * ไม่พบคำถามที่เผยแพร่ในระบบ กรุณาเลือกวิชาอื่น
                   </p>
                 )}
@@ -334,6 +339,6 @@ function ExamSetupForm() {
           </Card>
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

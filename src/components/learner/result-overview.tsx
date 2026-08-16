@@ -9,17 +9,13 @@ import {
   Clock,
   RotateCcw,
   LayoutDashboard,
-  Award,
   ChevronDown,
   ChevronUp,
   FileText,
-  Bookmark,
-  Share2,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 import { ScoreBreakdown } from './score-breakdown';
 import { formatDuration, cn } from '@/lib/utils';
 import type { ExamAttempt, AttemptQuestion } from '@/lib/types/database';
@@ -50,7 +46,7 @@ export function ResultOverview({
   const isPass = attempt.score_percentage >= 60;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 motion-fade-in">
       {/* Top Score Summary Banner */}
       <Card className="border-[var(--border)] shadow-xs">
         <CardContent className="p-6 sm:p-8">
@@ -72,19 +68,20 @@ export function ResultOverview({
               </p>
             </div>
 
-            {/* Score Metric Focus */}
+            {/* Score Metric Focus with AnimatedNumber */}
             <div className="flex items-center gap-4 bg-[var(--surface-subtle)] p-4 rounded-[var(--radius)] border border-[var(--border)] shrink-0">
               <div className="text-center">
                 <div className="text-xs text-[var(--foreground-muted)] font-medium">คะแนนรวม</div>
                 <div className="text-3xl font-bold text-[var(--foreground)] mt-0.5">
-                  {attempt.score_total} <span className="text-lg font-normal text-[var(--foreground-muted)]">/ {attempt.score_max}</span>
+                  <AnimatedNumber value={attempt.score_total} />{' '}
+                  <span className="text-lg font-normal text-[var(--foreground-muted)]">/ {attempt.score_max}</span>
                 </div>
               </div>
               <div className="h-10 w-[1px] bg-[var(--border)]" />
               <div className="text-center">
                 <div className="text-xs text-[var(--foreground-muted)] font-medium">คิดเป็น</div>
                 <div className={cn('text-3xl font-bold mt-0.5', isPass ? 'text-[var(--success)]' : 'text-[var(--danger)]')}>
-                  {attempt.score_percentage}%
+                  <AnimatedNumber value={attempt.score_percentage} suffix="%" />
                 </div>
               </div>
             </div>
@@ -96,7 +93,9 @@ export function ResultOverview({
               <CheckCircle2 className="h-5 w-5 text-[var(--success)] shrink-0" />
               <div>
                 <div className="text-xs text-[var(--foreground-muted)]">ตอบถูกต้อง</div>
-                <div className="text-base font-semibold text-[var(--success)]">{correctCount} ข้อ</div>
+                <div className="text-base font-semibold text-[var(--success)]">
+                  <AnimatedNumber value={correctCount} suffix=" ข้อ" />
+                </div>
               </div>
             </div>
 
@@ -104,7 +103,9 @@ export function ResultOverview({
               <XCircle className="h-5 w-5 text-[var(--danger)] shrink-0" />
               <div>
                 <div className="text-xs text-[var(--foreground-muted)]">ตอบผิด</div>
-                <div className="text-base font-semibold text-[var(--danger)]">{incorrectCount} ข้อ</div>
+                <div className="text-base font-semibold text-[var(--danger)]">
+                  <AnimatedNumber value={incorrectCount} suffix=" ข้อ" />
+                </div>
               </div>
             </div>
 
@@ -112,7 +113,9 @@ export function ResultOverview({
               <HelpCircle className="h-5 w-5 text-[var(--foreground-muted)] shrink-0" />
               <div>
                 <div className="text-xs text-[var(--foreground-muted)]">ไม่ตอบ</div>
-                <div className="text-base font-semibold text-[var(--foreground)]">{unansweredCount} ข้อ</div>
+                <div className="text-base font-semibold text-[var(--foreground)]">
+                  <AnimatedNumber value={unansweredCount} suffix=" ข้อ" />
+                </div>
               </div>
             </div>
 
@@ -205,13 +208,12 @@ export function ResultOverview({
           {filteredQuestions.map((q, idx) => {
             const isCorrect = q.is_correct === true;
             const isUnanswered = !q.selected_choice_key;
-            const isExpanded = expandedIndex === idx;
 
             return (
               <Card
                 key={q.id}
                 className={cn(
-                  'border transition-colors',
+                  'border transition-colors duration-150',
                   isCorrect ? 'border-green-200' : isUnanswered ? 'border-[var(--border)]' : 'border-red-200'
                 )}
               >

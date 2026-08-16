@@ -6,6 +6,8 @@ import { LearnerPageHeader } from '@/components/learner/learner-page-header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageTransition } from '@/components/ui/page-transition';
+import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserAttempts, getCurrentSessionUser, getSubjects } from '@/lib/db-adapter';
 import { History, ArrowRight, Clock, Calendar } from 'lucide-react';
 import { formatDuration, formatThaiDate, cn } from '@/lib/utils';
@@ -15,11 +17,19 @@ export default function HistoryPage() {
   const [attempts, setAttempts] = React.useState<ExamAttempt[]>([]);
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [filterSubjectId, setFilterSubjectId] = React.useState<string>('all');
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const user = getCurrentSessionUser();
-    getUserAttempts(user.id).then(setAttempts);
-    getSubjects().then(setSubjects);
+    setIsLoading(true);
+    Promise.all([
+      getUserAttempts(user.id),
+      getSubjects(),
+    ]).then(([attList, subList]) => {
+      setAttempts(attList);
+      setSubjects(subList);
+      setIsLoading(false);
+    });
   }, []);
 
   const filteredAttempts = attempts.filter(a => {
@@ -28,7 +38,7 @@ export default function HistoryPage() {
   });
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       <LearnerPageHeader
         title="ประวัติการสอบ (Exam History)"
         description="ตรวจสอบผลคะแนนย้อนหลัง ทบทวนข้อที่เคยทำ และติดตามพัฒนาการของคุณ"
@@ -67,7 +77,9 @@ export default function HistoryPage() {
       </div>
 
       {/* Attempts List */}
-      {filteredAttempts.length === 0 ? (
+      {isLoading ? (
+        <ListSkeleton rows={5} />
+      ) : filteredAttempts.length === 0 ? (
         <EmptyState
           icon={History}
           title="ยังไม่มีประวัติการสอบ"
@@ -82,7 +94,7 @@ export default function HistoryPage() {
             const isPass = att.score_percentage >= 60;
 
             return (
-              <Card key={att.id} className="hover:border-[var(--border-strong)] transition-all">
+              <Card key={att.id} className="hover:border-[var(--border-strong)] transition-all motion-slide-up">
                 <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -138,6 +150,6 @@ export default function HistoryPage() {
           })}
         </div>
       )}
-    </div>
+    </PageTransition>
   );
 }

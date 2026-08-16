@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { LearnerPageHeader } from '@/components/learner/learner-page-header';
 import { MetricStrip } from '@/components/learner/metric-strip';
 import { SubjectCard } from '@/components/learner/subject-card';
-import { TrendChart } from '@/components/learner/trend-chart';
+import { LazyTrendChart } from '@/components/learner/lazy-chart';
 import { TopicPerformanceList } from '@/components/learner/topic-performance-list';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { PageTransition } from '@/components/ui/page-transition';
+import { SubjectSkeleton, ListSkeleton } from '@/components/ui/skeleton';
 import {
   getCurrentSessionUser,
   getSubjects,
@@ -29,12 +31,21 @@ export default function DashboardPage() {
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [analytics, setAnalytics] = React.useState<UserAnalyticsSummary | null>(null);
   const [inProgressAttempt, setInProgressAttempt] = React.useState<ExamAttempt | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
     const u = getCurrentSessionUser();
     setUser(u);
-    getSubjects().then(setSubjects);
-    getUserAnalyticsData(u.id).then(setAnalytics);
+    setIsLoading(true);
+
+    Promise.all([
+      getSubjects(),
+      getUserAnalyticsData(u.id),
+    ]).then(([subs, userAnalytics]) => {
+      setSubjects(subs);
+      setAnalytics(userAnalytics);
+      setIsLoading(false);
+    });
 
     const store = getDataStore();
     const active = store.exam_attempts.find(a => a.user_id === u.id && a.status === 'in_progress');
@@ -47,7 +58,7 @@ export default function DashboardPage() {
   const accuracy = analytics?.overall_accuracy || 0;
 
   return (
-    <div className="space-y-6">
+    <PageTransition className="space-y-6">
       {/* Page Header with Greeting */}
       <LearnerPageHeader
         title={`สวัสดี, ${user.full_name}`}
@@ -64,7 +75,7 @@ export default function DashboardPage() {
 
       {/* IN-PROGRESS ATTEMPT BANNER (If Any) */}
       {inProgressAttempt && (
-        <Card className="border-blue-300 bg-blue-50/50 shadow-xs">
+        <Card className="border-blue-300 bg-blue-50/50 shadow-xs motion-slide-up">
           <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-[var(--primary)] text-white flex items-center justify-center shrink-0">
@@ -99,6 +110,7 @@ export default function DashboardPage() {
         totalQuestionsAnswered={totalQuestions}
         totalPracticeDays={practiceDays}
         overallAccuracy={accuracy}
+        isLoading={isLoading}
       />
 
       {/* Actionable Recommendations (Deterministic) */}
@@ -145,33 +157,50 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {subjects.map(subject => {
-            const subStat = analytics?.subject_stats.find(s => s.subject_id === subject.id);
-            return (
-              <SubjectCard
-                key={subject.id}
-                subject={subject}
-                coveragePercentage={subStat?.coverage_percentage || 0}
-                averageScore={subStat?.average_score}
-                chaptersCount={4}
-                docsCount={subject.slug === 'database-systems' ? 4 : 2}
-              />
-            );
-          })}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SubjectSkeleton />
+            <SubjectSkeleton />
+          </div>
+        ) : subjects.length === 0 ? (
+          <Card className="p-8 text-center space-y-2">
+            <BookOpen className="h-8 w-8 mx-auto text-[var(--foreground-muted)] opacity-50" />
+            <p className="text-sm font-semibold text-[var(--foreground)]">ยังไม่มีรายวิชาในระบบ</p>
+            <p className="text-xs text-[var(--foreground-muted)]">เมื่อมีการเพิ่มรายวิชาและคลังข้อสอบ รายวิชาจะปรากฏที่นี่</p>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {subjects.map(subject => {
+              const subStat = analytics?.subject_stats.find(s => s.subject_id === subject.id);
+              return (
+                <SubjectCard
+                  key={subject.id}
+                  subject={subject}
+                  coveragePercentage={subStat?.coverage_percentage || 0}
+                  averageScore={subStat?.average_score}
+                  chaptersCount={4}
+                  docsCount={subject.slug === 'database-systems' ? 4 : 2}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Analytics Breakdown & Trends Row */}
+      {/* Analytics Breakdown & Trends Row with Lazy Loaded Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-6">
-          <TrendChart data={analytics?.score_trends || []} />
+          <LazyTrendChart data={analytics?.score_trends || []} />
         </div>
 
         <div className="lg:col-span-6">
-          <TopicPerformanceList topics={analytics?.topic_accuracies || []} />
+          {isLoading ? (
+            <ListSkeleton rows={4} />
+          ) : (
+            <TopicPerformanceList topics={analytics?.topic_accuracies || []} />
+          )}
         </div>
       </div>
-    </div>
+    </PageTransition>
   );
 }

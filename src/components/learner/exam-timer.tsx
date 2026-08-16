@@ -17,25 +17,38 @@ export function ExamTimer({
 }) {
   const totalSeconds = initialMinutes * 60;
   const [spent, setSpent] = React.useState(initialSpentSeconds);
+  const spentRef = React.useRef(initialSpentSeconds);
+  const onTickRef = React.useRef(onTick);
+  const onTimeExpiredRef = React.useRef(onTimeExpired);
+
+  React.useEffect(() => {
+    onTickRef.current = onTick;
+    onTimeExpiredRef.current = onTimeExpired;
+  });
 
   const remaining = Math.max(0, totalSeconds - spent);
   const isLowTime = remaining <= 300 && remaining > 0; // <= 5 mins
 
   React.useEffect(() => {
     const timer = setInterval(() => {
-      setSpent(prev => {
-        const next = prev + 1;
-        if (onTick) onTick(next);
-        if (next >= totalSeconds) {
-          clearInterval(timer);
-          if (onTimeExpired) onTimeExpired();
+      spentRef.current += 1;
+      const currentSpent = spentRef.current;
+      setSpent(currentSpent);
+
+      if (onTickRef.current) {
+        onTickRef.current(currentSpent);
+      }
+
+      if (currentSpent >= totalSeconds) {
+        clearInterval(timer);
+        if (onTimeExpiredRef.current) {
+          onTimeExpiredRef.current();
         }
-        return next;
-      });
+      }
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [totalSeconds, onTimeExpired, onTick]);
+  }, [totalSeconds]);
 
   return (
     <div

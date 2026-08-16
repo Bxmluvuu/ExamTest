@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
-  resetDataStore,
+  setDataStore,
   createExamAttemptAction,
   saveAttemptAnswerAction,
   submitExamAttemptAction,
@@ -8,10 +8,11 @@ import {
   toggleBookmarkAction,
   getBookmarks,
 } from '@/lib/db-adapter';
+import { createTestFixtureStore } from './fixtures';
 
 describe('DB Adapter and Exam Lifecycle State Machine', () => {
   beforeEach(() => {
-    resetDataStore();
+    setDataStore(createTestFixtureStore());
   });
 
   it('completes the full student exam flow: create -> auto-save -> submit -> verify immutable result', async () => {

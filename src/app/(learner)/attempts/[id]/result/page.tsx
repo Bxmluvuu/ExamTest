@@ -3,6 +3,9 @@
 import * as React from 'react';
 import { useParams } from 'next/navigation';
 import { ResultOverview } from '@/components/learner/result-overview';
+import { PageTransition } from '@/components/ui/page-transition';
+import { HeaderSkeleton, MetricSkeleton, ListSkeleton, SectionSkeleton } from '@/components/ui/skeleton';
+import { ErrorState } from '@/components/ui/error-state';
 import { getExamAttempt, getCurrentSessionUser, getDataStore } from '@/lib/db-adapter';
 import type { ExamAttempt, AttemptQuestion } from '@/lib/types/database';
 
@@ -14,47 +17,77 @@ export default function AttemptResultPage() {
   const [questions, setQuestions] = React.useState<AttemptQuestion[]>([]);
   const [subjectSlug, setSubjectSlug] = React.useState<string>('database-systems');
   const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState('');
 
-  React.useEffect(() => {
+  const loadResults = React.useCallback(() => {
     const user = getCurrentSessionUser();
     setIsLoading(true);
-    getExamAttempt(attemptId, user.id).then(res => {
-      if (res) {
-        setAttempt(res.attempt);
-        setQuestions(res.questions);
+    setError('');
 
-        const store = getDataStore();
-        const sub = store.subjects.find(s => s.id === res.attempt.subject_id);
-        if (sub) setSubjectSlug(sub.slug);
-      }
-      setIsLoading(false);
-    });
+    getExamAttempt(attemptId, user.id)
+      .then(res => {
+        if (res) {
+          setAttempt(res.attempt);
+          setQuestions(res.questions);
+
+          const store = getDataStore();
+          const sub = store.subjects.find(s => s.id === res.attempt.subject_id);
+          if (sub) setSubjectSlug(sub.slug);
+        } else {
+          setError('ไม่พบผลการทดสอบนี้');
+        }
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching result:', err);
+        setError('เกิดข้อผิดพลาดในการโหลดผลคะแนน');
+        setIsLoading(false);
+      });
   }, [attemptId]);
+
+  React.useEffect(() => {
+    loadResults();
+  }, [loadResults]);
 
   if (isLoading) {
     return (
-      <div className="space-y-4 animate-pulse">
-        <div className="h-40 bg-[var(--surface)] rounded border border-[var(--border)]" />
-        <div className="h-60 bg-[var(--surface)] rounded border border-[var(--border)]" />
+      <div className="max-w-4xl mx-auto space-y-6 motion-fade-in">
+        <div className="p-6 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border)] space-y-4">
+          <HeaderSkeleton />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 border-t border-[var(--border)]">
+            <MetricSkeleton />
+            <MetricSkeleton />
+            <MetricSkeleton />
+            <MetricSkeleton />
+          </div>
+        </div>
+        <SectionSkeleton className="min-h-[200px]" />
+        <ListSkeleton rows={3} />
       </div>
     );
   }
 
-  if (!attempt) {
+  if (error || !attempt) {
     return (
-      <div className="p-8 text-center">
-        <h2 className="text-base font-semibold text-[var(--foreground)]">ไม่พบผลการทดสอบ</h2>
+      <div className="max-w-4xl mx-auto p-8">
+        <ErrorState
+          title="ไม่พบผลการทดสอบ"
+          description={error || 'ไม่พบข้อมูลผลการสอบของชุดนี้'}
+          onRetry={loadResults}
+          backHref="/dashboard"
+          backLabel="กลับสู่หน้าหลัก"
+        />
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageTransition className="max-w-4xl mx-auto space-y-6">
       <ResultOverview
         attempt={attempt}
         questions={questions}
         subjectSlug={subjectSlug}
       />
-    </div>
+    </PageTransition>
   );
 }

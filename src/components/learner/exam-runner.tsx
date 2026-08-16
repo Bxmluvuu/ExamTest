@@ -7,17 +7,16 @@ import {
   ChevronLeft,
   ChevronRight,
   Bookmark,
-  CheckCircle2,
   AlertCircle,
-  Clock,
   ArrowLeft,
   Send,
-  HelpCircle,
   Menu,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog } from '@/components/ui/dialog';
+import { SaveStatus, SaveStatusState } from '@/components/ui/save-status';
+import { QuestionTransition } from './question-transition';
 import { QuestionNavigator } from './question-navigator';
 import { ExamTimer } from './exam-timer';
 import { DifficultyBadge } from '@/components/ui/status-badge';
@@ -48,12 +47,16 @@ export function ExamRunner({
     return map;
   });
 
-  const [savingStatus, setSavingStatus] = React.useState<'idle' | 'saving' | 'saved'>('saved');
-  const [spentSeconds, setSpentSeconds] = React.useState(attempt.time_spent_seconds || 0);
+  const [savingStatus, setSavingStatus] = React.useState<SaveStatusState>('saved');
+  const spentSecondsRef = React.useRef(attempt.time_spent_seconds || 0);
   const [bookmarkedSet, setBookmarkedSet] = React.useState<Set<number>>(new Set());
   const [isSubmitModalOpen, setIsSubmitModalOpen] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
+
+  const handleTick = React.useCallback((s: number) => {
+    spentSecondsRef.current = s;
+  }, []);
 
   const questions = initialQuestions;
   const currentQuestion = questions[currentIndex];
@@ -72,7 +75,7 @@ export function ExamRunner({
   const unansweredCount = totalQuestions - answeredCount;
 
   // Handle Choice Selection + Auto-save
-  const handleSelectChoice = async (key: 'A' | 'B' | 'C' | 'D') => {
+  const handleSelectChoice = React.useCallback(async (key: 'A' | 'B' | 'C' | 'D') => {
     if (!currentQuestion) return;
 
     setAnswers(prev => ({
@@ -92,15 +95,15 @@ export function ExamRunner({
       setSavingStatus('saved');
     } catch (err) {
       console.error('Auto-save error:', err);
-      setSavingStatus('idle');
+      setSavingStatus('error');
     }
-  };
+  }, [currentQuestion, attempt.id, userId]);
 
   // Bookmark toggle
-  const handleToggleBookmark = async () => {
+  const handleToggleBookmark = React.useCallback(async () => {
     if (!currentQuestion) return;
     const isCurrentlyBookmarked = bookmarkedSet.has(currentIndex);
-    
+
     setBookmarkedSet(prev => {
       const next = new Set(prev);
       if (isCurrentlyBookmarked) next.delete(currentIndex);
@@ -113,22 +116,23 @@ export function ExamRunner({
     } catch (err) {
       console.error('Bookmark toggle error:', err);
     }
-  };
+  }, [currentQuestion, bookmarkedSet, currentIndex, userId]);
 
   // Handle Submission
   const handleSubmitExam = async () => {
+    if (isSubmitting) return;
     setIsSubmitting(true);
     try {
       const res = await submitExamAttemptAction({
         attemptId: attempt.id,
         userId,
-        timeSpentSeconds: spentSeconds,
+        timeSpentSeconds: spentSecondsRef.current,
       });
 
       if (res.success) {
         router.push(`/attempts/${attempt.id}/result`);
       } else {
-        alert('เกิดข้อผิดพลาดในการส่งข้อสอบ: ' + (res.error || ''));
+        alert(res.error || 'ไม่สามารถส่งข้อสอบได้ กรุณาลองใหม่อีกครั้ง');
         setIsSubmitting(false);
       }
     } catch (err) {
@@ -136,6 +140,36 @@ export function ExamRunner({
       setIsSubmitting(false);
     }
   };
+
+  // Keyboard Navigation for Focus Mode
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input/textarea or if modal is open
+      if (isSubmitModalOpen || mobileNavOpen) return;
+      if (['input', 'textarea', 'select'].includes((e.target as HTMLElement)?.tagName?.toLowerCase())) return;
+
+      if (e.key === '1' || e.key.toLowerCase() === 'a') {
+        const choice = currentQuestion?.shuffled_choices[0]?.key as 'A' | 'B' | 'C' | 'D';
+        if (choice) handleSelectChoice(choice);
+      } else if (e.key === '2' || e.key.toLowerCase() === 'b' && !e.metaKey && !e.ctrlKey) {
+        const choice = currentQuestion?.shuffled_choices[1]?.key as 'A' | 'B' | 'C' | 'D';
+        if (choice) handleSelectChoice(choice);
+      } else if (e.key === '3' || e.key.toLowerCase() === 'c') {
+        const choice = currentQuestion?.shuffled_choices[2]?.key as 'A' | 'B' | 'C' | 'D';
+        if (choice) handleSelectChoice(choice);
+      } else if (e.key === '4' || e.key.toLowerCase() === 'd') {
+        const choice = currentQuestion?.shuffled_choices[3]?.key as 'A' | 'B' | 'C' | 'D';
+        if (choice) handleSelectChoice(choice);
+      } else if (e.key === 'ArrowRight') {
+        setCurrentIndex(prev => Math.min(totalQuestions - 1, prev + 1));
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentIndex(prev => Math.max(0, prev - 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentQuestion, isSubmitModalOpen, mobileNavOpen, handleSelectChoice, totalQuestions]);
 
   if (!currentQuestion) {
     return (
@@ -150,11 +184,11 @@ export function ExamRunner({
   return (
     <div className="min-h-screen flex flex-col bg-[var(--background)]">
       {/* Header Bar */}
-      <header className="sticky top-0 z-40 h-14 bg-[var(--surface)] border-b border-[var(--border)] px-4 sm:px-6 flex items-center justify-between">
+      <header className="sticky top-0 z-40 h-14 bg-[var(--surface)] border-b border-[var(--border)] px-4 sm:px-6 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard"
-            className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-subtle)]"
+            className="p-1.5 rounded-md text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-subtle)] transition-colors"
             title="ออกจากการทำข้อสอบ (บันทึกอัตโนมัติแล้ว)"
           >
             <ArrowLeft className="h-5 w-5" />
@@ -166,10 +200,7 @@ export function ExamRunner({
             <div className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-2">
               <span>ข้อที่ {currentIndex + 1} จาก {totalQuestions}</span>
               <span>•</span>
-              <span className="flex items-center gap-1 text-[var(--success)] font-medium">
-                <CheckCircle2 className="h-3 w-3" />
-                {savingStatus === 'saving' ? 'กำลังบันทึก...' : 'บันทึกคำตอบแล้ว'}
-              </span>
+              <SaveStatus status={savingStatus} />
             </div>
           </div>
         </div>
@@ -179,7 +210,7 @@ export function ExamRunner({
           <ExamTimer
             initialMinutes={attempt.duration_minutes || 30}
             initialSpentSeconds={attempt.time_spent_seconds || 0}
-            onTick={s => setSpentSeconds(s)}
+            onTick={handleTick}
             onTimeExpired={() => {
               handleSubmitExam();
             }}
@@ -187,7 +218,7 @@ export function ExamRunner({
 
           <button
             onClick={() => setMobileNavOpen(true)}
-            className="md:hidden p-2 rounded border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--foreground-secondary)]"
+            className="md:hidden p-2 rounded border border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] hover:bg-[var(--surface-strong)] transition-colors"
             aria-label="Open Question Navigator"
           >
             <Menu className="h-4 w-4" />
@@ -197,7 +228,7 @@ export function ExamRunner({
             variant="primary"
             size="sm"
             onClick={() => setIsSubmitModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-blue-600 hover:bg-blue-700 shadow-xs"
           >
             <Send className="h-3.5 w-3.5 mr-1.5" />
             <span>ส่งข้อสอบ</span>
@@ -209,79 +240,82 @@ export function ExamRunner({
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
         {/* Question Stem Column */}
         <div className="md:col-span-8 space-y-6">
-          <Card className="border-[var(--border)] shadow-xs">
-            <CardContent className="p-6 sm:p-8 space-y-6">
-              {/* Question Metadata */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded bg-[var(--primary-subtle)] text-[var(--primary)] font-bold text-xs">
-                    ข้อที่ {currentIndex + 1}
-                  </span>
-                  <DifficultyBadge difficulty={currentQuestion.question_snapshot.difficulty} />
-                  <span className="text-xs text-[var(--foreground-muted)] font-medium">
-                    {currentQuestion.question_snapshot.chapter_title} • {currentQuestion.question_snapshot.topic_title}
-                  </span>
+          <QuestionTransition questionKey={currentQuestion.question_id}>
+            <Card className="border-[var(--border)] shadow-xs">
+              <CardContent className="p-6 sm:p-8 space-y-6">
+                {/* Question Metadata */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-4">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 rounded bg-[var(--primary-subtle)] text-[var(--primary)] font-bold text-xs">
+                      ข้อที่ {currentIndex + 1}
+                    </span>
+                    <DifficultyBadge difficulty={currentQuestion.question_snapshot.difficulty} />
+                    <span className="text-xs text-[var(--foreground-muted)] font-medium">
+                      {currentQuestion.question_snapshot.chapter_title} • {currentQuestion.question_snapshot.topic_title}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={handleToggleBookmark}
+                    className={cn(
+                      'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded transition-colors cursor-pointer border',
+                      bookmarkedSet.has(currentIndex)
+                        ? 'bg-amber-50 text-amber-700 border-amber-300 font-semibold'
+                        : 'text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
+                    )}
+                  >
+                    <Bookmark className={cn('h-3.5 w-3.5', bookmarkedSet.has(currentIndex) && 'fill-current')} />
+                    <span>{bookmarkedSet.has(currentIndex) ? 'บันทึกแล้ว' : 'บันทึกข้อนี้'}</span>
+                  </button>
                 </div>
 
-                <button
-                  onClick={handleToggleBookmark}
-                  className={cn(
-                    'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded transition-colors cursor-pointer border',
-                    bookmarkedSet.has(currentIndex)
-                      ? 'bg-amber-50 text-amber-700 border-amber-300'
-                      : 'text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
-                  )}
-                >
-                  <Bookmark className={cn('h-3.5 w-3.5', bookmarkedSet.has(currentIndex) && 'fill-current')} />
-                  <span>{bookmarkedSet.has(currentIndex) ? 'บันทึกแล้ว' : 'บันทึกข้อนี้'}</span>
-                </button>
-              </div>
+                {/* Question Text */}
+                <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
+                  {currentQuestion.question_snapshot.text}
+                </div>
 
-              {/* Question Text */}
-              <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
-                {currentQuestion.question_snapshot.text}
-              </div>
-
-              {/* Choices List */}
-              <div className="space-y-3 pt-2" role="radiogroup" aria-label="Question choices">
-                {currentQuestion.shuffled_choices.map(choice => {
-                  const isSelected = selectedChoice === choice.key;
-                  return (
-                    <div
-                      key={choice.key}
-                      onClick={() => handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D')}
-                      role="radio"
-                      aria-checked={isSelected}
-                      tabIndex={0}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D');
-                        }
-                      }}
-                      className={cn(
-                        'flex items-start gap-3.5 p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-all cursor-pointer select-none min-h-[48px]',
-                        isSelected
-                          ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-medium ring-1 ring-[var(--primary)]'
-                          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)]'
-                      )}
-                    >
+                {/* Choices List */}
+                <div className="space-y-3 pt-2" role="radiogroup" aria-label="Question choices">
+                  {currentQuestion.shuffled_choices.map((choice, cIdx) => {
+                    const isSelected = selectedChoice === choice.key;
+                    return (
                       <div
+                        key={choice.key}
+                        onClick={() => handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D')}
+                        role="radio"
+                        aria-checked={isSelected}
+                        tabIndex={0}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D');
+                          }
+                        }}
                         className={cn(
-                          'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors',
+                          'flex items-start gap-3.5 p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-all duration-120 cursor-pointer select-none min-h-[48px]',
                           isSelected
-                            ? 'bg-[var(--primary)] text-white'
-                            : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
+                            ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-semibold ring-1 ring-[var(--primary)]'
+                            : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)] active:scale-[0.995]'
                         )}
                       >
-                        {choice.key}
+                        <div
+                          className={cn(
+                            'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors',
+                            isSelected
+                              ? 'bg-[var(--primary)] text-white'
+                              : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
+                          )}
+                        >
+                          {choice.key}
+                        </div>
+                        <div className="pt-0.5 leading-relaxed flex-1">{choice.text}</div>
                       </div>
-                      <div className="pt-0.5 leading-relaxed flex-1">{choice.text}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </QuestionTransition>
 
           {/* Navigation Buttons Footer */}
           <div className="flex items-center justify-between pt-2">
@@ -355,7 +389,7 @@ export function ExamRunner({
       {/* Confirm Submission Modal */}
       <Dialog
         open={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
+        onClose={() => !isSubmitting && setIsSubmitModalOpen(false)}
         title="ยืนยันการส่งข้อสอบ"
         description="เมื่อส่งข้อสอบแล้ว ระบบจะตรวจคะแนนอัตโนมัติและไม่สามารถแก้ไขคำตอบได้อีก"
       >
@@ -393,6 +427,7 @@ export function ExamRunner({
               variant="primary"
               size="md"
               isLoading={isSubmitting}
+              disabled={isSubmitting}
               onClick={handleSubmitExam}
               className="bg-blue-600 hover:bg-blue-700"
             >
