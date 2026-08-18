@@ -611,9 +611,48 @@ export function createInitialSeedData(): DataStore {
     },
   ];
 
+  const defaultSessions: UserSession[] = [
+    {
+      id: 'sess-std-01',
+      user_id: 'std-001',
+      session_token_hash: 'sess_tok_student_default',
+      device_name: 'MacBook Pro',
+      browser: 'Google Chrome (macOS)',
+      ip_address: '171.96.220.45 (Bangkok, TH)',
+      last_active_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      is_revoked: false,
+      created_at: new Date(Date.now() - 3600 * 1000).toISOString(),
+    },
+    {
+      id: 'sess-std-02',
+      user_id: 'std-001',
+      session_token_hash: 'sess_tok_student_mobile',
+      device_name: 'iPhone 15 Pro',
+      browser: 'Mobile Safari 17.5 (iOS)',
+      ip_address: '182.232.14.88 (Mobile 5G)',
+      last_active_at: new Date(Date.now() - 86400 * 1000).toISOString(),
+      expires_at: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
+      is_revoked: false,
+      created_at: new Date(Date.now() - 86400 * 1000).toISOString(),
+    },
+    {
+      id: 'sess-adm-01',
+      user_id: 'adm-001',
+      session_token_hash: 'sess_tok_admin_default',
+      device_name: 'Admin Workstation',
+      browser: 'Google Chrome (macOS)',
+      ip_address: '127.0.0.1 (Localhost)',
+      last_active_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      is_revoked: false,
+      created_at: new Date().toISOString(),
+    },
+  ];
+
   return {
     profiles: [studentUser, adminUser],
-    user_sessions: [],
+    user_sessions: defaultSessions,
     password_history: [],
     auth_audit_logs: [],
     subjects: [inet.subject as Subject],

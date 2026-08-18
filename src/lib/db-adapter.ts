@@ -856,9 +856,21 @@ export async function authenticateWithPassword(
 
 export async function getUserSessions(userId: string): Promise<UserSession[]> {
   const store = getDataStore();
-  return store.user_sessions
+  const activeSessions = store.user_sessions
     .filter(s => s.user_id === userId && !s.is_revoked)
     .sort((a, b) => new Date(b.last_active_at).getTime() - new Date(a.last_active_at).getTime());
+
+  if (activeSessions.length === 0) {
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)';
+    const newSession = await createUserSession(
+      userId,
+      userAgent,
+      '171.96.220.45 (Bangkok, TH)'
+    );
+    return [newSession];
+  }
+
+  return activeSessions;
 }
 
 export async function createUserSession(
@@ -870,14 +882,27 @@ export async function createUserSession(
   const sessionToken = `sess_tok_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
   // Determine browser / device from user agent
-  let deviceName = 'Desktop Device';
+  let deviceName = 'คอมพิวเตอร์ตั้งโต๊ะ (Desktop)';
   let browser = 'Chrome Browser';
-  if (userAgent.includes('iPhone') || userAgent.includes('Mobile')) {
-    deviceName = 'iPhone / Mobile Device';
+
+  if (userAgent.includes('iPhone')) {
+    deviceName = 'iPhone (Apple iOS)';
     browser = 'Mobile Safari';
-  } else if (userAgent.includes('Macintosh')) {
-    deviceName = 'MacBook Pro';
-    browser = 'Chrome / Safari';
+  } else if (userAgent.includes('iPad')) {
+    deviceName = 'iPad (iPadOS)';
+    browser = 'Mobile Safari';
+  } else if (userAgent.includes('Android')) {
+    deviceName = 'สมาร์ตโฟน Android';
+    browser = 'Chrome Mobile';
+  } else if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS X')) {
+    deviceName = 'MacBook / Mac (macOS)';
+    browser = userAgent.includes('Safari') && !userAgent.includes('Chrome') ? 'Apple Safari' : 'Google Chrome';
+  } else if (userAgent.includes('Windows')) {
+    deviceName = 'คอมพิวเตอร์ Windows PC';
+    browser = userAgent.includes('Edg') ? 'Microsoft Edge' : 'Google Chrome';
+  } else if (userAgent.includes('Linux')) {
+    deviceName = 'Linux Workstation';
+    browser = 'Firefox / Chrome';
   }
 
   const session: UserSession = {

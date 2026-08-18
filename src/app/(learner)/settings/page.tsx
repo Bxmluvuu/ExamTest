@@ -403,52 +403,80 @@ export default function LearnerSettingsPage() {
           </div>
 
           <div className="space-y-3">
-            {sessions.map((sess, idx) => {
-              const isCurrent = idx === 0;
-              const isMobile = sess.device_name.includes('iPhone') || sess.device_name.includes('Mobile');
-
-              return (
-                <Card key={sess.id} className={cn('p-4', isCurrent && 'border-blue-200 bg-blue-50/20')}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-[var(--surface-subtle)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] shrink-0">
-                        {isMobile ? <Smartphone className="h-5 w-5" /> : <Laptop className="h-5 w-5" />}
+            {sessions.length === 0 ? (
+              <Card className="p-5 border-blue-200 bg-blue-50/20">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-[var(--surface-subtle)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] shrink-0">
+                      <Laptop className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm text-[var(--foreground)]">
+                          อุปกรณ์ปัจจุบัน (Web Browser)
+                        </span>
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-[var(--success)] border border-emerald-200">
+                          กำลังใช้งาน (Active Now)
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-semibold text-sm text-[var(--foreground)]">
-                            {sess.device_name}
-                          </span>
-                          {isCurrent && (
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-[var(--success)] border border-emerald-200">
-                              อุปกรณ์ปัจจุบัน (Current Device)
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
-                          เบราว์เซอร์: {sess.browser} • IP: <code>{sess.ip_address}</code>
-                        </div>
-                        <div className="text-[11px] text-[var(--foreground-muted)]">
-                          เข้าใช้งานล่าสุด: {formatThaiDate(sess.last_active_at)}
-                        </div>
+                      <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                        เบราว์เซอร์: Chrome / Safari • IP: <code>กำลังเชื่อมต่อ</code>
+                      </div>
+                      <div className="text-[11px] text-[var(--foreground-muted)]">
+                        เข้าใช้งานล่าสุด: ออนไลน์ในขณะนี้
                       </div>
                     </div>
-
-                    {!isCurrent && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRevokeSession(sess.id)}
-                        className="text-xs text-rose-600 hover:bg-rose-50 h-8"
-                      >
-                        <LogOut className="h-3.5 w-3.5 mr-1" />
-                        <span>ออกจากระบบ</span>
-                      </Button>
-                    )}
                   </div>
-                </Card>
-              );
-            })}
+                </div>
+              </Card>
+            ) : (
+              sessions.map((sess, idx) => {
+                const isCurrent = idx === 0;
+                const isMobile = sess.device_name.includes('iPhone') || sess.device_name.includes('Mobile') || sess.device_name.includes('Android');
+
+                return (
+                  <Card key={sess.id} className={cn('p-4', isCurrent && 'border-blue-200 bg-blue-50/20')}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-[var(--surface-subtle)] border border-[var(--border)] flex items-center justify-center text-[var(--primary)] shrink-0">
+                          {isMobile ? <Smartphone className="h-5 w-5" /> : <Laptop className="h-5 w-5" />}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm text-[var(--foreground)]">
+                              {sess.device_name}
+                            </span>
+                            {isCurrent && (
+                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-50 text-[var(--success)] border border-emerald-200">
+                                อุปกรณ์ปัจจุบัน (Current Device)
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-[var(--foreground-muted)] mt-0.5">
+                            เบราว์เซอร์: {sess.browser} • IP: <code>{sess.ip_address}</code>
+                          </div>
+                          <div className="text-[11px] text-[var(--foreground-muted)]">
+                            เข้าใช้งานล่าสุด: {formatThaiDate(sess.last_active_at)}
+                          </div>
+                        </div>
+                      </div>
+
+                      {!isCurrent && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRevokeSession(sess.id)}
+                          className="text-xs text-rose-600 hover:bg-rose-50 h-8"
+                        >
+                          <LogOut className="h-3.5 w-3.5 mr-1" />
+                          <span>ออกจากระบบ</span>
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                );
+              })
+            )}
           </div>
         </div>
       )}
