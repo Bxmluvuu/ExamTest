@@ -1,0 +1,192 @@
+[
+  {
+    "topic": "Routing Protocol Algorithms",
+    "question": "ใน distance vector routing protocol คำว่า vector หมายถึงสิ่งใด",
+    "choices": [
+      "อินเทอร์เฟซหรือทิศทางที่ใช้ไปถึงเครือข่ายปลายทาง",
+      "ค่า metric ที่ใช้ไปถึงเครือข่ายปลายทาง",
+      "จำนวน hop ที่นับได้จากต้นทางถึงปลายทาง",
+      "ลำดับของ AS ที่แพ็กเก็ตต้องผ่าน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า distance คือ route metric ที่ใช้ไปถึงเครือข่าย ส่วน vector คืออินเทอร์เฟซหรือทิศทางที่ใช้ไปถึงเครือข่ายนั้น โดยโปรโตคอลอย่าง RIP ใช้อัลกอริทึม Bellman-Ford หรือ Ford-Fulkerson หาเส้นทางที่ไม่มี loop",
+    "difficulty": "easy",
+    "pages": [6],
+    "evidence": "Distance - The distance is the route metric to reach the network. • Vector - The vector is the interface or direction to reach the network."
+  },
+  {
+    "topic": "Routing Protocol Algorithms",
+    "question": "ใน link-state routing protocol ข้อมูล link state ที่รับจากเพื่อนบ้านถูกส่งต่ออย่างไร",
+    "choices": [
+      "ส่งต่อไปยังเพื่อนบ้านแต่ละตัวเหมือนที่ได้รับมาทุกประการ",
+      "ส่งต่อหลังจากคำนวณ metric ใหม่และเพิ่ม cost ของตนเข้าไป",
+      "ส่งต่อเฉพาะเมื่อ SPF คำนวณว่าเส้นทางนั้นดีที่สุด",
+      "ไม่ส่งต่อเลยเพราะแต่ละเราเตอร์สร้าง LSDB ของตัวเอง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเราเตอร์รับ advertisement จากเพื่อนบ้านและเก็บไว้ใน LSDB จากนั้นข้อมูล link state จะถูกโฆษณาไปยังเพื่อนบ้านแต่ละตัวเหมือนที่ได้รับมาทุกประการ ทำให้ทุกเราเตอร์ในเครือข่ายมีแผนที่เครือข่ายเหมือนกัน แล้วแต่ละเราเตอร์จึงรัน Dijkstra SPF",
+    "difficulty": "medium",
+    "pages": [8],
+    "evidence": "The link state information is advertised to each of its neighbor routers exactly as it was received. This enables all the routers in the network to have an identical map of the network."
+  },
+  {
+    "topic": "Routing Protocol Algorithms",
+    "question": "path vector protocol เช่น BGP ต่างจาก distance vector protocol อย่างไร",
+    "choices": [
+      "พิจารณา BGP path attribute หลายอย่างแทนการดูระยะทางเพื่อเลือกเส้นทางที่ไม่มี loop",
+      "ใช้อัลกอริทึม Dijkstra SPF คำนวณ topology ทั้งเครือข่าย",
+      "ใช้ hop count เป็น metric หลักเพียงอย่างเดียว",
+      "ไม่มีกลไกป้องกัน loop เพราะอาศัย TTL แทน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า path vector protocol คล้าย distance vector แต่ต่างกันที่ไม่ได้ดูระยะทางเพื่อหาเส้นทางที่ไม่มี loop กลับพิจารณา BGP path attribute ต่าง ๆ เช่น AS_Path, MED, origin, next hop, local preference, atomic aggregate และ aggregator",
+    "difficulty": "medium",
+    "pages": [9],
+    "evidence": "The difference is that instead of looking at the distance to determine the best loop-free path, it looks at various BGP path attributes."
+  },
+  {
+    "topic": "Path Selection & Administrative Distance",
+    "question": "เมื่อ route มีอยู่ใน RIB แล้วและมี routing process อื่นเสนอ route เดียวกันเข้ามา RIB ใช้ตรรกะใดตัดสิน",
+    "choices": [
+      "เปรียบเทียบ AD โดยติดตั้ง route ที่มี AD ต่ำกว่าและปฏิเสธ route ที่ AD สูงกว่า",
+      "เปรียบเทียบ metric โดยไม่สนใจค่า AD",
+      "ติดตั้งทั้งสอง route เสมอเพื่อทำ load balancing",
+      "ยึด route ที่มาถึงก่อนเป็นหลักและปฏิเสธ route ที่มาทีหลัง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าถ้า route ไม่มีใน RIB จะรับเข้าไปเลย แต่ถ้ามีอยู่แล้วต้องเปรียบเทียบ AD โดย route ที่มีค่า AD ต่ำกว่าจะถูกติดตั้งในตารางเส้นทาง ส่วน route ที่มี AD สูงกว่าจะถูกปฏิเสธและแจ้งกลับไปยัง routing process ที่เสนอ",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "If the route exists in the RIB, the AD must be compared. Routes with the lower AD values are installed in the routing table, routes with higher AD values are rejected and the submitting routing process is notified."
+  },
+  {
+    "topic": "Path Selection & Administrative Distance",
+    "question": "ข้อมูลใดที่ทุก routing protocol ต้องเสนอให้ RIB เพื่อขอติดตั้งเส้นทาง",
+    "choices": [
+      "destination network, next-hop IP address, ค่า AD และค่า metric",
+      "destination network, AS number, ค่า MED และ local preference",
+      "destination network, outbound interface, hello timer และ dead timer",
+      "destination network, LSA type, area ID และ router ID"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า RIB ถูกโปรแกรมจาก routing protocol process ต่าง ๆ และทุกโปรโตคอลเสนอข้อมูลชุดเดียวกันให้ RIB คือ destination network, next-hop IP address, ค่า AD และค่า metric",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "Every routing protocol presents the same information to the RIB for insertion: the destination network, the next-hop IP address, the AD, and metric values."
+  },
+  {
+    "topic": "Path Selection & Administrative Distance",
+    "question": "โปรโตคอลใดที่สามารถตั้งค่าให้ติดตั้งหลายเส้นทางที่มี path metric ต่างกันเพื่อทำ unequal-cost load balancing",
+    "choices": ["EIGRP", "OSPF", "IS-IS", "RIP"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าโดยค่าเริ่มต้น routing protocol ติดตั้งเฉพาะเส้นทางที่มี path metric ต่ำสุด แต่ EIGRP สามารถตั้งค่าให้ติดตั้งหลายเส้นทางที่มี path metric ต่างกันได้ ซึ่งเปิดทางให้ทำ unequal-cost load balancing โดยกระจายทราฟฟิกตามสัดส่วนของ metric",
+    "difficulty": "medium",
+    "pages": [16],
+    "evidence": "However, EIGRP can be configured to install multiple routes with different path metrics. This allows for unequal-cost load balancing across multiple paths."
+  },
+  {
+    "topic": "Static Routing Types",
+    "question": "เหตุใดจึงไม่แนะนำให้ตั้ง directly attached static route ชี้ไปยังอินเทอร์เฟซแบบ Ethernet",
+    "choices": [
+      "เพราะเราเตอร์ต้องทำ ARP ซ้ำสำหรับทุกปลายทางที่ตรงกับ static route ซึ่งกิน CPU และหน่วยความจำ",
+      "เพราะ Ethernet ไม่รองรับการอ้างอิง outbound interface ใน static route",
+      "เพราะ static route แบบนี้จะมีค่า AD เป็น 255 โดยอัตโนมัติ",
+      "เพราะจะทำให้เกิด recursive lookup ที่ไม่มีที่สิ้นสุด"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์เตือนว่าการตั้ง directly attached static route ชี้อินเทอร์เฟซที่ใช้ ARP เช่นเครือข่าย Ethernet ก่อปัญหาและไม่แนะนำ เพราะเราเตอร์ต้องทำกระบวนการ ARP ซ้ำสำหรับทุกปลายทางที่ตรงกับ static route ซึ่งกิน CPU และหน่วยความจำ และในเครือข่ายใหญ่อาจทำให้เราเตอร์ไม่เสถียร ส่วนอินเทอร์เฟซ P2P serial ไม่ใช้ ARP จึงอ้างอิงได้",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "The router must repeat the ARP process for every destination that matches the static route, which consumes CPU and memory."
+  },
+  {
+    "topic": "Static Routing Types",
+    "question": "ข้อจำกัดสำคัญของ recursive static route คือข้อใด",
+    "choices": [
+      "next-hop address ต้องมีอยู่ในตารางเส้นทาง และไม่สามารถ resolve ผ่าน default route 0.0.0.0/0 ได้",
+      "ต้องระบุทั้ง outbound interface และ next-hop IP เสมอ",
+      "ใช้ได้เฉพาะกับอินเทอร์เฟซที่ไม่ใช้ ARP เท่านั้น",
+      "มีค่า AD เริ่มต้นสูงกว่า dynamic routing protocol ทุกตัว"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า recursive static route ต้องมี next-hop address ของเส้นทางอยู่ในตารางเส้นทางจึงจะติดตั้งลง RIB ได้ และ recursive static route อาจไม่สามารถ resolve next-hop forwarding address ผ่าน entry ของ default route 0.0.0.0/0 ได้ ซึ่งจะทำให้ static route ล้มเหลวเรื่อง next-hop reachability",
+    "difficulty": "hard",
+    "pages": [21],
+    "evidence": "Recursive static routes require the route's next-hop address to exist in the routing table to install the static route into the RIB. A recursive static route may not resolve the next-hop forwarding address using the default route (0.0.0.0/0) entry."
+  },
+  {
+    "topic": "Static Routing Types",
+    "question": "fully specified static route แก้ปัญหาอะไรและมีรูปแบบคำสั่งอย่างไร",
+    "choices": [
+      "ตัด recursive lookup ออกโดยระบุทั้ง outbound interface และ next-hop IP address",
+      "ลดค่า AD ให้ต่ำกว่า dynamic route โดยระบุคำว่า permanent",
+      "ทำให้ route ยังอยู่ใน RIB เสมอแม้อินเทอร์เฟซจะ down",
+      "บังคับให้เราเตอร์ทำ ARP ทุกครั้งเพื่อยืนยันปลายทาง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่าปัญหาเกิดเมื่อ recursive lookup resolve ไปยังอินเทอร์เฟซที่ชี้ทิศทางตรงกันข้าม การแก้ไขคือใช้ fully specified static route ที่ระบุทั้ง outbound interface และ next-hop IP address ซึ่งตัด recursive lookup ออกและไม่เกิดปัญหา ARP processing แบบที่ใช้เพียง outbound interface",
+    "difficulty": "hard",
+    "pages": [23],
+    "evidence": "Specifying the next-hop address along with the physical interface removes the recursive lookup and does not involve the ARP processing problems that occur when using only the outbound interface."
+  },
+  {
+    "topic": "Static Routing Types",
+    "question": "floating static route ถูกติดตั้งลง RIB เมื่อใด และค่า AD เริ่มต้นของ static route คือเท่าใด",
+    "choices": [
+      "ติดตั้งเมื่อ primary route ถูกถอนออก โดย static route มี AD เริ่มต้นเป็น 1",
+      "ติดตั้งทันทีพร้อม primary route โดย static route มี AD เริ่มต้นเป็น 1",
+      "ติดตั้งเมื่อ primary route ถูกถอนออก โดย static route มี AD เริ่มต้นเป็น 110",
+      "ติดตั้งเมื่อ metric ของ primary route สูงกว่า โดย AD เริ่มต้นเป็น 0"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า floating static route ตั้งค่าด้วย AD สูงกว่า primary route โดยค่า AD เริ่มต้นของ static route คือ 1 และเนื่องจาก AD สูงกว่า จึงถูกติดตั้งลง RIB เฉพาะเมื่อ primary route ถูกถอนออก เทคนิคนี้ใช้ทำ backup connectivity ให้ prefix ที่เรียนรู้จาก dynamic routing protocol",
+    "difficulty": "medium",
+    "pages": [24],
+    "evidence": "A floating static route is configured with an AD higher than that of the primary route (default AD on a static route is 1). Because the AD is higher than that of the primary route, it is installed in the RIB only when the primary route is withdrawn."
+  },
+  {
+    "topic": "Static Routing Types",
+    "question": "การตั้ง static route ชี้ไปยัง interface Null0 มีประโยชน์อย่างไร",
+    "choices": [
+      "ทิ้งทราฟฟิกได้โดยไม่ต้องตั้ง access list และเป็นเทคนิคป้องกัน routing loop",
+      "บังคับให้เราเตอร์ทำ recursive lookup ซ้ำจนพบเส้นทางจริง",
+      "สร้าง backup path ที่ active เมื่อ primary route ล้มเหลว",
+      "ลดค่า AD ของ prefix นั้นให้ต่ำกว่า connected route"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการตั้ง static route ชี้ไปยัง null interface เป็นวิธีทิ้งทราฟฟิกโดยไม่ต้องตั้งค่า access list และการสร้าง static route ไป Null0 เป็นเทคนิคที่ใช้กันทั่วไปเพื่อป้องกัน routing loop",
+    "difficulty": "medium",
+    "pages": [25],
+    "evidence": "Configuring a static route to a null interface provides a method of dropping network traffic without requiring the configuration of an access list. Creating a static route to the Null0 interface is a common technique to prevent routing loops."
+  },
+  {
+    "topic": "Virtual Routing and Forwarding (VRF)",
+    "question": "โดยค่าเริ่มต้น อินเทอร์เฟซของเราเตอร์อยู่ใน VRF ใด",
+    "choices": [
+      "global VRF จนกว่าจะถูกกำหนดให้ VRF ที่ผู้ใช้สร้างขึ้น",
+      "default VRF ที่สร้างขึ้นอัตโนมัติต่อหนึ่งอินเทอร์เฟซ",
+      "management VRF ที่แยกออกจาก data plane",
+      "ไม่อยู่ใน VRF ใดเลยจนกว่าจะกำหนดด้วยตนเอง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าอินเทอร์เฟซของเราเตอร์ทั้งหมดอยู่ใน global VRF จนกว่าจะถูกกำหนดให้ VRF ที่ผู้ใช้นิยามขึ้นเป็นการเฉพาะ",
+    "difficulty": "easy",
+    "pages": [28],
+    "evidence": "All router interfaces belong to the global VRF until they are specifically assigned to a user-defined VRF."
+  },
+  {
+    "topic": "Virtual Routing and Forwarding (VRF)",
+    "question": "VRF ให้การแยกส่วน (isolation) ในระดับใด",
+    "choices": [
+      "แยกอินเทอร์เฟซ, routing table และ forwarding table อย่างสมบูรณ์ระหว่าง VRF",
+      "แยกเฉพาะ routing table แต่ยังใช้ forwarding table ร่วมกัน",
+      "แยกเฉพาะ VLAN ในระดับ Layer 2 เท่านั้น",
+      "แยกเฉพาะ management plane แต่ data plane ยังรวมกัน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า VRF เป็นเทคโนโลยีที่สร้างเราเตอร์เสมือนแยกกันบนเราเตอร์กายภาพเดียว โดยอินเทอร์เฟซของเราเตอร์ routing table และ forwarding table ถูกแยกอย่างสมบูรณ์ระหว่าง VRF ซึ่งป้องกันไม่ให้ทราฟฟิกจาก VRF หนึ่งฟอร์เวิร์ดเข้าไปในอีก VRF",
+    "difficulty": "medium",
+    "pages": [28],
+    "evidence": "Router interfaces, routing tables, and forwarding tables are completely isolated between VRFs, preventing traffic from one VRF from forwarding into another VRF."
+  }
+]

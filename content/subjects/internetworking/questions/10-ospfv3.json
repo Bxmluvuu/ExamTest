@@ -1,0 +1,167 @@
+[
+  {
+    "topic": "OSPFv3 Fundamentals & LSA Types",
+    "question": "การทำ neighbor authentication ใน OSPFv3 เปลี่ยนไปอย่างไร",
+    "choices": [
+      "ถูกถอดออกจากตัวโปรโตคอลและทำผ่าน IPsec extension header ในแพ็กเก็ต IPv6",
+      "รองรับเฉพาะ MD5 ที่กำหนดใต้ OSPF process",
+      "ใช้ clear text เท่านั้นเพราะ IPv6 เข้ารหัสอยู่แล้ว",
+      "ทำผ่าน instance ID field ที่อยู่ในแพ็กเก็ต OSPFv3"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าใน OSPFv3 การทำ neighbor authentication ถูกถอดออกจากตัวโปรโตคอล OSPF และดำเนินการผ่าน IPsec extension header ในแพ็กเก็ต IPv6 แทน",
+    "difficulty": "medium",
+    "pages": [4],
+    "evidence": "Authentication - Neighbor authentication has been removed from the OSPF protocol and is now performed through IPsec extension headers in the IPv6 packet."
+  },
+  {
+    "topic": "OSPFv3 Fundamentals & LSA Types",
+    "question": "ข้อใดกล่าวถูกต้องเกี่ยวกับ router ID ใน OSPFv3",
+    "choices": [
+      "ต้องกำหนดด้วยตนเองใน routing process เสมอ และใช้ระบุเพื่อนบ้านไม่ว่า network type ใด",
+      "ถูกเลือกอัตโนมัติจาก IPv6 address ที่สูงที่สุดบนอินเทอร์เฟซ",
+      "ใช้เฉพาะบน network type แบบ broadcast เท่านั้น",
+      "ถูกแทนที่ด้วย link-local address ในการระบุเพื่อนบ้าน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า router ID ใช้ระบุเพื่อนบ้านไม่ว่าจะเป็น network type ใดใน OSPFv3 และ router ID ต้องถูกกำหนดด้วยตนเองใน routing process เสมอ",
+    "difficulty": "medium",
+    "pages": [4],
+    "evidence": "Router ID - The router ID is used to identify neighbors, regardless of the network type in OSPFv3. The router ID must always be manually assigned in the routing process."
+  },
+  {
+    "topic": "OSPFv3 Fundamentals & LSA Types",
+    "question": "ฟีเจอร์ multiple subnets on an interface ของ OSPFv3 ให้ผลอย่างไร",
+    "choices": [
+      "ทำให้เกิด neighbor adjacency ได้แม้เราเตอร์สองตัวไม่ได้อยู่ subnet เดียวกัน",
+      "ทำให้เราเตอร์ต้องมี subnet ตรงกันอย่างน้อยหนึ่ง subnet จึงจะเกิด adjacency",
+      "อนุญาตให้อินเทอร์เฟซเดียวเข้าร่วมได้หลาย area พร้อมกัน",
+      "อนุญาตให้เราเตอร์ใช้ router ID ซ้ำกันได้ในต่าง subnet"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าฟีเจอร์ multiple subnets on an interface ของ OSPFv3 อนุญาตให้เกิด neighbor adjacency ได้แม้เราเตอร์สองตัวไม่ได้ใช้ subnet ร่วมกัน ส่วน multiple instances ใช้ instance ID field ควบคุมว่าเราเตอร์ใดบน segment ได้รับอนุญาตให้สร้าง adjacency",
+    "difficulty": "hard",
+    "pages": [4],
+    "evidence": "Multiple subnets on an interface - Allows for neighbor adjacency to form even if the two routers do not share a common subnet."
+  },
+  {
+    "topic": "OSPFv3 Fundamentals & LSA Types",
+    "question": "OSPFv3 เปลี่ยนชื่อ network summary LSA และ ASBR summary LSA เป็นอะไรตามลำดับ",
+    "choices": [
+      "interarea prefix LSA และ interarea router LSA",
+      "intra-area prefix LSA และ link-local LSA",
+      "router LSA และ network LSA",
+      "NSSA LSA และ AS external LSA"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า OSPFv3 เปลี่ยนชื่อ network summary LSA เป็น interarea prefix LSA และเปลี่ยนชื่อ ASBR summary LSA เป็น interarea router LSA ส่วน intra-area prefix LSA และ link-local LSA เป็น LSA ใหม่สองประเภทที่ใช้โฆษณาข้อมูล IP address",
+    "difficulty": "hard",
+    "pages": [5],
+    "evidence": "It renames the network summary LSA to the interarea prefix LSA. It renames the ASBR summary LSA to the interarea router LSA."
+  },
+  {
+    "topic": "OSPFv3 Fundamentals & LSA Types",
+    "question": "เหตุใด OSPFv3 จึงไม่จำเป็นต้องรัน SPF ใหม่ทุกครั้งที่มี address prefix เพิ่มหรือเปลี่ยนบนอินเทอร์เฟซ",
+    "choices": [
+      "เพราะ LSDB สร้าง shortest path topology tree จากลิงก์แทนเครือข่าย และข้อมูล IP address โฆษณาด้วย LSA ประเภทใหม่",
+      "เพราะ OSPFv3 คำนวณ SPF เฉพาะเมื่อ router ID เปลี่ยนแปลงเท่านั้น",
+      "เพราะ OSPFv3 ไม่ใช้ SPF algorithm แต่ใช้ DUAL แทน",
+      "เพราะ router LSA ไม่โฆษณาข้อมูล interface parameter อีกต่อไป"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า LSDB สร้าง shortest path topology tree จากลิงก์แทนเครือข่าย และเนื่องจากข้อมูล IP address ถูกโฆษณาด้วย LSA ประเภทใหม่ จึงไม่จำเป็นต้องรัน SPF ทุกครั้งที่มี address prefix ใหม่เพิ่มหรือเปลี่ยนแปลงบนอินเทอร์เฟซ",
+    "difficulty": "hard",
+    "pages": [5],
+    "evidence": "Link-state database(LSDB) creates a shortest path topology tree based on links instead of networks. Since IP address information is advertised using new LSA types there is no longer a need to run SPF calculations every time a new address prefix is added or changed"
+  },
+  {
+    "topic": "OSPFv3 Communication & Configuration",
+    "question": "LS type 0x2003 ของ OSPFv3 คือ LSA ประเภทใดและใครสร้างขึ้น",
+    "choices": [
+      "Interarea Prefix LSA สร้างโดย area border router",
+      "Router LSA สร้างโดยเราเตอร์ทุกตัว",
+      "Network LSA สร้างโดย designated router",
+      "AS external LSA สร้างโดย ASBR"
+    ],
+    "answer": 0,
+    "explanation": "ตาราง LSA ของ OSPFv3 ระบุว่า 0x2003 คือ Interarea Prefix LSA ซึ่ง area border router สร้างขึ้นเพื่ออธิบายเส้นทางไปยัง IPv6 address prefix ที่อยู่ใน area อื่น ส่วน 0x2004 คือ Interarea router LSA",
+    "difficulty": "hard",
+    "pages": [6],
+    "evidence": "0x2003 Interarea Prefix Area border routers generate interarea prefix LSAs to describe routes to IPv6 address prefixes that belong to other areas."
+  },
+  {
+    "topic": "OSPFv3 Communication & Configuration",
+    "question": "multicast address FF02::05 และ FF02::06 ใน OSPFv3 ใช้ทำสิ่งใดตามลำดับ",
+    "choices": [
+      "AllSPFRouters สำหรับส่ง hello ไปทุกเราเตอร์ และ AllDRouters สำหรับส่งไปยัง DR และ BDR",
+      "AllDRouters สำหรับส่งไปยัง DR และ AllSPFRouters สำหรับส่ง hello",
+      "AllSPFRouters สำหรับ LSA acknowledgment และ AllDRouters สำหรับ hello",
+      "ทั้งสองใช้ส่ง hello โดย FF02::05 สำหรับ IPv4 และ FF02::06 สำหรับ IPv6"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า FF02::05 คือ OSPFv3 AllSPFRouters ซึ่งทุกเราเตอร์ใช้ส่ง OSPF hello ไปยังเราเตอร์บนลิงก์เดียวกัน และ DR กับ BDR ก็ใช้ที่อยู่นี้ส่ง link-state update และ flooding acknowledgment ส่วน FF02::06 คือ AllDRouters ที่เราเตอร์ซึ่งไม่ใช่ DR/BDR ใช้ส่ง update หรือ acknowledgment ไปยัง DR และ BDR",
+    "difficulty": "medium",
+    "pages": [7],
+    "evidence": "FF02::05: OSPFv3 AllSPFRouters Every router uses AllSPFRouters multicast address to send OSPF hello messages to routers on the same link. ... FF02::06: OSPFv3 AllDRouters"
+  },
+  {
+    "topic": "OSPFv3 Communication & Configuration",
+    "question": "OSPFv3 ใช้ packet type จำนวนเท่าใดเมื่อเทียบกับ OSPFv2",
+    "choices": [
+      "ใช้ห้าประเภทและตรรกะเดียวกันกับ OSPFv2",
+      "ใช้สามประเภทเพราะรวม LSR และ LSU เข้าด้วยกัน",
+      "ใช้เจ็ดประเภทเพราะเพิ่ม LSA ใหม่สองประเภท",
+      "ใช้สี่ประเภทเพราะไม่มี hello packet แยก"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า OSPFv3 ใช้ packet type ห้าประเภทและตรรกะเดียวกันกับ OSPFv2 โดยเราเตอร์สื่อสารกันด้วย link-local address",
+    "difficulty": "easy",
+    "pages": [7],
+    "evidence": "OSPFv3 uses the same five packet types and logic as OSPFv2."
+  },
+  {
+    "topic": "IPv4 Support in OSPFv3",
+    "question": "ขั้นตอนการเปิด IPv4 support ใน OSPFv3 คือข้อใด",
+    "choices": [
+      "ให้อินเทอร์เฟซ IPv4 มี IPv6 address ก่อน แล้วเปิด process ด้วยคำสั่ง ospfv3 process-id ipv4 area area-id",
+      "เปิด process ด้วย router ospfv3 แล้วใช้คำสั่ง network เพื่อประกาศ IPv4 prefix",
+      "เปิดด้วยคำสั่ง ip ospf process-id area area-id บนอินเทอร์เฟซ IPv4 เท่านั้น",
+      "แปลง address family เป็น ipv4 unicast แล้วใช้ redistribute connected"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุสองขั้นตอนคือ ต้องแน่ใจว่าอินเทอร์เฟซ IPv4 มี IPv6 address ทั้งแบบ global หรือ link local กำหนดไว้แล้ว จากนั้นเปิด OSPFv3 process สำหรับ IPv4 บนอินเทอร์เฟซด้วยคำสั่ง ospfv3 process-id ipv4 area area-id",
+    "difficulty": "hard",
+    "pages": [21],
+    "evidence": "Step 1. Ensure that the IPv4 interface has an IPv6 address (global or link local) configured. Step 2. Enable the OSPFv3 process for IPv4 on the interface with the command ospfv3 process-id ipv4 area area-id."
+  },
+  {
+    "topic": "OSPFv3 Verification & Summarization",
+    "question": "OSPFv3 ใช้ protocol ID ใดและเราเตอร์สื่อสารกันด้วย address ประเภทใด",
+    "choices": [
+      "protocol ID 89 และสื่อสารด้วย link-local address",
+      "protocol ID 88 และสื่อสารด้วย global unicast address",
+      "protocol ID 89 และสื่อสารด้วย global unicast address",
+      "protocol ID 58 และสื่อสารด้วย link-local address"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าแพ็กเก็ต OSPFv3 ใช้ protocol ID 89 และเราเตอร์สื่อสารกันโดยใช้ link-local address ซึ่งสอดคล้องกับที่ระบุว่า inter-router communication ของ OSPFv3 จัดการด้วย IPv6 link-local addressing",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "OSPFv3 packets use protocol ID 89. Routers communicate with each other using the link-local address."
+  },
+  {
+    "topic": "OSPFv3 Verification & Summarization",
+    "question": "router LSA ของ OSPFv3 รับผิดชอบโฆษณาข้อมูลใด",
+    "choices": [
+      "interface parameter เช่นประเภทอินเทอร์เฟซและ metric",
+      "IPv6 address prefix ทั้งหมดของอินเทอร์เฟซ",
+      "รายชื่อเราเตอร์ทั้งหมดที่ผูกกับลิงก์นั้น",
+      "เส้นทาง default ที่เรียนรู้จากการ redistribute"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า router LSA รับผิดชอบประกาศ interface parameter เช่นประเภทอินเทอร์เฟซและ metric ส่วนข้อมูล IP address ถูกโฆษณาแยกด้วย LSA ใหม่สองประเภทคือ intra-area prefix LSA และ link-local LSA",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "Router LSA is responsible for announcing interface parameters such as the interface type and metric."
+  }
+]

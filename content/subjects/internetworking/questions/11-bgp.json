@@ -1,0 +1,182 @@
+[
+  {
+    "topic": "BGP Fundamentals & Autonomous Systems",
+    "question": "ช่วง private ASN ในรูปแบบ 16 บิตคือข้อใด",
+    "choices": [
+      "64,512 ถึง 65,535",
+      "64,512 ถึง 65,534",
+      "4,200,000,000 ถึง 4,294,967,294",
+      "1 ถึง 64,511"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า ASN 64,512 ถึง 65,535 เป็น private ASN ในช่วง 16 บิต ส่วน ASN 4,200,000,000 ถึง 4,294,967,294 เป็น private ASN ในช่วง 32 บิตแบบขยาย",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "ASNs 64,512–65,535 are private ASNs in the 16-bit ASN range."
+  },
+  {
+    "topic": "BGP Fundamentals & Autonomous Systems",
+    "question": "กลไกป้องกัน loop ของ BGP ทำงานอย่างไรเมื่อ AS 100 ได้รับ prefix ของตนเองกลับมาพร้อม AS_Path 300 400 200 100",
+    "choices": [
+      "AS 100 เห็นตัวเองอยู่ใน AS_Path จึงทิ้ง prefix นั้น",
+      "AS 100 ยอมรับ prefix แต่ตั้ง MED เป็นค่าสูงสุด",
+      "AS 100 prepend ASN ของตนอีกครั้งแล้วส่งต่อ",
+      "AS 100 ลด local preference ของ prefix ลงเป็น 0"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายกลไกว่า AS 300 โฆษณา prefix กลับไปยัง AS 100 พร้อม AS_Path 300 400 200 100 และ AS 100 เห็นตัวเองอยู่ในตัวแปร AS_Path จึงทิ้ง prefix นั้นไป",
+    "difficulty": "medium",
+    "pages": [7],
+    "evidence": "AS 300 advertises the prefix back to AS 100 with an AS_Path of 300 400 200 100. AS 100 sees itself in the AS_Path variable and discards the prefix."
+  },
+  {
+    "topic": "BGP Fundamentals & Autonomous Systems",
+    "question": "prefix ที่เรียนรู้จาก iBGP และ eBGP ได้รับค่า administrative distance เท่าใดตามลำดับ",
+    "choices": ["200 และ 20", "20 และ 200", "110 และ 20", "200 และ 110"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า iBGP prefix ได้รับค่า AD 200 เมื่อติดตั้งลง RIB ของเราเตอร์ ส่วน eBGP prefix ได้รับค่า AD 20",
+    "difficulty": "medium",
+    "pages": [11],
+    "evidence": "iBGP prefixes are assigned an administrative distance (AD) of 200 upon installation in the router's RIB. External BGP (eBGP) ... eBGP prefixes are assigned an AD of 20 upon installation in the router's RIB."
+  },
+  {
+    "topic": "BGP Sessions, Messages & Neighbor States",
+    "question": "ข้อใดเป็นความต่างของ eBGP session เมื่อเทียบกับ iBGP session",
+    "choices": [
+      "eBGP ตั้ง TTL เป็นหนึ่ง จึงทิ้งแพ็กเก็ตหากพยายามเชื่อมแบบ multi-hop",
+      "eBGP อนุญาต multi-hop session ขณะที่ iBGP ตั้ง TTL เป็นหนึ่ง",
+      "eBGP ไม่แก้ next-hop address ขณะที่ iBGP แก้เสมอ",
+      "eBGP ไม่ prepend ASN ของตนลงใน AS_Path"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า iBGP อนุญาต multi-hop session ส่วนแพ็กเก็ต eBGP ตั้ง TTL เป็นหนึ่ง จึงถูกทิ้งหากพยายามเชื่อมต่อแบบ multi-hop นอกจากนี้เราเตอร์ที่โฆษณายังแก้ BGP next-hop address เป็น IP ที่ใช้เปิดการเชื่อมต่อ และ prepend ASN ของตนลงใน AS_Path",
+    "difficulty": "hard",
+    "pages": [13],
+    "evidence": "iBGP allows for multi-hop sessions. eBGP packets set the TTL to one, so packets are dropped if multi-hop connections are attempted."
+  },
+  {
+    "topic": "BGP Sessions, Messages & Neighbor States",
+    "question": "BGP packet type ใดที่ใช้แจ้งเงื่อนไขข้อผิดพลาดไปยัง BGP neighbor",
+    "choices": ["NOTIFICATION", "UPDATE", "KEEPALIVE", "OPEN"],
+    "answer": 0,
+    "explanation": "ตาราง BGP packet type ระบุว่า type 3 คือ NOTIFICATION ใช้แจ้งเงื่อนไขข้อผิดพลาดไปยัง BGP neighbor ส่วน OPEN ใช้ตั้งและสร้าง BGP adjacency, UPDATE ใช้โฆษณาหรือถอนเส้นทาง และ KEEPALIVE ใช้ยืนยันว่า neighbor ยังทำงานอยู่",
+    "difficulty": "easy",
+    "pages": [14],
+    "evidence": "3 NOTIFICATION Indicates an error condition to a BGP neighbor"
+  },
+  {
+    "topic": "BGP Sessions, Messages & Neighbor States",
+    "question": "ลำดับสถานะของ BGP session ตามที่สไลด์ระบุคือข้อใด",
+    "choices": [
+      "Idle, Connect, Active, OpenSent, OpenConfirm, Established",
+      "Down, Init, 2-Way, ExStart, Exchange, Full",
+      "Idle, Active, Connect, OpenConfirm, OpenSent, Established",
+      "Idle, Connect, OpenSent, Active, Established, Full"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า BGP session อาจรายงานสถานะต่อไปนี้คือ Idle, Connect, Active, OpenSent, OpenConfirm และ Established ส่วนลำดับ Down, Init, 2-Way เป็นสถานะของ OSPF neighbor",
+    "difficulty": "medium",
+    "pages": [15],
+    "evidence": "The BGP session may report the following states: • Idle • Connect • Active • OpenSent • OpenConfirm • Established"
+  },
+  {
+    "topic": "BGP Configuration & Prefix Advertisement",
+    "question": "ตาราง BGP ใดที่เก็บ NLRI ในรูปแบบดั้งเดิมตามที่ได้รับมา",
+    "choices": ["Adj-RIB-In", "Loc-RIB", "Adj-RIB-Out", "Global RIB"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า BGP ใช้สามตารางในการรักษา network prefix และ path attribute โดย Adj-RIB-In เก็บ NLRI ในรูปแบบดั้งเดิม Loc-RIB เก็บ NLRI ที่เกิดในเครื่องหรือรับจาก BGP peer อื่น และ Adj-RIB-Out เก็บ NLRI หลังผ่าน outbound route policy",
+    "difficulty": "hard",
+    "pages": [26],
+    "evidence": "Adj-RIB-In - Contains the NLRIs in original form • Loc-RIB - Contains all the NLRIs that originated locally or were received from other BGP peers. • Adj-RIB-Out - Contains the NLRIs after outbound route policies have been processed."
+  },
+  {
+    "topic": "Route Summarization & MP-BGP for IPv6",
+    "question": "ข้อเสียของการทำ BGP summarization แบบ static คือข้อใด",
+    "choices": [
+      "summary route ถูกโฆษณาเสมอแม้เครือข่ายย่อยจะไม่พร้อมใช้งาน",
+      "summary route จะถูกโฆษณาเฉพาะเมื่อทุก component route พร้อมใช้งาน",
+      "ต้องตั้ง next hop เป็น Null0 ซึ่งทำให้เกิด routing loop",
+      "ไม่สามารถใช้ร่วมกับ network statement ได้"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าวิธี static คือสร้าง static route ไป Null0 สำหรับ summary network prefix แล้วโฆษณา prefix นั้นด้วย network statement ข้อเสียของเทคนิคนี้คือ summary route ถูกโฆษณาเสมอแม้เครือข่ายย่อยจะไม่พร้อมใช้งาน",
+    "difficulty": "hard",
+    "pages": [34],
+    "evidence": "The downfall of this technique is that the summary route is always advertised, even if the networks are not available."
+  },
+  {
+    "topic": "Route Summarization & MP-BGP for IPv6",
+    "question": "ในการทำ dynamic summarization ของ BGP เราเตอร์ต้นทางตั้ง next hop ของ aggregate prefix เป็นอะไรและเพื่ออะไร",
+    "choices": [
+      "Null0 เพื่อเป็น discard route ป้องกัน loop",
+      "peer-address เพื่อให้ทราฟฟิกไหลผ่าน peer โดยตรง",
+      "self เพื่อบังคับให้ทุก iBGP peer ส่งผ่านตัวเอง",
+      "loopback interface เพื่อความเสถียรของ session"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าในวิธี dynamic เมื่อ component route ที่ตรงกับ aggregate network prefix เข้าสู่ตาราง BGP จะมีการสร้าง aggregate prefix ขึ้น และเราเตอร์ต้นทางตั้ง next hop เป็น Null0 เพื่อเป็น discard route สำหรับ aggregated prefix ในการป้องกัน loop",
+    "difficulty": "hard",
+    "pages": [34],
+    "evidence": "The originating router sets the next hop to Null0 as a discard route for the aggregated prefix for loop prevention."
+  },
+  {
+    "topic": "Route Summarization & MP-BGP for IPv6",
+    "question": "คำสั่งใดใช้ทำ dynamic route summarization ใน BGP address family configuration",
+    "choices": [
+      "aggregate-address network subnet-mask [summary-only] [as-set]",
+      "network network subnet-mask route-map summary",
+      "area area-id range network subnet-mask",
+      "ip route network subnet-mask Null0"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า dynamic route summarization ทำได้ด้วยคำสั่งใน BGP address family configuration ชื่อ aggregate-address network subnet-mask [summary-only] [as-set]",
+    "difficulty": "medium",
+    "pages": [35],
+    "evidence": "Dynamic route summarization is accomplished with the BGP address family configuration command aggregate-address network subnet-mask [summary-only] [as-set]."
+  },
+  {
+    "topic": "Route Summarization & MP-BGP for IPv6",
+    "question": "เมื่อ BGP router สรุปเส้นทาง path attribute ใดที่ไม่ถูกรวมไว้ในการโฆษณาใหม่",
+    "choices": [
+      "AS_Path, MED และ BGP community",
+      "next hop, origin และ local preference",
+      "weight, local preference และ atomic aggregate",
+      "origin, aggregator และ next hop"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเส้นทางที่ถูก aggregate ทำตัวเหมือน BGP route ใหม่ที่มี prefix length สั้นกว่า เมื่อ BGP router สรุปเส้นทางจะไม่โฆษณาข้อมูล AS_Path จากก่อนการ aggregate และ path attribute อย่าง AS_Path, MED และ BGP community ไม่ถูกรวมไว้ในการโฆษณา BGP ใหม่",
+    "difficulty": "hard",
+    "pages": [37],
+    "evidence": "BGP path attributes like AS_Path, MED, and BGP communities are not included in the new BGP advertisement."
+  },
+  {
+    "topic": "Route Summarization & MP-BGP for IPv6",
+    "question": "RFC 4760 ซึ่งนิยาม MP-BGP เพิ่มคุณสมบัติใดเข้ามา",
+    "choices": [
+      "AFI model ใหม่ และ optional nontransitive attribute สำหรับ multiprotocol reachable/unreachable NLRI",
+      "well-known mandatory attribute ใหม่สำหรับ IPv6 next hop เท่านั้น",
+      "packet type ใหม่ชื่อ ROUTE-REFRESH สำหรับ IPv6",
+      "AS_Path แบบ 32 บิตเพื่อรองรับ extended ASN"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า RFC 4760 นิยามคุณสมบัติใหม่ได้แก่ address family identifier (AFI) model ใหม่ และ BGPv4 optional nontransitive attribute ใหม่คือ multiprotocol reachable NLRI และ multiprotocol unreachable NLRI",
+    "difficulty": "hard",
+    "pages": [41],
+    "evidence": "RFC 4760 defines the following new features: • A new address family identifier (AFI) model • New BGPv4 optional and nontransitive attributes: • Multiprotocol reachable NLRI • Multiprotocol unreachable NLRI"
+  },
+  {
+    "topic": "BGP Fundamentals & Autonomous Systems",
+    "question": "เหตุใด BGP จึงถือว่าเป็น path vector protocol ที่ทำงานคล้าย distance vector protocol",
+    "choices": [
+      "เพราะไม่มี topology ของเครือข่ายทั้งหมดเหมือน link-state protocol แต่รับประกันว่าเส้นทางไม่มี loop",
+      "เพราะรัน Dijkstra SPF บน LSDB ที่ซิงโครไนซ์ทุก AS",
+      "เพราะใช้ hop count เป็น metric หลักในการเลือกเส้นทาง",
+      "เพราะแลกเปลี่ยนเฉพาะ prefix ที่อยู่ใน area เดียวกัน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า BGP เป็น path vector routing protocol ที่ไม่มี topology ของเครือข่ายทั้งหมดเหมือน link-state routing protocol และ BGP ทำงานคล้าย distance vector protocol โดยรับประกันว่าเส้นทางไม่มี loop",
+    "difficulty": "medium",
+    "pages": [7],
+    "evidence": "BGP is a path vector routing protocol and does not contain a complete topology of the network, as link-state routing protocols do. BGP behaves like distance vector protocols, ensuring that a path is loop free."
+  }
+]

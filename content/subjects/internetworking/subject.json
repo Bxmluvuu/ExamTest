@@ -1,0 +1,208 @@
+{
+  "name": "Internetworking",
+  "slug": "internetworking",
+  "description": "Enterprise Core Networking ตามหลักสูตร CCNP ENCOR ครอบคลุม Packet Forwarding, Spanning Tree, MST, VTP/DTP/EtherChannel, IP Routing, EIGRP, OSPF/OSPFv3, BGP, Multicast และ QoS",
+  "language": "th",
+  "questionTarget": 500,
+  "chapters": [
+    {
+      "sequenceOrder": 1,
+      "title": "Packet Forwarding",
+      "description": "OSI/TCP-IP, Layer 2 Forwarding, VLAN, Trunk, MAC Address Table, Process Switching, CEF และ TCAM",
+      "slideFile": "Chapter_1Packet Forwarding.pdf",
+      "pageCount": 49,
+      "topics": [
+        "Network Device Communication & OSI",
+        "VLANs, Access Ports & Trunk Ports",
+        "MAC Address Table & Layer 3 Forwarding",
+        "Forwarding Architectures (CEF, TCAM, SDM)"
+      ]
+    },
+    {
+      "sequenceOrder": 2,
+      "title": "Spanning Tree Protocol",
+      "description": "802.1D STP Fundamentals, Port States/Types, Root Bridge Election, Path Cost, Topology Change และ RSTP",
+      "slideFile": "Chapter_2Spanning Tree.pdf",
+      "pageCount": 40,
+      "topics": [
+        "STP Fundamentals & Port States",
+        "Root Bridge Election & Path Cost",
+        "STP Topology Changes & Convergence",
+        "Rapid Spanning Tree Protocol (RSTP)"
+      ]
+    },
+    {
+      "sequenceOrder": 3,
+      "title": "Advanced STP Tuning",
+      "description": "Root Bridge Placement, Port Cost/Priority Tuning, Root Guard, PortFast, BPDU Guard/Filter, Loop Guard และ UDLD",
+      "slideFile": "Chapter_3Advanced STP Tuning.pdf",
+      "pageCount": 34,
+      "topics": [
+        "STP Topology Tuning & Root Placement",
+        "Root Guard, PortFast & BPDU Guard",
+        "BPDU Filter & Loop Guard",
+        "Unidirectional Link Detection (UDLD)"
+      ]
+    },
+    {
+      "sequenceOrder": 4,
+      "title": "Multiple Spanning Tree Protocol",
+      "description": "CST/PVST/MST Topologies, MST Region, IST, MST Configuration/Tuning และ Region Boundary Design",
+      "slideFile": "Chapter_4Multiple Spanning Tree Protocol.pdf",
+      "pageCount": 25,
+      "topics": [
+        "CST, PVST & MST Topologies",
+        "MST Regions & Internal Spanning Tree",
+        "MST Configuration & Tuning",
+        "MST Misconfigurations & Boundary Design"
+      ]
+    },
+    {
+      "sequenceOrder": 5,
+      "title": "VLAN Trunks and EtherChannel Bundles",
+      "description": "VTP Roles/Versions, DTP Modes, EtherChannel, PAgP/LACP, Load Balancing และการแก้ปัญหา Port-Channel",
+      "slideFile": "Chapter_5VLAN Trunks and EtherChannel Bundles.pdf",
+      "pageCount": 51,
+      "topics": [
+        "VLAN Trunking Protocol (VTP)",
+        "Dynamic Trunking Protocol (DTP)",
+        "EtherChannel with PAgP & LACP",
+        "EtherChannel Troubleshooting & Load Balancing"
+      ]
+    },
+    {
+      "sequenceOrder": 6,
+      "title": "IP Routing Essentials",
+      "description": "Routing Algorithms, Path Selection, Administrative Distance, Metrics, Static Routes ประเภทต่างๆ และ VRF",
+      "slideFile": "Chapter_6IP Routing Essentials.pdf",
+      "pageCount": 37,
+      "topics": [
+        "Routing Protocol Algorithms",
+        "Path Selection & Administrative Distance",
+        "Static Routing Types",
+        "Virtual Routing and Forwarding (VRF)"
+      ]
+    },
+    {
+      "sequenceOrder": 7,
+      "title": "EIGRP",
+      "description": "EIGRP Terminology, Topology Table, Feasibility Condition, Classic/Wide Metrics, DUAL Convergence และ Summarization",
+      "slideFile": "Chapter_7EIGRP.pdf",
+      "pageCount": 33,
+      "topics": [
+        "EIGRP Fundamentals & Terminology",
+        "Topology Table & Feasibility Condition",
+        "EIGRP Metric Calculation",
+        "Failure Detection, DUAL & Summarization"
+      ]
+    },
+    {
+      "sequenceOrder": 8,
+      "title": "OSPF",
+      "description": "LSA/LSDB/SPT, OSPF Areas, Inter-Router Communication, Neighbor States, DR/BDR, Configuration และ Optimizations",
+      "slideFile": "Chapter_8OSPF.pdf",
+      "pageCount": 35,
+      "topics": [
+        "OSPF Fundamentals & LSDB",
+        "OSPF Neighbors & Adjacency Requirements",
+        "DR/BDR Election & Network Types",
+        "OSPF Configuration & Link Cost Tuning"
+      ]
+    },
+    {
+      "sequenceOrder": 9,
+      "title": "Advanced OSPF",
+      "description": "OSPF Areas/ABR, LSA Types 1-5, Discontiguous Networks, Path Selection, Interarea Summarization และ Route Filtering",
+      "slideFile": "Chapter_9Advanced OSPF.pdf",
+      "pageCount": 48,
+      "topics": [
+        "OSPF Areas & Area Border Routers",
+        "OSPF LSA Types",
+        "OSPF Path Selection",
+        "Summarization & Route Filtering"
+      ]
+    },
+    {
+      "sequenceOrder": 10,
+      "title": "OSPFv3",
+      "description": "OSPFv3 Fundamentals, LSA Types ใหม่, Link-Local Communication, Configuration, Summarization และ IPv4 Address Family Support",
+      "slideFile": "Chapter_10OSPFv3.pdf",
+      "pageCount": 30,
+      "topics": [
+        "OSPFv3 Fundamentals & LSA Types",
+        "OSPFv3 Communication & Configuration",
+        "OSPFv3 Verification & Summarization",
+        "IPv4 Support in OSPFv3"
+      ]
+    },
+    {
+      "sequenceOrder": 11,
+      "title": "BGP",
+      "description": "AS Numbers, Path Attributes, Loop Prevention, iBGP/eBGP, BGP Messages/States, Configuration, BGP Tables, Aggregation และ MP-BGP for IPv6",
+      "slideFile": "Chapter_11BGP.pdf",
+      "pageCount": 55,
+      "topics": [
+        "BGP Fundamentals & Autonomous Systems",
+        "BGP Sessions, Messages & Neighbor States",
+        "BGP Configuration & Prefix Advertisement",
+        "Route Summarization & MP-BGP for IPv6"
+      ]
+    },
+    {
+      "sequenceOrder": 12,
+      "title": "Advanced BGP",
+      "description": "BGP Multihoming, Conditional Matching (ACL/Prefix List/Regex), Route Maps, Route Filtering, BGP Communities และ Best-Path Algorithm",
+      "slideFile": "Chapter_12AvdBGP.pdf",
+      "pageCount": 71,
+      "topics": [
+        "BGP Multihoming & Transit Routing",
+        "Conditional Matching & Prefix Lists",
+        "Route Maps & BGP Route Filtering",
+        "BGP Communities",
+        "BGP Best-Path Algorithm"
+      ]
+    },
+    {
+      "sequenceOrder": 13,
+      "title": "Multicast",
+      "description": "Multicast Fundamentals, Class D Addressing, Layer 2 Mapping, IGMPv2/v3, IGMP Snooping, PIM-DM/SM, RPF และ Rendezvous Points",
+      "slideFile": "Chapter_13Multicast.pdf",
+      "pageCount": 53,
+      "topics": [
+        "Multicast Fundamentals & Traffic Types",
+        "Multicast Addressing & Layer 2 Mapping",
+        "IGMP & IGMP Snooping",
+        "Protocol Independent Multicast (PIM)",
+        "Rendezvous Points & BSR"
+      ]
+    },
+    {
+      "sequenceOrder": 14,
+      "title": "QoS",
+      "description": "สาเหตุปัญหาคุณภาพ, QoS Models (Best Effort/IntServ/DiffServ), Classification & Marking (CoS/DSCP/PHB), Policing/Shaping และ Congestion Management",
+      "slideFile": "ENCOR_14Qos.pdf",
+      "pageCount": 68,
+      "topics": [
+        "The Need for QoS & Delay Types",
+        "QoS Models (IntServ & DiffServ)",
+        "Classification & Marking (DSCP PHB)",
+        "Policing & Shaping",
+        "Congestion Management & Avoidance"
+      ]
+    }
+  ],
+  "extraDocuments": [
+    {
+      "title": "Chapter 0: Overview InterNetworking",
+      "file": "Chapter_0 Overview InterNetworking.pdf",
+      "type": "slide",
+      "pageCount": 21
+    },
+    {
+      "title": "สรุปหัวข้อสอบกลางภาค (MidEx)",
+      "file": "สรุปหัวข้อMidEx.pdf",
+      "type": "past_exam",
+      "pageCount": 6
+    }
+  ]
+}

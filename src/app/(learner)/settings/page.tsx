@@ -32,15 +32,17 @@ import {
   AlertTriangle,
   Lock,
 } from 'lucide-react';
+import { useUser } from '@/lib/auth/user-context';
 import { cn, formatThaiDate } from '@/lib/utils';
 import type { Profile, UserSession } from '@/lib/types/database';
 
 export default function LearnerSettingsPage() {
-  const [profile, setProfile] = React.useState<Profile>(() => getCurrentSessionUser());
+  const { profile: contextProfile, setProfile: setContextProfile } = useUser();
+  const [profile, setProfile] = React.useState<Profile>(() => contextProfile || getCurrentSessionUser());
   const [activeTab, setActiveTab] = React.useState<'profile' | 'security' | 'sessions'>('profile');
 
   // Profile tab state
-  const [fullName, setFullName] = React.useState('');
+  const [fullName, setFullName] = React.useState(contextProfile?.full_name || '');
   const [isProfileSaved, setIsProfileSaved] = React.useState(false);
   const [verifyEmailSent, setVerifyEmailSent] = React.useState(false);
 
@@ -58,22 +60,24 @@ export default function LearnerSettingsPage() {
   const [sessionSuccessMsg, setSessionSuccessMsg] = React.useState('');
 
   const refreshSessions = React.useCallback(() => {
-    const u = getCurrentSessionUser();
+    const u = contextProfile || getCurrentSessionUser();
     getUserSessions(u.id).then(setSessions);
-  }, []);
+  }, [contextProfile]);
 
   React.useEffect(() => {
-    const u = getCurrentSessionUser();
+    const u = contextProfile || getCurrentSessionUser();
     setProfile(u);
     setFullName(u.full_name || '');
     refreshSessions();
-  }, [refreshSessions]);
+  }, [contextProfile, refreshSessions]);
 
   // Profile Save Handler
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateProfile(profile.id, { full_name: fullName });
-    setProfile(prev => ({ ...prev, full_name: fullName }));
+    const updated = { ...profile, full_name: fullName };
+    setProfile(updated);
+    setContextProfile(updated);
     setIsProfileSaved(true);
     setTimeout(() => setIsProfileSaved(false), 2500);
   };

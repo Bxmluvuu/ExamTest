@@ -231,53 +231,110 @@ function ExamSetupForm() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold">4. กำหนดจำนวนข้อและระดับความยาก</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
+              {/* Question Count Selection */}
               <div>
-                <label className="block text-xs font-semibold text-[var(--foreground)] mb-2">
-                  จำนวนข้อสอบ: <strong className="text-[var(--primary)]">{questionCount} ข้อ</strong>
-                </label>
-                <div className="flex gap-2">
-                  {[5, 10, 15, 20, 25].map(cnt => (
-                    <button
-                      key={cnt}
-                      type="button"
-                      onClick={() => setQuestionCount(cnt)}
-                      className={cn(
-                        'flex-1 py-1.5 rounded border text-xs font-semibold transition-colors duration-150 cursor-pointer',
-                        questionCount === cnt
-                          ? 'bg-[var(--primary)] text-white border-[var(--primary)]'
-                          : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
-                      )}
-                    >
-                      {cnt} ข้อ
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-xs font-semibold text-[var(--foreground)]">
+                    จำนวนข้อสอบที่ต้องการทำ:
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-[var(--primary)] bg-[var(--primary-subtle)] px-2.5 py-0.5 rounded-full border border-[var(--primary)]/20">
+                      {questionCount} ข้อ
+                    </span>
+                    {availableQuestionsCount > 0 && questionCount !== availableQuestionsCount && (
+                      <button
+                        type="button"
+                        onClick={() => setQuestionCount(Math.min(availableQuestionsCount, 100))}
+                        className="text-[11px] text-[var(--primary)] hover:underline font-medium cursor-pointer"
+                      >
+                        (เลือกสูงสุด {Math.min(availableQuestionsCount, 100)} ข้อ)
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Preset Chips */}
+                <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 mb-3">
+                  {[5, 10, 20, 25, 40, 50, 75, 100].map(cnt => {
+                    const isExceed = availableQuestionsCount > 0 && cnt > availableQuestionsCount;
+                    const isSelected = questionCount === cnt;
+                    return (
+                      <button
+                        key={cnt}
+                        type="button"
+                        disabled={isExceed}
+                        onClick={() => setQuestionCount(cnt)}
+                        className={cn(
+                          'py-1.5 px-2 rounded-[var(--radius)] border text-xs font-semibold transition-all duration-150 cursor-pointer text-center',
+                          isSelected
+                            ? 'bg-[var(--primary)] text-white border-[var(--primary)] shadow-xs'
+                            : isExceed
+                            ? 'bg-[var(--surface-subtle)] text-[var(--foreground-muted)] border-[var(--border)] opacity-40 cursor-not-allowed'
+                            : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-subtle)] hover:border-[var(--border-strong)]'
+                        )}
+                      >
+                        {cnt} ข้อ
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Slider + Custom Input */}
+                <div className="flex items-center gap-3 pt-1">
+                  <input
+                    type="range"
+                    min={5}
+                    max={Math.max(25, Math.min(availableQuestionsCount || 100, 100))}
+                    step={5}
+                    value={questionCount}
+                    onChange={e => setQuestionCount(Number(e.target.value))}
+                    className="flex-1 accent-[var(--primary)] cursor-pointer h-2 bg-[var(--surface-subtle)] rounded-lg"
+                  />
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <input
+                      type="number"
+                      min={1}
+                      max={Math.max(1, availableQuestionsCount || 100)}
+                      value={questionCount}
+                      onChange={e => {
+                        const val = parseInt(e.target.value, 10);
+                        if (!isNaN(val)) {
+                          setQuestionCount(Math.max(1, Math.min(val, availableQuestionsCount || 100)));
+                        }
+                      }}
+                      className="w-16 h-8 text-center text-xs font-bold rounded border border-[var(--border-strong)] bg-[var(--surface)] px-1"
+                    />
+                    <span className="text-xs text-[var(--foreground-muted)]">ข้อ</span>
+                  </div>
                 </div>
               </div>
 
+              {/* Difficulty Selection */}
               <div>
                 <label className="block text-xs font-semibold text-[var(--foreground)] mb-2">
                   ระดับความยาก (Difficulty Filter)
                 </label>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {[
-                    { key: 'all', label: 'ผสมตาม Blueprint' },
-                    { key: 'easy', label: 'ง่าย (Easy)' },
-                    { key: 'medium', label: 'ปานกลาง (Medium)' },
-                    { key: 'hard', label: 'ยาก (Hard)' },
+                    { key: 'all', label: 'ผสมตาม Blueprint', desc: 'ทุกระดับความยาก' },
+                    { key: 'easy', label: 'ง่าย (Easy)', desc: 'ทบทวนพื้นฐาน' },
+                    { key: 'medium', label: 'ปานกลาง (Medium)', desc: 'ระดับมาตรฐาน' },
+                    { key: 'hard', label: 'ยาก (Hard)', desc: 'เจาะลึก/วิเคราะห์' },
                   ].map(d => (
                     <button
                       key={d.key}
                       type="button"
                       onClick={() => setDifficulty(d.key as any)}
                       className={cn(
-                        'flex-1 py-1.5 rounded border text-xs font-medium transition-colors duration-150 cursor-pointer',
+                        'p-2.5 rounded-[var(--radius)] border text-left transition-all duration-150 cursor-pointer',
                         difficulty === d.key
-                          ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-semibold'
-                          : 'bg-[var(--surface)] text-[var(--foreground)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
+                          ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] ring-1 ring-[var(--primary)] font-semibold'
+                          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-subtle)]'
                       )}
                     >
-                      {d.label}
+                      <div className="text-xs font-semibold">{d.label}</div>
+                      <div className="text-[10px] text-[var(--foreground-muted)] mt-0.5">{d.desc}</div>
                     </button>
                   ))}
                 </div>
@@ -314,6 +371,14 @@ function ExamSetupForm() {
               <div className="flex justify-between">
                 <span className="text-[var(--foreground-muted)]">คลังข้อสอบพร้อมใช้งาน:</span>
                 <span className="font-semibold text-[var(--success)]">{availableQuestionsCount} ข้อ</span>
+              </div>
+              <div className="pt-2 border-t border-[var(--border)]">
+                <span className="text-[11px] text-[var(--foreground-muted)] block mb-1.5 font-medium">รูปแบบข้อสอบที่รองรับ:</span>
+                <div className="flex flex-wrap gap-1">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">ปรนัย 4 ตัวเลือก</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">เติมคำในช่องว่าง</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-50 text-teal-700 border border-teal-200">จับคู่</span>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-[var(--border)]">

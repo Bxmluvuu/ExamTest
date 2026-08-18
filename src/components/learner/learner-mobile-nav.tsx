@@ -18,11 +18,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logoutAction } from '@/lib/auth/auth-actions';
+import { useUser } from '@/lib/auth/user-context';
 import type { Profile } from '@/lib/types/database';
 
-export function LearnerMobileNav({ profile }: { profile: Profile }) {
+export function LearnerMobileNav({ profile: initialProfile }: { profile: Profile }) {
   const pathname = usePathname();
   const [moreMenuOpen, setMoreMenuOpen] = React.useState(false);
+  const { profile: liveProfile } = useUser();
+  const profile = liveProfile || initialProfile;
 
   // Close sheet on route change
   React.useEffect(() => {

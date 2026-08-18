@@ -1,0 +1,187 @@
+[
+  {
+    "topic": "STP Fundamentals & Port States",
+    "question": "ใน 802.1D STP พอร์ตที่อยู่ในสถานะ Listening สามารถทำสิ่งใดได้",
+    "choices": [
+      "ส่งและรับได้เฉพาะ BPDU เท่านั้น",
+      "แก้ไข MAC address table ได้แต่ยังไม่ฟอร์เวิร์ดทราฟฟิก",
+      "ฟอร์เวิร์ดทราฟฟิกได้ทุกประเภทตามปกติ",
+      "ไม่ส่งอะไรเลยเพราะถูก shutdown ทางการจัดการ"
+    ],
+    "answer": 0,
+    "explanation": "ตารางสถานะพอร์ตระบุว่า Listening คือสถานะที่พอร์ตเปลี่ยนมาจาก blocking และส่งหรือรับได้เฉพาะ BPDU ส่วนการแก้ MAC address table เป็นความสามารถของสถานะ Learning",
+    "difficulty": "easy",
+    "pages": [5],
+    "evidence": "Listening The switch port has transitioned from a blocking state and can now send or receive only BPDUs."
+  },
+  {
+    "topic": "STP Fundamentals & Port States",
+    "question": "สถานะพอร์ตใดที่พอร์ตสามารถแก้ไข MAC address table ได้ แต่ยังไม่ฟอร์เวิร์ดทราฟฟิกอื่นนอกจาก BPDU",
+    "choices": ["Learning", "Listening", "Blocking", "Forwarding"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าในสถานะ Learning พอร์ตสามารถแก้ไข MAC address table ได้ แต่สวิตช์ยังไม่ฟอร์เวิร์ดทราฟฟิกอื่นนอกเหนือจาก BPDU",
+    "difficulty": "easy",
+    "pages": [5],
+    "evidence": "Learning The switch port can modify the MAC address table. The switch still does not forward any other network traffic besides BPDUs."
+  },
+  {
+    "topic": "STP Fundamentals & Port States",
+    "question": "802.1D กำหนดให้พอร์ตประเภทใดเป็นพอร์ตที่รับและฟอร์เวิร์ด BPDU ไปยังสวิตช์อื่น และควรมี active เพียงหนึ่งพอร์ตต่อลิงก์",
+    "choices": ["Designated port (DP)", "Root port (RP)", "Blocking port", "Edge port"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า designated port เป็นพอร์ตที่รับและฟอร์เวิร์ด BPDU ไปยังสวิตช์อื่น ให้การเชื่อมต่อกับอุปกรณ์ปลายทาง และควรมี active designated port เพียงหนึ่งพอร์ตบนแต่ละลิงก์",
+    "difficulty": "medium",
+    "pages": [6],
+    "evidence": "Designated port (DP) A network port that receives and forwards BPDU frames to other switches. Designated ports provide connectivity to downstream devices and switches. There should be only one active designated port on a link."
+  },
+  {
+    "topic": "STP Fundamentals & Port States",
+    "question": "ค่าเริ่มต้นของ system priority, max age และ hello time ใน STP คือข้อใดตามลำดับ",
+    "choices": [
+      "32,768 / 20 วินาที / 2 วินาที",
+      "4,096 / 15 วินาที / 2 วินาที",
+      "32,768 / 15 วินาที / 10 วินาที",
+      "24,576 / 20 วินาที / 10 วินาที"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า system priority เป็นค่า 4 บิตที่มีค่าเริ่มต้น 32,768 ค่า max age เริ่มต้น 20 วินาที และ hello time เริ่มต้น 2 วินาที ซึ่งปรับได้ในช่วง 1 ถึง 10 วินาที",
+    "difficulty": "medium",
+    "pages": [8],
+    "evidence": "System priority ... The default value is 32,768. ... The default value is 20 seconds. Hello time The time that a BPDU is advertised out of a port. The default value is 2 seconds, but the value can be configured to 1 to 10 seconds."
+  },
+  {
+    "topic": "Root Bridge Election & Path Cost",
+    "question": "STP short mode กำหนดค่า path cost ของลิงก์ความเร็ว 1 Gbps และ 10 Gbps ไว้เท่าใดตามลำดับ",
+    "choices": ["4 และ 2", "19 และ 4", "2 และ 1", "20,000 และ 2,000"],
+    "answer": 0,
+    "explanation": "ตาราง STP cost ระบุว่าใน short mode ลิงก์ 1 Gbps มีค่า cost 4 และลิงก์ 10 Gbps มีค่า cost 2 ส่วนค่า 20,000 และ 2,000 เป็นค่าของ long mode ซึ่งใช้ reference speed 20 Tbps",
+    "difficulty": "medium",
+    "pages": [9],
+    "evidence": "1 Gbps 4 20,000 10 Gbps 2 2,000"
+  },
+  {
+    "topic": "Root Bridge Election & Path Cost",
+    "question": "ข้อใดกล่าวถูกต้องเกี่ยวกับ STP long mode",
+    "choices": [
+      "ใช้ค่า 32 บิตและ reference speed 20 Tbps ขณะที่ short mode เป็นค่าเริ่มต้น",
+      "ใช้ค่า 16 บิตและ reference speed 20 Gbps และเป็นโหมดเริ่มต้น",
+      "ใช้ค่า 32 บิตแต่ยังอ้าง reference speed 20 Gbps เหมือน short mode",
+      "ถูกใช้เฉพาะกับ MST เท่านั้นและไม่รองรับใน RSTP"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าค่า interface STP cost เดิมเก็บเป็น 16 บิตอ้าง reference value 20 Gbps ส่วนวิธี long mode ใช้ค่า 32 บิตและ reference speed 20 Tbps โดยวิธีเดิมคือ short mode เป็นโหมดเริ่มต้น",
+    "difficulty": "hard",
+    "pages": [9],
+    "evidence": "Another method, called long mode, uses a 32-bit value and uses a reference speed of 20 Tbps. The original method, known as short mode, is the default mode."
+  },
+  {
+    "topic": "Root Bridge Election & Path Cost",
+    "question": "ระหว่างการเลือก root bridge เมื่อสวิตช์ได้รับ configuration BPDU จากเพื่อนบ้านที่ inferior กว่าของตนเอง สวิตช์จะทำอย่างไร",
+    "choices": [
+      "เพิกเฉยต่อ BPDU นั้น",
+      "อัปเดต BPDU ของตนให้ใช้ root bridge identifier ใหม่",
+      "ส่ง TCN BPDU ออกทาง root port ทันที",
+      "เปลี่ยนพอร์ตที่รับ BPDU เป็น root port"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่าสวิตช์จะฟัง configuration BPDU ของเพื่อนบ้าน ถ้า BPDU นั้น inferior กว่าของตนเองก็จะเพิกเฉย แต่ถ้า preferred กว่าจึงจะอัปเดต BPDU ของตนให้มี root bridge identifier ใหม่พร้อม root path cost ใหม่",
+    "difficulty": "medium",
+    "pages": [11],
+    "evidence": "If the neighbor's configuration BPDU is inferior to its own BPDU, the switch ignores that BPDU."
+  },
+  {
+    "topic": "Root Bridge Election & Path Cost",
+    "question": "ในการเลือก root port ลำดับการพิจารณาสองข้อแรกคือข้อใด",
+    "choices": [
+      "path cost ต่ำสุด แล้วจึง system priority ต่ำสุดของสวิตช์ที่โฆษณา",
+      "system priority ต่ำสุด แล้วจึง path cost ต่ำสุด",
+      "system MAC address ต่ำสุด แล้วจึง port priority ต่ำสุด",
+      "port priority ต่ำสุด แล้วจึง path cost ต่ำสุด"
+    ],
+    "answer": 0,
+    "explanation": "ลำดับตรรกะการเลือก root port ในสไลด์คือ อินเทอร์เฟซที่มี path cost ต่ำสุดถูกเลือกก่อน ถัดมาคือ system priority ต่ำสุดของสวิตช์ที่โฆษณา ตามด้วย system MAC address ต่ำสุด และ port priority เมื่อมีหลายลิงก์ไปยังสวิตช์เดียวกัน",
+    "difficulty": "hard",
+    "pages": [13],
+    "evidence": "1. The interface associated to lowest path cost is more preferred. 2. The interface associated to the lowest system priority of the advertising switch is preferred next."
+  },
+  {
+    "topic": "STP Topology Changes & Convergence",
+    "question": "เมื่อสวิตช์ตรวจพบการเปลี่ยนสถานะของลิงก์ สวิตช์จะส่ง TCN BPDU ออกทางใด",
+    "choices": [
+      "ออกทาง root port ของตนเองไปยัง root bridge",
+      "ออกทุกพอร์ตที่อยู่ในสถานะ forwarding",
+      "ออกทาง designated port ทั้งหมดไปยังสวิตช์ปลายทาง",
+      "ออกทางพอร์ตที่เกิดการเปลี่ยนแปลงเท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าสวิตช์ที่ตรวจพบการเปลี่ยนสถานะลิงก์จะส่ง topology change notification BPDU ไปทาง root bridge โดยส่งออกทาง root port ของตน สวิตช์ต้นทางที่รับ TCN จะตอบ acknowledgment และส่ง TCN ต่อออกทาง root port ของตนเอง",
+    "difficulty": "medium",
+    "pages": [19],
+    "evidence": "The switch that detects a link status change sends a topology change notification (TCN) BPDU toward the root bridge out of its RP."
+  },
+  {
+    "topic": "STP Topology Changes & Convergence",
+    "question": "เมื่อ root bridge ได้รับ TCN BPDU root bridge จะดำเนินการอย่างไร",
+    "choices": [
+      "สร้าง configuration BPDU ใหม่ที่ตั้งแฟล็ก Topology Change แล้ว flood ไปทุกสวิตช์",
+      "ส่ง TCN BPDU กลับไปเฉพาะสวิตช์ที่แจ้งการเปลี่ยนแปลง",
+      "ปิดพอร์ตที่เชื่อมกับสวิตช์ที่แจ้งเหตุจนกว่า topology จะนิ่ง",
+      "รีสตาร์ตการเลือก root bridge ใหม่ทั้งโดเมน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเมื่อได้รับ TCN root bridge จะสร้าง configuration BPDU ใหม่ที่ตั้งแฟล็ก Topology Change และ flood ไปยังสวิตช์ทั้งหมด เมื่อสวิตช์ได้รับก็จะปรับ MAC address timer ของตน",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "Upon receipt of the TCN, the root bridge creates a new configuration BPDU with the Topology Change flag set, and it is then flooded to all the switches."
+  },
+  {
+    "topic": "Rapid Spanning Tree Protocol (RSTP)",
+    "question": "RSTP (802.1w) ลดจำนวนสถานะพอร์ตเหลือสามสถานะ ได้แก่ข้อใด",
+    "choices": [
+      "Discarding, Learning, Forwarding",
+      "Blocking, Listening, Forwarding",
+      "Disabled, Blocking, Forwarding",
+      "Discarding, Listening, Learning"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า RSTP ตามมาตรฐาน IEEE 802.1w ลดจำนวนสถานะพอร์ตเหลือสามสถานะ คือ Discarding ที่พอร์ตเปิดแต่ไม่ฟอร์เวิร์ดทราฟฟิก Learning ที่แก้ MAC address table ได้ และ Forwarding ที่ฟอร์เวิร์ดทราฟฟิกได้ตามปกติ",
+    "difficulty": "easy",
+    "pages": [31],
+    "evidence": "Rapid Spanning Tree Protocol (RSTP) IEEE 802.1W reduces the number of port states to three: ... Discarding ... Learning ... Forwarding"
+  },
+  {
+    "topic": "Rapid Spanning Tree Protocol (RSTP)",
+    "question": "port role ใดของ RSTP ที่ให้ความซ้ำซ้อนของลิงก์ไปยัง root switch ปัจจุบัน และมีอยู่เฉพาะเมื่อมีหลายลิงก์เชื่อมระหว่างสวิตช์คู่เดียวกัน",
+    "choices": ["Backup port", "Alternate port", "Designated port", "Root port"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า backup port ให้ความซ้ำซ้อนของลิงก์ไปยัง root switch ปัจจุบัน และมีอยู่เฉพาะเมื่อมีหลายลิงก์เชื่อมระหว่างสวิตช์คู่เดียวกัน ต่างจาก alternate port ที่ให้เส้นทางสำรองไปยัง root ผ่านสวิตช์ตัวอื่น",
+    "difficulty": "hard",
+    "pages": [32],
+    "evidence": "Backup port: A network port that provides link redundancy toward the current root switch. A backup port exists only when multiple links connect between the same switches."
+  },
+  {
+    "topic": "Rapid Spanning Tree Protocol (RSTP)",
+    "question": "RSTP port type ใดที่สัมพันธ์โดยตรงกับพอร์ตที่เปิดฟีเจอร์ STP portfast",
+    "choices": ["Edge port", "Point-to-Point port", "Root port", "Designated port"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า edge port คือพอร์ตที่ขอบเครือข่ายซึ่งโฮสต์เชื่อมต่อเข้ามาด้วยอินเทอร์เฟซเดียวและไม่สามารถสร้าง loop ได้ พอร์ตประเภทนี้สัมพันธ์โดยตรงกับพอร์ตที่เปิดฟีเจอร์ STP portfast",
+    "difficulty": "medium",
+    "pages": [33],
+    "evidence": "Edge Port A port at the edge of the network where hosts connect to the Layer 2 topology with one interface and cannot form a loop. These ports directly correlate to ports that have the STP portfast feature enabled."
+  },
+  {
+    "topic": "Rapid Spanning Tree Protocol (RSTP)",
+    "question": "เหตุใดการตรวจสอบว่าลิงก์เป็น full duplex จึงเป็นวิธีที่เร็วที่สุดในการยืนยันว่าลิงก์นั้นเชื่อมกับสวิตช์อีกตัว",
+    "choices": [
+      "เพราะลิงก์ full-duplex ไม่อนุญาตให้มีอุปกรณ์เกินสองตัวบน network segment",
+      "เพราะลิงก์ full-duplex ส่ง BPDU ถี่กว่าลิงก์ half-duplex สองเท่า",
+      "เพราะลิงก์ full-duplex ถูกกำหนดเป็น edge port โดยอัตโนมัติ",
+      "เพราะลิงก์ full-duplex ใช้ 802.1D เสมอจึงระบุตัวตนได้ง่าย"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่า point-to-point port คือพอร์ตที่เชื่อมกับสวิตช์ RSTP อีกตัวแบบ full duplex เพราะลิงก์ full duplex ไม่อนุญาตให้มีอุปกรณ์เกินสองตัวบน network segment การตรวจว่าเป็น full duplex จึงเป็นวิธีเร็วที่สุด ส่วนการเชื่อมต่อแบบ multi-access เช่นฮับต้องใช้ 802.1D",
+    "difficulty": "hard",
+    "pages": [33],
+    "evidence": "Full-duplex links do not permit more than two devices on a network segment, so determining whether a link is full duplex is the fastest way to check the feasibility of being connected to a switch."
+  }
+]

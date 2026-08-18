@@ -12,13 +12,26 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Check,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AnimatedNumber } from '@/components/ui/animated-number';
 import { ScoreBreakdown } from './score-breakdown';
+import { QuestionTypeBadge, DifficultyBadge } from '@/components/ui/status-badge';
 import { formatDuration, cn } from '@/lib/utils';
 import type { ExamAttempt, AttemptQuestion } from '@/lib/types/database';
+
+function isQuestionAttempted(q: AttemptQuestion): boolean {
+  const qType = q.question_snapshot?.question_type || q.question_type || 'single_choice';
+  if (qType === 'fill_in_the_blank') {
+    return Boolean(q.fill_blank_answers && Object.values(q.fill_blank_answers).some(v => Boolean(v && v.trim())));
+  }
+  if (qType === 'matching') {
+    return Boolean(q.matching_answers && Object.values(q.matching_answers).some(v => Boolean(v && v.trim())));
+  }
+  return Boolean(q.selected_choice_key);
+}
 
 export function ResultOverview({
   attempt,
@@ -30,12 +43,11 @@ export function ResultOverview({
   subjectSlug?: string;
 }) {
   const [filterMode, setFilterMode] = React.useState<'all' | 'incorrect' | 'correct'>('all');
-  const [expandedIndex, setExpandedIndex] = React.useState<number | null>(null);
 
   const totalQuestions = questions.length;
   const correctCount = questions.filter(q => q.is_correct === true).length;
-  const incorrectCount = questions.filter(q => q.is_correct === false && q.selected_choice_key).length;
-  const unansweredCount = questions.filter(q => !q.selected_choice_key).length;
+  const incorrectCount = questions.filter(q => q.is_correct === false && isQuestionAttempted(q)).length;
+  const unansweredCount = questions.filter(q => !isQuestionAttempted(q)).length;
 
   const filteredQuestions = questions.filter(q => {
     if (filterMode === 'incorrect') return q.is_correct === false;
@@ -207,7 +219,9 @@ export function ResultOverview({
         <div className="space-y-4">
           {filteredQuestions.map((q, idx) => {
             const isCorrect = q.is_correct === true;
-            const isUnanswered = !q.selected_choice_key;
+            const isAttempted = isQuestionAttempted(q);
+            const isUnanswered = !isAttempted;
+            const qType = q.question_snapshot?.question_type || q.question_type || 'single_choice';
 
             return (
               <Card
@@ -220,10 +234,11 @@ export function ResultOverview({
                 <CardContent className="p-5 space-y-4">
                   {/* Header Row */}
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="px-2 py-0.5 rounded bg-[var(--surface-subtle)] text-xs font-bold text-[var(--foreground)] border border-[var(--border)]">
                         ข้อที่ {q.sequence_order}
                       </span>
+                      <QuestionTypeBadge type={qType} />
                       {isCorrect ? (
                         <span className="inline-flex items-center text-xs font-semibold text-[var(--success)] bg-[var(--success-subtle)] px-2 py-0.5 rounded border border-green-200">
                           <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> ถูกต้อง
@@ -247,52 +262,255 @@ export function ResultOverview({
                     </div>
                   </div>
 
-                  {/* Question Stem */}
-                  <div className="text-base font-medium text-[var(--foreground)]">
-                    {q.question_snapshot.text}
-                  </div>
+                  {/* 1. Fill in the Blank Review */}
+                  {qType === 'fill_in_the_blank' && (
+                    <div className="space-y-4 pt-1">
+                      <div className="p-4 rounded-lg bg-[var(--surface-subtle)] border border-[var(--border)] leading-loose text-base text-[var(--foreground)]">
+                        {(() => {
+                          const text = q.question_snapshot.text;
+                          const blanks = q.question_snapshot.blanks || [];
+                          const userBlanks = q.fill_blank_answers || {};
+                          const correctBlanks = q.correct_blank_answers || {};
 
-                  {/* Choices with Indicator */}
-                  <div className="grid grid-cols-1 gap-2 pt-1">
-                    {q.shuffled_choices.map(c => {
-                      const isUserSelection = q.selected_choice_key === c.key;
-                      const isCorrectChoice = q.correct_choice_key === c.key;
+                          const parts: React.ReactNode[] = [];
+                          const tokenRegex = /\[(?:blank_)?([a-zA-Z0-9_-]+)\]/g;
+                          let lastIndex = 0;
+                          let match: RegExpExecArray | null;
 
-                      let choiceClass = 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]';
-                      if (isCorrectChoice) {
-                        choiceClass = 'border-green-300 bg-green-50/70 text-green-900 font-medium';
-                      } else if (isUserSelection && !isCorrect) {
-                        choiceClass = 'border-red-300 bg-red-50 text-red-900 line-through';
-                      }
+                          while ((match = tokenRegex.exec(text)) !== null) {
+                            const matchedKey = match[1];
+                            const blankId = matchedKey.startsWith('blank_') ? matchedKey : `blank_${matchedKey}`;
+                            const blankObj = blanks.find((b: any) => b.id === blankId || b.id === matchedKey);
+                            const pos = blankObj?.position || parts.length + 1;
 
-                      return (
-                        <div
-                          key={c.key}
-                          className={cn('flex items-start gap-3 p-3 rounded text-sm border', choiceClass)}
-                        >
-                          <div
-                            className={cn(
-                              'h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
-                              isCorrectChoice
-                                ? 'bg-green-600 text-white'
-                                : isUserSelection
-                                ? 'bg-red-600 text-white'
-                                : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
-                            )}
-                          >
-                            {c.key}
-                          </div>
-                          <div className="flex-1 pt-0.5">{c.text}</div>
-                          {isCorrectChoice && (
-                            <span className="text-xs font-semibold text-green-700 shrink-0">คำตอบที่ถูกต้อง</span>
-                          )}
-                          {isUserSelection && !isCorrect && (
-                            <span className="text-xs font-semibold text-red-600 shrink-0">คุณเลือกข้อนี้</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+                            if (match.index > lastIndex) {
+                              parts.push(
+                                <span key={`t-${lastIndex}`}>{text.slice(lastIndex, match.index)}</span>
+                              );
+                            }
+
+                            const userVal = userBlanks[blankId];
+                            const correctVal = correctBlanks[blankId] || blankObj?.correct_word || '';
+                            const isSlotCorrect = Boolean(
+                              userVal && correctVal && userVal.trim().toLowerCase() === correctVal.trim().toLowerCase()
+                            );
+
+                            if (isSlotCorrect) {
+                              parts.push(
+                                <span
+                                  key={`slot-${blankId}`}
+                                  className="inline-flex items-center gap-1 mx-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-800 border border-green-300"
+                                >
+                                  <CheckCircle2 className="h-3 w-3 text-green-600" />
+                                  <span>#{pos}: {userVal}</span>
+                                </span>
+                              );
+                            } else if (userVal) {
+                              parts.push(
+                                <span
+                                  key={`slot-${blankId}`}
+                                  className="inline-flex flex-wrap items-center gap-1 mx-1 px-2 py-0.5 rounded-lg text-xs border border-red-300 bg-red-50 text-red-800"
+                                >
+                                  <span className="line-through opacity-75">#{pos}: {userVal}</span>
+                                  <span className="font-bold text-green-700 bg-white px-1.5 py-0.5 rounded border border-green-200 inline-flex items-center gap-0.5">
+                                    <Check className="h-3 w-3 text-green-600" />
+                                    <span>{correctVal}</span>
+                                  </span>
+                                </span>
+                              );
+                            } else {
+                              parts.push(
+                                <span
+                                  key={`slot-${blankId}`}
+                                  className="inline-flex items-center gap-1 mx-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-300"
+                                >
+                                  <span className="opacity-75">#{pos}: ไม่ได้ตอบ</span>
+                                  <span className="font-bold text-green-700 bg-white px-1.5 py-0.5 rounded border border-green-200 inline-flex items-center gap-0.5">
+                                    <Check className="h-3 w-3 text-green-600" />
+                                    <span>{correctVal}</span>
+                                  </span>
+                                </span>
+                              );
+                            }
+
+                            lastIndex = tokenRegex.lastIndex;
+                          }
+
+                          if (lastIndex < text.length) {
+                            parts.push(<span key="t-end">{text.slice(lastIndex)}</span>);
+                          }
+
+                          return parts;
+                        })()}
+                      </div>
+
+                      {/* Blanks Summary List */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                        {Object.entries(q.correct_blank_answers || {}).map(([bId, correctVal], bIdx) => {
+                          const userVal = q.fill_blank_answers?.[bId];
+                          const isSlotCorrect = userVal && userVal.trim().toLowerCase() === correctVal.trim().toLowerCase();
+
+                          return (
+                            <div
+                              key={bId}
+                              className={cn(
+                                'p-3 rounded-md border text-xs flex items-start justify-between gap-2',
+                                isSlotCorrect
+                                  ? 'bg-green-50/70 border-green-200 text-green-900'
+                                  : userVal
+                                  ? 'bg-red-50/70 border-red-200 text-red-900'
+                                  : 'bg-zinc-50 border-zinc-200 text-zinc-700'
+                              )}
+                            >
+                              <div>
+                                <span className="font-bold">ช่องที่ #{bIdx + 1}: </span>
+                                {userVal ? (
+                                  <span>คุณตอบ: <strong className={isSlotCorrect ? 'text-green-700' : 'text-red-600 line-through'}>{userVal}</strong></span>
+                                ) : (
+                                  <span className="italic text-zinc-500">ไม่ได้ตอบ</span>
+                                )}
+                              </div>
+                              {!isSlotCorrect && (
+                                <div className="text-right shrink-0">
+                                  <span className="text-[11px] font-semibold text-green-700 bg-white px-1.5 py-0.5 rounded border border-green-300">
+                                    เฉลย: {correctVal}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 2. Matching Review */}
+                  {qType === 'matching' && (
+                    <div className="space-y-3 pt-1">
+                      <div className="text-base font-medium text-[var(--foreground)]">
+                        {q.question_snapshot.text}
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {(q.question_snapshot.matching_pairs || []).map((pair: any, pIdx: number) => {
+                          const userRightId = q.matching_answers?.[pair.id];
+                          const correctRightId = q.correct_matching?.[pair.id] || pair.id;
+                          const isPairCorrect = userRightId === correctRightId;
+
+                          const rights = q.question_snapshot.shuffled_matching_rights || (q.question_snapshot.matching_pairs || []).map((p: any) => ({ id: p.id, right: p.right }));
+                          const userRightObj = rights.find((r: any) => r.id === userRightId);
+                          const correctRightObj = rights.find((r: any) => r.id === correctRightId);
+
+                          return (
+                            <div
+                              key={pair.id}
+                              className={cn(
+                                'p-3.5 rounded-lg border text-sm space-y-1.5',
+                                isPairCorrect
+                                  ? 'bg-green-50/70 border-green-200 text-green-950'
+                                  : userRightId
+                                  ? 'bg-red-50/70 border-red-200 text-red-950'
+                                  : 'bg-zinc-50 border-zinc-200 text-zinc-800'
+                              )}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="font-semibold text-sm flex items-center gap-2">
+                                  <span className="h-5 w-5 rounded-full bg-white border flex items-center justify-center text-xs font-bold text-zinc-700">
+                                    {String.fromCharCode(65 + pIdx)}
+                                  </span>
+                                  <span>{pair.left}</span>
+                                </div>
+                                {isPairCorrect ? (
+                                  <span className="inline-flex items-center text-xs font-bold text-green-700 shrink-0">
+                                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> ถูกต้อง
+                                  </span>
+                                ) : userRightId ? (
+                                  <span className="inline-flex items-center text-xs font-bold text-red-600 shrink-0">
+                                    <XCircle className="h-3.5 w-3.5 mr-1" /> ตอบผิด
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-zinc-500 font-medium shrink-0">ไม่ได้จับคู่</span>
+                                )}
+                              </div>
+
+                              {/* Details */}
+                              <div className="pl-7 space-y-1 text-xs">
+                                {userRightId && (
+                                  <div className={cn(isPairCorrect ? 'text-green-800' : 'text-red-700')}>
+                                    <span>คุณเลือก: </span>
+                                    <span className={cn('font-medium', !isPairCorrect && 'line-through')}>
+                                      {userRightObj?.right || userRightId}
+                                    </span>
+                                  </div>
+                                )}
+                                {!isPairCorrect && correctRightObj && (
+                                  <div className="text-green-800 font-semibold flex items-center gap-1 pt-0.5">
+                                    <span className="text-green-700 inline-flex items-center gap-0.5">
+                                      <Check className="h-3 w-3" />
+                                      <span>คำตอบที่ถูกต้อง:</span>
+                                    </span>
+                                    <span>{correctRightObj.right}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. Single Choice Review */}
+                  {(qType === 'single_choice' || qType === 'numeric') && (
+                    <div className="space-y-4">
+                      {/* Question Stem */}
+                      <div className="text-base font-medium text-[var(--foreground)]">
+                        {q.question_snapshot.text}
+                      </div>
+
+                      {/* Choices with Indicator */}
+                      <div className="grid grid-cols-1 gap-2 pt-1">
+                        {q.shuffled_choices.map(c => {
+                          const isUserSelection = q.selected_choice_key === c.key;
+                          const isCorrectChoice = q.correct_choice_key === c.key;
+
+                          let choiceClass = 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)]';
+                          if (isCorrectChoice) {
+                            choiceClass = 'border-green-300 bg-green-50/70 text-green-900 font-medium';
+                          } else if (isUserSelection && !isCorrect) {
+                            choiceClass = 'border-red-300 bg-red-50 text-red-900 line-through';
+                          }
+
+                          return (
+                            <div
+                              key={c.key}
+                              className={cn('flex items-start gap-3 p-3 rounded text-sm border', choiceClass)}
+                            >
+                              <div
+                                className={cn(
+                                  'h-6 w-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0',
+                                  isCorrectChoice
+                                    ? 'bg-green-600 text-white'
+                                    : isUserSelection
+                                    ? 'bg-red-600 text-white'
+                                    : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
+                                )}
+                              >
+                                {c.key}
+                              </div>
+                              <div className="flex-1 pt-0.5">{c.text}</div>
+                              {isCorrectChoice && (
+                                <span className="text-xs font-semibold text-green-700 shrink-0">คำตอบที่ถูกต้อง</span>
+                              )}
+                              {isUserSelection && !isCorrect && (
+                                <span className="text-xs font-semibold text-red-600 shrink-0">คุณเลือกข้อนี้</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Solution & Explanation Box */}
                   <div className="mt-3 p-4 rounded-md bg-[var(--surface-subtle)] border border-[var(--border)] space-y-2 text-xs">

@@ -1,0 +1,192 @@
+[
+  {
+    "topic": "STP Topology Tuning & Root Placement",
+    "question": "คำสั่ง spanning-tree vlan vlan-id root primary ตั้งค่า system priority เป็นเท่าใด",
+    "choices": ["24,576", "28,672", "32,768", "4,096"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าคีย์เวิร์ด primary ตั้ง priority เป็น 24,576 ส่วนคีย์เวิร์ด secondary ตั้งเป็น 28,672 และคีย์เวิร์ด diameter ที่เป็นออปชันช่วยปรับ STP convergence และแก้ไขค่า timer",
+    "difficulty": "medium",
+    "pages": [4],
+    "evidence": "The primary keyword sets the priority to 24,576, and the secondary keyword sets the priority to 28,672."
+  },
+  {
+    "topic": "STP Topology Tuning & Root Placement",
+    "question": "คำสั่ง spanning-tree vlan vlan-id priority priority รับค่าในช่วงใดและเพิ่มเป็นขั้นละเท่าใด",
+    "choices": [
+      "0 ถึง 61,440 เพิ่มขั้นละ 4,096",
+      "0 ถึง 65,535 เพิ่มขั้นละ 4,096",
+      "1 ถึง 32,768 เพิ่มขั้นละ 1,024",
+      "0 ถึง 61,440 เพิ่มขั้นละ 8,192"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าค่า priority เป็นค่าระหว่าง 0 ถึง 61,440 โดยเพิ่มเป็นขั้นละ 4,096 ซึ่งใช้ในการวาง root bridge ตามลำดับความสำคัญที่ออกแบบไว้",
+    "difficulty": "medium",
+    "pages": [4],
+    "evidence": "spanning-tree vlan vlan-id priority priority The priority is a value between 0 and 61,440, in increments of 4,096."
+  },
+  {
+    "topic": "STP Topology Tuning & Root Placement",
+    "question": "ตามแนวปฏิบัติในสไลด์ การวาง root bridge ให้ถูกต้องควรตั้ง system priority อย่างไร",
+    "choices": [
+      "root bridge ต่ำสุด, secondary สูงกว่าเล็กน้อย, สวิตช์อื่นสูงกว่า secondary",
+      "root bridge สูงสุด, secondary ต่ำกว่าเล็กน้อย, สวิตช์อื่นต่ำสุด",
+      "ตั้งทุกสวิตช์ให้เท่ากันแล้วให้ MAC address ตัดสิน",
+      "ตั้ง root bridge เป็น 0 และปล่อยสวิตช์อื่นเป็นค่าเริ่มต้นเท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุแนวปฏิบัติว่าให้ตั้ง system priority ของ root bridge เป็นค่าต่ำสุด secondary root bridge สูงกว่า root bridge เล็กน้อย และสวิตช์อื่นทั้งหมดสูงกว่า secondary root bridge",
+    "difficulty": "easy",
+    "pages": [4],
+    "evidence": "To ensure root bridge placement set the system priority on: • The root bridge to the lowest value • The secondary root bridge to a value slightly higher than that of the root bridge • All other switches to a value higher than the secondary root bridge"
+  },
+  {
+    "topic": "Root Guard, PortFast & BPDU Guard",
+    "question": "Root guard ทำงานอย่างไรเมื่อได้รับ superior BPDU บนพอร์ตที่เปิดฟีเจอร์นี้",
+    "choices": [
+      "นำพอร์ตนั้นเข้าสู่สถานะ ErrDisabled",
+      "เพิกเฉยต่อ BPDU นั้นแต่ยังคงฟอร์เวิร์ดทราฟฟิกต่อ",
+      "เปลี่ยนพอร์ตนั้นเป็น root port ทันที",
+      "ส่ง TCN ไปยัง root bridge แล้วรีเซ็ต timer"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า root guard ป้องกันพอร์ตที่กำหนดไว้ไม่ให้กลายเป็น root port โดยจะนำพอร์ตเข้าสู่สถานะ ErrDisabled หากได้รับ superior BPDU บนพอร์ตนั้น ฟีเจอร์นี้เปิดเป็นราย ๆ พอร์ตด้วยคำสั่ง spanning-tree guard root",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "It does this by placing the port in an ErrDisabled state if a superior BDPU is received on that port."
+  },
+  {
+    "topic": "Root Guard, PortFast & BPDU Guard",
+    "question": "ควรวาง root guard ไว้บนพอร์ตประเภทใด",
+    "choices": [
+      "designated port ที่เชื่อมไปยังสวิตช์ซึ่งไม่ควรเป็น root bridge",
+      "root port ของสวิตช์ทุกตัวในโดเมน",
+      "พอร์ตที่เชื่อมกับโฮสต์และเปิด portfast ไว้",
+      "พอร์ตที่เป็นสมาชิกของ port-channel เท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า root guard ควรวางบน designated port ที่ชี้ไปยังสวิตช์อื่นซึ่งไม่ควรกลายเป็น root bridge และเปิดใช้เป็นราย ๆ พอร์ตด้วยคำสั่ง spanning-tree guard root",
+    "difficulty": "hard",
+    "pages": [13],
+    "evidence": "Root guard is placed on designated ports towards other switches that should never become root bridges. Root guard is enabled on a port-by-port basis."
+  },
+  {
+    "topic": "Root Guard, PortFast & BPDU Guard",
+    "question": "BPDU guard ทำสิ่งใดเมื่อพอร์ตที่ตั้ง STP portfast ได้รับ BPDU",
+    "choices": [
+      "ปิดพอร์ตนั้น",
+      "เปลี่ยนพอร์ตนั้นเป็น trunk อัตโนมัติ",
+      "กรอง BPDU ทิ้งแล้วให้พอร์ตทำงานต่อ",
+      "ย้ายพอร์ตนั้นไปสถานะ learning เป็นเวลา 15 วินาที"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า BPDU guard เป็นกลไกความปลอดภัยที่ปิดพอร์ตซึ่งตั้งค่า STP portfast ไว้เมื่อได้รับ BPDU และมักถูกกำหนดร่วมกับพอร์ตที่เชื่อมกับโฮสต์ทั้งหมดที่เปิด portfast",
+    "difficulty": "easy",
+    "pages": [16],
+    "evidence": "BPDU guard is a safety mechanism that shuts down ports configured with STP portfast upon receiving a BPDU."
+  },
+  {
+    "topic": "Root Guard, PortFast & BPDU Guard",
+    "question": "คำสั่งใดเปิด BPDU guard บนพอร์ต STP portfast ทั้งหมดในระดับ global",
+    "choices": [
+      "spanning-tree portfast bpduguard default",
+      "spanning-tree bpduguard enable",
+      "spanning-tree loopguard default",
+      "spanning-tree guard root"
+    ],
+    "answer": 0,
+    "explanation": "ตารางคำสั่งในสไลด์ระบุว่า spanning-tree portfast bpduguard default เป็นคำสั่งระดับ global ที่เปิด BPDU guard บนพอร์ต STP portfast ทั้งหมด ส่วน spanning-tree bpduguard {enable | disable} เป็นคำสั่งระดับ interface",
+    "difficulty": "medium",
+    "pages": [16],
+    "evidence": "spanning-tree portfast bpduguard default Global command to enable BPDU guard on all STP portfast ports"
+  },
+  {
+    "topic": "BPDU Filter & Loop Guard",
+    "question": "STP loop guard ป้องกันปัญหาใด",
+    "choices": [
+      "ป้องกัน alternate port หรือ root port กลายเป็น designated port เพราะสูญเสีย BPDU บน root port",
+      "ป้องกันพอร์ตที่เปิด portfast จากการรับ superior BPDU",
+      "ป้องกันการเกิด unidirectional link บนสาย fiber-optic",
+      "ป้องกัน VLAN ที่ไม่ได้ใช้งานจากการถูก prune บน trunk"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า loop guard ป้องกัน alternate port หรือ root port จากการกลายเป็น designated port เนื่องจากสูญเสีย BPDU บน root port โดยจะนำพอร์ตเดิมเข้าสู่สถานะ ErrDisabled ระหว่างที่ไม่ได้รับ BPDU และเปลี่ยนสถานะกลับเมื่อเริ่มได้รับ BPDU อีกครั้ง",
+    "difficulty": "medium",
+    "pages": [23],
+    "evidence": "STP Loop guard prevents any alternative or root ports from becoming designated ports due to loss of BPDUs on the root port."
+  },
+  {
+    "topic": "BPDU Filter & Loop Guard",
+    "question": "เหตุใดจึงไม่ควรเปิด loop guard บนพอร์ตที่เปิด portfast ไว้",
+    "choices": [
+      "เพราะขัดแย้งกับตรรกะของ root port และ alternate port โดยตรง",
+      "เพราะจะทำให้พอร์ตนั้นไม่สามารถ negotiate DTP ได้",
+      "เพราะ loop guard รองรับเฉพาะพอร์ตที่เป็น fiber-optic",
+      "เพราะจะทำให้ BPDU guard ถูกปิดใช้งานโดยอัตโนมัติ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์เตือนไว้ว่าไม่ควรเปิด loop guard บนพอร์ตที่เปิด portfast เพราะขัดแย้งโดยตรงกับตรรกะของ root port และ alternate port ซึ่ง loop guard ใช้ทำงาน",
+    "difficulty": "hard",
+    "pages": [23],
+    "evidence": "Note: Loop guard shouldn't be enabled on portfast-enabled ports because it directly conflicts with root/alternate port logic"
+  },
+  {
+    "topic": "BPDU Filter & Loop Guard",
+    "question": "คำสั่งใดใช้แสดงพอร์ตที่อยู่ในสถานะ inconsistent เพราะไม่ได้รับ BPDU",
+    "choices": [
+      "show spanning-tree inconsistent-ports",
+      "show spanning-tree interface interface-id detail",
+      "show spanning-tree root",
+      "show spanning-tree summary"
+    ],
+    "answer": 0,
+    "explanation": "ตารางคำสั่งของ loop guard ในสไลด์ระบุว่า show spanning-tree inconsistent-ports แสดงพอร์ตที่อยู่ในสถานะ inconsistent เนื่องจากพอร์ตนั้นไม่ได้รับ BPDU",
+    "difficulty": "medium",
+    "pages": [23],
+    "evidence": "show spanning-tree inconsistent-ports Shows ports in the inconsistent state due to the port not receiving BPDUs"
+  },
+  {
+    "topic": "Unidirectional Link Detection (UDLD)",
+    "question": "UDLD โหมด normal ทำอย่างไรเมื่อเฟรมไม่ได้รับการตอบรับ",
+    "choices": [
+      "ถือว่าลิงก์อยู่ในสถานะ undetermined และพอร์ตยังคง active",
+      "ส่งอีก 8 แพ็กเก็ตทุก 1 วินาทีแล้วจึงปิดพอร์ต",
+      "นำพอร์ตเข้าสถานะ error ทันที",
+      "รีเซ็ต STP topology ทั้ง VLAN นั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าในโหมด normal ถ้าเฟรมไม่ได้รับการตอบรับ ลิงก์จะถือว่าอยู่ในสถานะ undetermined และพอร์ตยังคง active ส่วนโหมด aggressive จะส่งอีก 8 แพ็กเก็ตในช่วงละ 1 วินาที และหากยังไม่ได้รับการตอบรับจะนำพอร์ตเข้าสถานะ error",
+    "difficulty": "medium",
+    "pages": [25],
+    "evidence": "Normal – If a frame is not acknowledged, the link is considered undetermined and the port remains active."
+  },
+  {
+    "topic": "Unidirectional Link Detection (UDLD)",
+    "question": "UDLD ถูกออกแบบมาเพื่อเฝ้าระวังสิ่งใด",
+    "choices": [
+      "การสื่อสารสองทิศทางของสาย fiber-optic",
+      "การจับคู่ native VLAN ระหว่าง trunk สองฝั่ง",
+      "จำนวนสมาชิกที่ active ใน port-channel",
+      "การเปลี่ยนแปลงของ MAC address table บนพอร์ต access"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า Unidirectional Link Detection ช่วยเฝ้าระวังการสื่อสารแบบสองทิศทางของสาย fiber-optic โดยทำงานได้สองโหมดคือ normal และ aggressive",
+    "difficulty": "easy",
+    "pages": [25],
+    "evidence": "Unidirectional Link Detection (UDLD) allows for the bidirectional monitoring of fiber-optic cables."
+  },
+  {
+    "topic": "Unidirectional Link Detection (UDLD)",
+    "question": "UDLD โหมด aggressive จะนำพอร์ตเข้าสถานะ error เมื่อใด",
+    "choices": [
+      "เมื่อส่งเพิ่มอีก 8 แพ็กเก็ตในช่วงละ 1 วินาทีแล้วยังไม่ได้รับการตอบรับ",
+      "เมื่อไม่ได้รับการตอบรับเฟรมแรกทันที",
+      "เมื่อไม่ได้รับ BPDU ครบ 3 ช่วง hello ติดต่อกัน",
+      "เมื่อ max age หมดลงโดยไม่มี BPDU เข้ามา"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าในโหมด aggressive ถ้าเฟรมไม่ได้รับการตอบรับ สวิตช์จะส่งอีก 8 แพ็กเก็ตในช่วงเวลาละ 1 วินาที และหากแพ็กเก็ตเหล่านั้นยังไม่ได้รับการตอบรับ พอร์ตจะถูกนำเข้าสถานะ error",
+    "difficulty": "hard",
+    "pages": [25],
+    "evidence": "Aggressive – If a frame is not acknowledged, the switch sends another 8 packets in 1 second intervals. If those packets aren't acknowledged, the port is placed into an error state."
+  }
+]

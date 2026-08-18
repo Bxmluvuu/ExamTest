@@ -1,0 +1,24 @@
+{
+  "name": "Internetworking Midterm Exam Blueprint",
+  "slug": "encor-midterm-blueprint",
+  "description": "แบบทดสอบกลางภาคตามสรุปหัวข้อ MidEx ครอบคลุม Packet Forwarding, STP/RSTP, MST, VTP/DTP/EtherChannel, IP Routing, EIGRP และ OSPF",
+  "questionCount": 40,
+  "durationMinutes": 60,
+  "difficultyDistribution": {
+    "easy": 0.3,
+    "medium": 0.5,
+    "hard": 0.2
+  },
+  "topicDistribution": [
+    { "topic": "Forwarding Architectures (CEF, TCAM, SDM)", "weight": 0.12 },
+    { "topic": "Root Bridge Election & Path Cost", "weight": 0.15 },
+    { "topic": "Rapid Spanning Tree Protocol (RSTP)", "weight": 0.1 },
+    { "topic": "Root Guard, PortFast & BPDU Guard", "weight": 0.1 },
+    { "topic": "MST Regions & Internal Spanning Tree", "weight": 0.1 },
+    { "topic": "EtherChannel with PAgP & LACP", "weight": 0.12 },
+    { "topic": "Path Selection & Administrative Distance", "weight": 0.1 },
+    { "topic": "Topology Table & Feasibility Condition", "weight": 0.11 },
+    { "topic": "OSPF Neighbors & Adjacency Requirements", "weight": 0.1 }
+  ],
+  "avoidRecentQuestionCount": 40
+}

@@ -1,0 +1,232 @@
+[
+  {
+    "topic": "Multicast Fundamentals & Traffic Types",
+    "question": "multicast traffic ให้การสื่อสารรูปแบบใด และแพ็กเก็ตถูกทำซ้ำที่จุดใด",
+    "choices": [
+      "แบบ one-to-many โดยทำซ้ำระหว่างลิงก์ที่ข้อมูลแยกสายบนอุปกรณ์เครือข่ายตาม MDT",
+      "แบบ one-to-one โดยทำซ้ำที่เซิร์ฟเวอร์ต้นทางทุกครั้งต่อผู้รับหนึ่งราย",
+      "แบบ many-to-many โดยทำซ้ำที่สวิตช์ทุกตัวไม่ว่ามีผู้รับหรือไม่",
+      "แบบ one-to-all โดยส่งออกทุกพอร์ตในบรอดคาสต์โดเมน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า multicast traffic ให้การสื่อสารแบบ one-to-many โดยส่งแพ็กเก็ตข้อมูลเพียงชุดเดียวบนลิงก์ตามที่จำเป็น แล้วทำซ้ำระหว่างลิงก์เมื่อข้อมูลแยกสายบนอุปกรณ์เครือข่ายตาม multicast distribution tree เซิร์ฟเวอร์ยังจัดการเพียงหนึ่ง session และอุปกรณ์เครือข่ายเลือกขอรับ stream",
+    "difficulty": "medium",
+    "pages": [10],
+    "evidence": "Multicast traffic provides one-to-many communication, where only one data packet is sent on a link as needed and then is replicated between links as the data forks (splits) on a network device along the multicast distribution tree (MDT)."
+  },
+  {
+    "topic": "Multicast Addressing & Layer 2 Mapping",
+    "question": "ช่วง multicast address ใดที่ใช้สำหรับ protocol control traffic ที่ไม่ถูกฟอร์เวิร์ดออกนอกบรอดคาสต์โดเมน",
+    "choices": [
+      "224.0.0.0 ถึง 224.0.0.255 (local network control block)",
+      "224.0.1.0 ถึง 224.0.1.255 (internetwork control block)",
+      "232.0.0.0/8 (SSM block)",
+      "239.0.0.0/8 (administratively scoped block)"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า local network control block คือ 224.0.0.0/24 หรือช่วง 224.0.0.0 ถึง 224.0.0.255 ใช้สำหรับ protocol control traffic ที่ไม่ถูกฟอร์เวิร์ดออกนอกบรอดคาสต์โดเมน ส่วน internetwork control block 224.0.1.0/24 ใช้สำหรับ control traffic ที่อาจถูกฟอร์เวิร์ดผ่านอินเทอร์เน็ต",
+    "difficulty": "medium",
+    "pages": [12],
+    "evidence": "Local network control block (224.0.0/24) - Addresses in the local network control block are used for protocol control traffic that is not forwarded out a broadcast domain."
+  },
+  {
+    "topic": "Multicast Addressing & Layer 2 Mapping",
+    "question": "ช่วง 232.0.0.0/8 และ 239.0.0.0/8 มีชื่อเรียกว่าอะไรตามลำดับ",
+    "choices": [
+      "Source Specific Multicast block และ administratively scoped block",
+      "GLOP block และ SSM block",
+      "administratively scoped block และ GLOP block",
+      "ad hoc block และ internetwork control block"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า 232.0.0.0/8 คือ Source Specific Multicast (SSM) block ซึ่งเป็นช่วงเริ่มต้นที่ SSM ใช้ตาม RFC 4607 ส่วน 239.0.0.0/8 คือ administratively scoped block ตาม RFC 2365 ซึ่งจำกัดอยู่ในกลุ่มหรือองค์กรท้องถิ่น และ 233.0.0.0/8 คือ GLOP block",
+    "difficulty": "hard",
+    "pages": [13],
+    "evidence": "Source Specific Multicast (SSM) block (232.0.0.0/8): This is the default range used by SSM. ... Administratively scoped block (239.0.0.0/8): These addresses, described in RFC 2365, are limited to a local group or organization."
+  },
+  {
+    "topic": "Multicast Addressing & Layer 2 Mapping",
+    "question": "24 บิตแรกของ multicast MAC address เริ่มต้นด้วยค่าใดเสมอ",
+    "choices": ["01:00:5E", "01:80:C2", "01:00:0C", "00:00:5E"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า 24 บิตแรกของ multicast MAC address เริ่มต้นด้วย 01:00:5E เสมอ โดยบิตต่ำสุดของไบต์แรกคือ I/G bit ซึ่งเมื่อตั้งเป็น 1 บ่งชี้ว่าเป็น multicast frame และบิตที่ 25 เป็น 0 เสมอ",
+    "difficulty": "medium",
+    "pages": [14],
+    "evidence": "The first 24 bits of a multicast MAC address always start with 01:00:5E."
+  },
+  {
+    "topic": "IGMP & IGMP Snooping",
+    "question": "IGMP message type value 0x16 คือข้อความประเภทใด",
+    "choices": [
+      "Version 2 membership report ที่มักเรียกว่า IGMP join",
+      "Version 2 leave group",
+      "General membership query",
+      "Version 1 membership report"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า version 2 membership report มี type value 0x16 และมักเรียกว่า IGMP join ใช้โดยผู้รับเพื่อเข้าร่วม multicast group หรือตอบ membership query ของเราเตอร์ท้องถิ่น ส่วน 0x17 คือ leave group, 0x11 คือ general membership query และ 0x12 คือ version 1 membership report",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "Version 2 membership report (type value 0x16) is a message type also commonly referred to as an IGMP join; used by receivers to join a multicast group or to respond to a local router's membership query message."
+  },
+  {
+    "topic": "IGMP & IGMP Snooping",
+    "question": "IGMP snooping ทำงานอย่างไร",
+    "choices": [
+      "ตรวจ IGMP join ที่ผู้รับส่งมาและรักษาตารางอินเทอร์เฟซต่อ join แล้วฟอร์เวิร์ดเฉพาะพอร์ตที่มี join",
+      "ตรวจ source MAC address ของ multicast frame แล้วสร้างตารางเช่นเดียวกับ unicast",
+      "ส่ง multicast frame ออกทุกพอร์ตแล้วรอให้ผู้รับที่ไม่ต้องการส่ง leave กลับมา",
+      "อาศัย PIM เพื่อบอกสวิตช์ว่าพอร์ตใดควรได้รับ stream"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า IGMP snooping ตาม RFC 4541 เป็นวิธีที่ใช้กันมากที่สุด ทำงานโดยตรวจสอบ IGMP join ที่ผู้รับส่งมาและรักษาตารางของอินเทอร์เฟซต่อ IGMP join เมื่อสวิตช์ได้รับ multicast frame ที่ส่งไปยัง multicast group จะฟอร์เวิร์ดแพ็กเก็ตออกเฉพาะพอร์ตที่ได้รับ IGMP join สำหรับ group นั้น",
+    "difficulty": "medium",
+    "pages": [25],
+    "evidence": "IGMP snooping ... works by examining IGMP joins sent by receivers and maintaining a table of interfaces to IGMP joins. When the switch receives a multicast frame destined for a multicast group, it forwards the packet only out the ports where IGMP joins were received for that specific multicast group."
+  },
+  {
+    "topic": "IGMP & IGMP Snooping",
+    "question": "multicast group address 239.255.1.1 ถูกแปลงเป็น multicast MAC address ใด",
+    "choices": ["01:00:5E:7F:01:01", "01:00:5E:FF:01:01", "01:00:5E:01:01:01", "01:80:C2:7F:01:01"],
+    "answer": 0,
+    "explanation": "สไลด์ยกตัวอย่างว่า Workstation A และ Workstation C ส่ง IGMP join ไปยัง 239.255.1.1 ซึ่งแปลงเป็น multicast MAC address 01:00:5E:7F:01:01 และ Switch 1 ที่เปิด IGMP snooping จะเติมข้อมูลนี้ลงใน MAC address table",
+    "difficulty": "hard",
+    "pages": [25],
+    "evidence": "Figure 13-10 illustrates Workstation A and Workstation C sending IGMP joins to 239.255.1.1, which translates to the multicast MAC address 01:00:5E:7F:01:01."
+  },
+  {
+    "topic": "Protocol Independent Multicast (PIM)",
+    "question": "notation (S,G) และ (*,G) สัมพันธ์กับ tree ประเภทใดตามลำดับ",
+    "choices": [
+      "source tree หรือ SPT และ shared tree หรือ RPT",
+      "shared tree หรือ RPT และ source tree หรือ SPT",
+      "ทั้งสองเป็น source tree แต่ต่างที่ทิศทาง",
+      "ทั้งสองเป็น shared tree แต่ต่างที่ตำแหน่ง RP"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า source tree มีต้นทางเป็นรากและเรียกอีกชื่อว่า shortest path tree โดยสถานะการฟอร์เวิร์ดใช้ notation (S,G) ส่วน shared tree มีรากเป็นเราเตอร์ที่ถูกกำหนดเป็น rendezvous point และเรียกอีกชื่อว่า RP tree โดยสถานะการฟอร์เวิร์ดใช้ notation (*,G)",
+    "difficulty": "medium",
+    "pages": [28, 29],
+    "evidence": "The forwarding state of the SPT is known by the notation (S,G) ... The forwarding state on the shared tree is referred to by the notation (*,G), pronounced \"star comma G.\""
+  },
+  {
+    "topic": "Protocol Independent Multicast (PIM)",
+    "question": "shared tree ฟอร์เวิร์ด multicast traffic ตามเกณฑ์ใด",
+    "choices": [
+      "ตาม group address G ที่แพ็กเก็ตส่งไป โดยไม่คำนึงถึง source address",
+      "ตาม source address S ที่แพ็กเก็ตมาจาก โดยไม่คำนึงถึง group address",
+      "ตาม RPF interface ของ source address เท่านั้น",
+      "ตามค่า RP priority ที่กำหนดใน RP set"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า shared tree มีรากเป็นเราเตอร์ที่ถูกกำหนดเป็น RP และ multicast traffic ถูกฟอร์เวิร์ดลงมาตาม shared tree ตาม group address G ที่แพ็กเก็ตถูกส่งไป โดยไม่คำนึงถึง source address",
+    "difficulty": "hard",
+    "pages": [29],
+    "evidence": "Multicast traffic is forwarded down the shared tree according to the group address G that the packets are addressed to, regardless of the source address."
+  },
+  {
+    "topic": "Protocol Independent Multicast (PIM)",
+    "question": "PIM operating mode ใดสองโหมดที่มักเรียกรวมกันว่า any-source multicast (ASM)",
+    "choices": [
+      "PIM-DM และ PIM-SM",
+      "PIM-SSM และ Bidir-PIM",
+      "PIM Sparse Dense Mode และ PIM-SSM",
+      "PIM-SM และ Bidir-PIM"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ามี PIM operating mode ห้าโหมดคือ PIM-DM, PIM-SM, PIM Sparse Dense Mode, PIM-SSM และ Bidir-PIM โดย PIM-DM และ PIM-SM มักถูกเรียกรวมกันว่า any-source multicast หรือ ASM",
+    "difficulty": "medium",
+    "pages": [31],
+    "evidence": "PIM-DM and PIM-SM are also commonly referred to as any-source multicast (ASM)."
+  },
+  {
+    "topic": "Protocol Independent Multicast (PIM)",
+    "question": "พฤติกรรมเริ่มต้นของ PIM-SM บนเราเตอร์ Cisco เกี่ยวกับการสลับจาก shared tree ไป SPT คือข้อใด",
+    "choices": [
+      "LHR สลับทันทีหลังได้รับ multicast packet แรกจาก RP ผ่าน shared tree",
+      "LHR สลับเมื่อ traffic rate เกินค่า threshold ที่ตั้งไว้เท่านั้น",
+      "LHR ไม่สลับเลยและใช้ shared tree ตลอดอายุของ stream",
+      "LHR สลับเฉพาะเมื่อเส้นทางที่สั้นที่สุดไปยัง source ไม่ผ่าน RP"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า PIM-SM ให้ LHR สลับจาก shared tree ไปเป็น SPT สำหรับ source ที่เจาะจงได้ และบนเราเตอร์ Cisco นี่คือพฤติกรรมเริ่มต้น เกิดขึ้นทันทีหลังได้รับ multicast packet แรกจาก RP ผ่าน shared tree แม้ว่าเส้นทางที่สั้นที่สุดไปยัง source จะผ่าน RP ก็ตาม",
+    "difficulty": "hard",
+    "pages": [37],
+    "evidence": "In Cisco routers, this is the default behavior, and it happens immediately after the first multicast packet is received from the RP via the shared tree, even if the shortest path to the source is through the RP."
+  },
+  {
+    "topic": "Protocol Independent Multicast (PIM)",
+    "question": "อัลกอริทึม Reverse Path Forwarding (RPF) ตัดสินใจอย่างไรเมื่อแพ็กเก็ตไม่ได้มาถึงบน RPF interface",
+    "choices": [
+      "ทิ้งแพ็กเก็ตนั้นเพื่อป้องกัน loop",
+      "ฟอร์เวิร์ดออกทุกอินเทอร์เฟซใน OIL ตามปกติ",
+      "สร้าง OIL ใหม่โดยใช้อินเทอร์เฟซที่แพ็กเก็ตเข้ามา",
+      "ส่งแพ็กเก็ตกลับไปยัง RP เพื่อตรวจสอบ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า RPF ใช้ป้องกัน loop และยืนยันว่า multicast traffic มาถึงบนอินเทอร์เฟซที่ถูกต้อง หากแพ็กเก็ตมาถึงบน RPF interface เราเตอร์จะฟอร์เวิร์ดออกอินเทอร์เฟซที่อยู่ใน outgoing interface list ของ multicast routing table entry แต่หากแพ็กเก็ตไม่ได้มาถึงบน RPF interface แพ็กเก็ตจะถูกทิ้งเพื่อป้องกัน loop",
+    "difficulty": "medium",
+    "pages": [39],
+    "evidence": "If the packet does not arrive on the RPF interface, the packet is discarded to prevent loops."
+  },
+  {
+    "topic": "Rendezvous Points & BSR",
+    "question": "Auto-RP มีองค์ประกอบพื้นฐานสองอย่างใด",
+    "choices": [
+      "candidate RP (C-RP) และ RP mapping agent (MA)",
+      "designated router (DR) และ backup designated router (BDR)",
+      "first-hop router (FHR) และ last-hop router (LHR)",
+      "bootstrap router (BSR) และ RP set"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า Auto-RP เป็นกลไกของ Cisco ที่ทำให้การกระจาย group-to-RP mapping เป็นอัตโนมัติ และกลไก Auto-RP ทำงานด้วยองค์ประกอบพื้นฐานสองอย่างคือ candidate RP (C-RP) และ RP mapping agent (MA)",
+    "difficulty": "hard",
+    "pages": [43],
+    "evidence": "The Auto-RP mechanism operates using two basic components, candidate RPs (C-RPs) and RP mapping agents (MAs)."
+  },
+  {
+    "topic": "Rendezvous Points & BSR",
+    "question": "กลไก bootstrap router (BSR) ต่างจาก Auto-RP อย่างไร",
+    "choices": [
+      "BSR เป็นกลไกไม่ผูกขาดตาม RFC 5059 และเป็นส่วนหนึ่งของข้อกำหนด PIM version 2",
+      "BSR เป็นกลไกของ Cisco ขณะที่ Auto-RP เป็นมาตรฐานเปิด",
+      "BSR ใช้ได้เฉพาะกับ PIM-DM ส่วน Auto-RP ใช้กับ PIM-SM",
+      "BSR ไม่รองรับ fault tolerance ขณะที่ Auto-RP รองรับ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ากลไก BSR ตาม RFC 5059 เป็นกลไกไม่ผูกขาดที่ให้การค้นพบและกระจาย RP แบบอัตโนมัติและทนความผิดพลาด ทำหน้าที่เดียวกับ Auto-RP แต่ BSR เป็นส่วนหนึ่งของข้อกำหนด PIM Version 2 ขณะที่ Auto-RP เป็นกลไกผูกขาดของ Cisco",
+    "difficulty": "medium",
+    "pages": [45],
+    "evidence": "The bootstrap router (BSR) mechanism, described in RFC 5059, is a nonproprietary mechanism that provides a fault-tolerant, automated RP discovery and distribution mechanism. ... but the BSR is part of the PIM Version 2 specification."
+  },
+  {
+    "topic": "Rendezvous Points & BSR",
+    "question": "RP set ที่ BSR กระจายออกไปประกอบด้วยองค์ประกอบใด",
+    "choices": [
+      "multicast group range, RP priority, RP address, hash mask length และ SM/Bidir flag",
+      "source address, group address, OIL และ RPF interface",
+      "candidate RP list, mapping agent address และ IGMP version",
+      "AS number, RP address, community และ next hop"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า PIM ใช้ BSR ค้นพบและประกาศข้อมูล RP set สำหรับแต่ละ group prefix ไปยังเราเตอร์ทุกตัวใน PIM domain โดย RP set เป็น group-to-RP mapping ที่ประกอบด้วย multicast group range, RP priority, RP address, hash mask length และ SM/Bidir flag",
+    "difficulty": "hard",
+    "pages": [45],
+    "evidence": "The RP set is a group-to-RP mapping that contains the following components: •Multicast group range •RP priority •RP address •Hash mask length •SM/Bidir flag"
+  },
+  {
+    "topic": "Rendezvous Points & BSR",
+    "question": "ข้อใดเป็นประโยชน์ของ Auto-RP ตามที่สไลด์ระบุ",
+    "choices": [
+      "ป้องกันการตั้งค่า static RP ที่ไม่สอดคล้องกันซึ่งอาจทำให้เกิดปัญหาการเชื่อมต่อ",
+      "ลดจำนวน RP ในเครือข่ายให้เหลือเพียงหนึ่งตัวเสมอ",
+      "บังคับให้ทุก group ใช้ RP เดียวกันเพื่อความสอดคล้อง",
+      "ยกเลิกความจำเป็นในการใช้ RPF check ในเครือข่าย"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุประโยชน์ของ Auto-RP หลายข้อ รวมถึงการใช้ RP หลายตัวในเครือข่ายเพื่อรองรับ group range ต่างกันได้ง่าย การแบ่งโหลดระหว่าง RP การจัดวาง RP ตามตำแหน่งผู้เข้าร่วม group และการป้องกันการตั้งค่า static RP ที่ไม่สอดคล้องกันซึ่งอาจทำให้เกิดปัญหาการเชื่อมต่อ",
+    "difficulty": "medium",
+    "pages": [43],
+    "evidence": "It prevents inconsistent manual static RP configurations that might cause connectivity problems."
+  }
+]

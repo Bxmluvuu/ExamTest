@@ -19,7 +19,9 @@ import { SaveStatus, SaveStatusState } from '@/components/ui/save-status';
 import { QuestionTransition } from './question-transition';
 import { QuestionNavigator } from './question-navigator';
 import { ExamTimer } from './exam-timer';
-import { DifficultyBadge } from '@/components/ui/status-badge';
+import { DifficultyBadge, QuestionTypeBadge } from '@/components/ui/status-badge';
+import { FillBlankPlayer } from './fill-blank-player';
+import { MatchingPlayer } from './matching-player';
 import { saveAttemptAnswerAction, submitExamAttemptAction, toggleBookmarkAction } from '@/lib/db-adapter';
 import type { ExamAttempt, AttemptQuestion, AttemptAnswer } from '@/lib/types/database';
 import { cn } from '@/lib/utils';
@@ -37,11 +39,35 @@ export function ExamRunner({
 }) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = React.useState(0);
+  
+  // Single Choice Answers
   const [answers, setAnswers] = React.useState<Record<string, 'A' | 'B' | 'C' | 'D'>>(() => {
     const map: Record<string, 'A' | 'B' | 'C' | 'D'> = {};
     initialAnswers.forEach(a => {
       if (a.selected_choice_key) {
         map[a.question_id] = a.selected_choice_key as 'A' | 'B' | 'C' | 'D';
+      }
+    });
+    return map;
+  });
+
+  // Fill in the Blank Answers (question_id -> blank_id -> word)
+  const [fillBlankAnswers, setFillBlankAnswers] = React.useState<Record<string, Record<string, string>>>(() => {
+    const map: Record<string, Record<string, string>> = {};
+    initialAnswers.forEach(a => {
+      if (a.fill_blank_answers) {
+        map[a.question_id] = a.fill_blank_answers;
+      }
+    });
+    return map;
+  });
+
+  // Matching Answers (question_id -> left_id -> right_id)
+  const [matchingAnswers, setMatchingAnswers] = React.useState<Record<string, Record<string, string>>>(() => {
+    const map: Record<string, Record<string, string>> = {};
+    initialAnswers.forEach(a => {
+      if (a.matching_answers) {
+        map[a.question_id] = a.matching_answers;
       }
     });
     return map;
@@ -66,10 +92,19 @@ export function ExamRunner({
   const answeredIndexMap = React.useMemo(() => {
     const map: Record<number, boolean> = {};
     questions.forEach((q, idx) => {
-      map[idx] = Boolean(answers[q.question_id]);
+      const qType = q.question_snapshot?.question_type || q.question_type || 'single_choice';
+      if (qType === 'fill_in_the_blank') {
+        const blanks = fillBlankAnswers[q.question_id];
+        map[idx] = Boolean(blanks && Object.values(blanks).some(v => Boolean(v && v.trim())));
+      } else if (qType === 'matching') {
+        const matches = matchingAnswers[q.question_id];
+        map[idx] = Boolean(matches && Object.values(matches).some(v => Boolean(v && v.trim())));
+      } else {
+        map[idx] = Boolean(answers[q.question_id]);
+      }
     });
     return map;
-  }, [questions, answers]);
+  }, [questions, answers, fillBlankAnswers, matchingAnswers]);
 
   const answeredCount = Object.values(answeredIndexMap).filter(Boolean).length;
   const unansweredCount = totalQuestions - answeredCount;
@@ -95,6 +130,56 @@ export function ExamRunner({
       setSavingStatus('saved');
     } catch (err) {
       console.error('Auto-save error:', err);
+      setSavingStatus('error');
+    }
+  }, [currentQuestion, attempt.id, userId]);
+
+  // Handle Fill in the blank + Auto-save
+  const handleFillBlankChange = React.useCallback(async (newAnswers: Record<string, string>) => {
+    if (!currentQuestion) return;
+
+    setFillBlankAnswers(prev => ({
+      ...prev,
+      [currentQuestion.question_id]: newAnswers,
+    }));
+
+    setSavingStatus('saving');
+    try {
+      await saveAttemptAnswerAction({
+        attemptId: attempt.id,
+        questionId: currentQuestion.question_id,
+        fillBlankAnswers: newAnswers,
+        userId,
+        responseTimeSeconds: 5,
+      });
+      setSavingStatus('saved');
+    } catch (err) {
+      console.error('Auto-save fill-in-blank error:', err);
+      setSavingStatus('error');
+    }
+  }, [currentQuestion, attempt.id, userId]);
+
+  // Handle Matching + Auto-save
+  const handleMatchingChange = React.useCallback(async (newAnswers: Record<string, string>) => {
+    if (!currentQuestion) return;
+
+    setMatchingAnswers(prev => ({
+      ...prev,
+      [currentQuestion.question_id]: newAnswers,
+    }));
+
+    setSavingStatus('saving');
+    try {
+      await saveAttemptAnswerAction({
+        attemptId: attempt.id,
+        questionId: currentQuestion.question_id,
+        matchingAnswers: newAnswers,
+        userId,
+        responseTimeSeconds: 5,
+      });
+      setSavingStatus('saved');
+    } catch (err) {
+      console.error('Auto-save matching error:', err);
       setSavingStatus('error');
     }
   }, [currentQuestion, attempt.id, userId]);
@@ -245,10 +330,11 @@ export function ExamRunner({
               <CardContent className="p-6 sm:p-8 space-y-6">
                 {/* Question Metadata */}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2.5 py-1 rounded bg-[var(--primary-subtle)] text-[var(--primary)] font-bold text-xs">
                       ข้อที่ {currentIndex + 1}
                     </span>
+                    <QuestionTypeBadge type={currentQuestion.question_snapshot.question_type || currentQuestion.question_type} />
                     <DifficultyBadge difficulty={currentQuestion.question_snapshot.difficulty} />
                     <span className="text-xs text-[var(--foreground-muted)] font-medium">
                       {currentQuestion.question_snapshot.chapter_title} • {currentQuestion.question_snapshot.topic_title}
@@ -269,50 +355,75 @@ export function ExamRunner({
                   </button>
                 </div>
 
-                {/* Question Text */}
-                <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
-                  {currentQuestion.question_snapshot.text}
-                </div>
+                {/* Question Body Depending on Question Type */}
+                {(currentQuestion.question_snapshot.question_type === 'fill_in_the_blank' || currentQuestion.question_type === 'fill_in_the_blank') ? (
+                  <FillBlankPlayer
+                    text={currentQuestion.question_snapshot.text}
+                    wordBank={currentQuestion.question_snapshot.word_bank || []}
+                    blanks={currentQuestion.question_snapshot.blanks || []}
+                    userAnswers={fillBlankAnswers[currentQuestion.question_id] || {}}
+                    onAnswerChange={handleFillBlankChange}
+                  />
+                ) : (currentQuestion.question_snapshot.question_type === 'matching' || currentQuestion.question_type === 'matching') ? (
+                  <div className="space-y-4">
+                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
+                      {currentQuestion.question_snapshot.text}
+                    </div>
+                    <MatchingPlayer
+                      matchingPairs={currentQuestion.question_snapshot.matching_pairs || []}
+                      shuffledRights={currentQuestion.question_snapshot.shuffled_matching_rights}
+                      userAnswers={matchingAnswers[currentQuestion.question_id] || {}}
+                      onAnswerChange={handleMatchingChange}
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Question Text */}
+                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
+                      {currentQuestion.question_snapshot.text}
+                    </div>
 
-                {/* Choices List */}
-                <div className="space-y-3 pt-2" role="radiogroup" aria-label="Question choices">
-                  {currentQuestion.shuffled_choices.map((choice, cIdx) => {
-                    const isSelected = selectedChoice === choice.key;
-                    return (
-                      <div
-                        key={choice.key}
-                        onClick={() => handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D')}
-                        role="radio"
-                        aria-checked={isSelected}
-                        tabIndex={0}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D');
-                          }
-                        }}
-                        className={cn(
-                          'flex items-start gap-3.5 p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-all duration-120 cursor-pointer select-none min-h-[48px]',
-                          isSelected
-                            ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-semibold ring-1 ring-[var(--primary)]'
-                            : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)] active:scale-[0.995]'
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors',
-                            isSelected
-                              ? 'bg-[var(--primary)] text-white'
-                              : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
-                          )}
-                        >
-                          {choice.key}
-                        </div>
-                        <div className="pt-0.5 leading-relaxed flex-1">{choice.text}</div>
-                      </div>
-                    );
-                  })}
-                </div>
+                    {/* Choices List */}
+                    <div className="space-y-3 pt-2" role="radiogroup" aria-label="Question choices">
+                      {currentQuestion.shuffled_choices.map((choice, cIdx) => {
+                        const isSelected = selectedChoice === choice.key;
+                        return (
+                          <div
+                            key={choice.key}
+                            onClick={() => handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D')}
+                            role="radio"
+                            aria-checked={isSelected}
+                            tabIndex={0}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                handleSelectChoice(choice.key as 'A' | 'B' | 'C' | 'D');
+                              }
+                            }}
+                            className={cn(
+                              'flex items-start gap-3.5 p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-all duration-120 cursor-pointer select-none min-h-[48px]',
+                              isSelected
+                                ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-semibold ring-1 ring-[var(--primary)]'
+                                : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)] active:scale-[0.995]'
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors',
+                                isSelected
+                                  ? 'bg-[var(--primary)] text-white'
+                                  : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
+                              )}
+                            >
+                              {choice.key}
+                            </div>
+                            <div className="pt-0.5 leading-relaxed flex-1">{choice.text}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </QuestionTransition>

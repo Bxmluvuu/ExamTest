@@ -73,4 +73,125 @@ describe('Scoring Engine', () => {
     expect(result.difficulty_breakdown.easy.correct).toBe(1);
     expect(result.difficulty_breakdown.medium.correct).toBe(0);
   });
+
+  it('correctly grades fill_in_the_blank questions with case-insensitive and whitespace tolerance', () => {
+    const questions: AttemptQuestion[] = [
+      {
+        id: 'aq-fib-1',
+        attempt_id: 'att-1',
+        question_id: 'q-fib-1',
+        sequence_order: 1,
+        shuffled_choices: [],
+        question_snapshot: {
+          text: 'In TCP/IP, [blank_1] is connection-oriented and [blank_2] is connectionless.',
+          difficulty: 'medium',
+          chapter_title: 'Transport',
+          topic_title: 'TCP vs UDP',
+          question_type: 'fill_in_the_blank',
+        },
+      },
+      {
+        id: 'aq-fib-2',
+        attempt_id: 'att-1',
+        question_id: 'q-fib-2',
+        sequence_order: 2,
+        shuffled_choices: [],
+        question_snapshot: {
+          text: 'Protocol [blank_1] resolves IP to MAC.',
+          difficulty: 'easy',
+          chapter_title: 'Network',
+          topic_title: 'ARP',
+          question_type: 'fill_in_the_blank',
+        },
+      },
+    ];
+
+    const answers: AttemptAnswer[] = [
+      {
+        id: 'ans-fib-1',
+        attempt_id: 'att-1',
+        question_id: 'q-fib-1',
+        fill_blank_answers: { blank_1: ' tcp ', blank_2: 'UDP' },
+        answered_at: '',
+      },
+      {
+        id: 'ans-fib-2',
+        attempt_id: 'att-1',
+        question_id: 'q-fib-2',
+        fill_blank_answers: { blank_1: 'DHCP' }, // wrong answer (should be ARP)
+        answered_at: '',
+      },
+    ];
+
+    const answerKeys: Record<string, QuestionAnswerKey> = {
+      'q-fib-1': {
+        id: 'k-fib-1',
+        question_id: 'q-fib-1',
+        correct_blank_answers: { blank_1: 'TCP', blank_2: 'UDP' },
+        explanation: 'TCP is connection-oriented and UDP is connectionless',
+      },
+      'q-fib-2': {
+        id: 'k-fib-2',
+        question_id: 'q-fib-2',
+        correct_blank_answers: { blank_1: 'ARP' },
+        explanation: 'ARP resolves IP to MAC',
+      },
+    };
+
+    const result = gradeExamAttempt(questions, answers, answerKeys);
+
+    expect(result.score_total).toBe(1);
+    expect(result.score_max).toBe(2);
+    expect(result.score_percentage).toBe(50.0);
+    expect(result.correct_count).toBe(1);
+    expect(result.incorrect_count).toBe(1);
+    expect(result.graded_answers[0].is_correct).toBe(true);
+    expect(result.graded_answers[1].is_correct).toBe(false);
+  });
+
+  it('correctly grades matching questions', () => {
+    const questions: AttemptQuestion[] = [
+      {
+        id: 'aq-mat-1',
+        attempt_id: 'att-1',
+        question_id: 'q-mat-1',
+        sequence_order: 1,
+        shuffled_choices: [],
+        question_snapshot: {
+          text: 'Match ports with protocols',
+          difficulty: 'medium',
+          chapter_title: 'Transport',
+          topic_title: 'Ports',
+          question_type: 'matching',
+        },
+      },
+    ];
+
+    const answers: AttemptAnswer[] = [
+      {
+        id: 'ans-mat-1',
+        attempt_id: 'att-1',
+        question_id: 'q-mat-1',
+        matching_answers: { p1: 'p1', p2: 'p2', p3: 'p3' },
+        answered_at: '',
+      },
+    ];
+
+    const answerKeys: Record<string, QuestionAnswerKey> = {
+      'q-mat-1': {
+        id: 'k-mat-1',
+        question_id: 'q-mat-1',
+        correct_matching: { p1: 'p1', p2: 'p2', p3: 'p3' },
+        explanation: 'Standard ports correctly matched',
+      },
+    };
+
+    const result = gradeExamAttempt(questions, answers, answerKeys);
+
+    expect(result.score_total).toBe(1);
+    expect(result.score_max).toBe(1);
+    expect(result.score_percentage).toBe(100);
+    expect(result.correct_count).toBe(1);
+    expect(result.graded_answers[0].is_correct).toBe(true);
+  });
 });

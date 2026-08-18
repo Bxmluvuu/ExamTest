@@ -1,0 +1,312 @@
+[
+  {
+    "topic": "BGP Multihoming & Transit Routing",
+    "question": "องค์กรที่ใช้ BGP เชื่อมต่อกับ SP มากกว่าหนึ่งราย มีความเสี่ยงใดที่ต้องระวัง",
+    "choices": [
+      "AS ของตนกลายเป็น transit AS ทำให้ peering link อิ่มตัว",
+      "AS ของตนไม่สามารถโฆษณา prefix ของตนเองออกไปได้",
+      "AS ของตนถูกบังคับให้ใช้ private ASN เท่านั้น",
+      "AS ของตนต้องรับ full routing table จาก SP ทุกราย"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการใช้ BGP เชื่อมกับ SP มากกว่าหนึ่งรายเสี่ยงที่ AS จะกลายเป็น transit AS ตัวอย่างคือผู้ใช้ที่ต่อกับ SP3 route ผ่านเครือข่ายองค์กร AS 500 เพื่อไปยังเซิร์ฟเวอร์ที่ต่อกับ SP4 เพราะ AS_Path สั้นกว่า ทำให้ AS 500 ให้บริการ transit routing แก่ทุกคนบนอินเทอร์เน็ตและ peering link อาจอิ่มตัว",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "Using BGP to connect with more than one SP, runs the risk of the autonomous system (AS) becoming a transit AS. ... The AS 500 network is providing transit routing to everyone on the Internet, which can saturate AS 500's peering links."
+  },
+  {
+    "topic": "BGP Multihoming & Transit Routing",
+    "question": "วิธีหลีกเลี่ยง transit routing ตามที่สไลด์เสนอคือข้อใด",
+    "choices": [
+      "ใช้ outbound BGP route policy ที่อนุญาตเฉพาะ BGP route ในเครื่องให้โฆษณาออกไป",
+      "ตั้ง local preference ของทุก prefix ให้เท่ากันทั้งสอง SP",
+      "ปิด eBGP session ทั้งหมดและใช้ static route แทน",
+      "ตั้ง MED ให้สูงที่สุดสำหรับทุก prefix ที่โฆษณา"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าแทนที่จะใช้ default BGP routing policy สามารถหลีกเลี่ยง transit routing ได้โดยใช้ outbound BGP route policy ที่อนุญาตเฉพาะ BGP route ในเครื่องให้โฆษณาออกไป",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "Instead of using the default BGP routing policy transit routing can be avoided by applying outbound BGP route policies that only allow for local BGP routes to"
+  },
+  {
+    "topic": "BGP Multihoming & Transit Routing",
+    "question": "ปัญหาของ unplanned transit ในสภาพแวดล้อม multihomed คือข้อใด",
+    "choices": [
+      "วงจรของ transit router อิ่มตัวเกินไป และรูปแบบการ route กลายเป็นแบบคาดเดาไม่ได้",
+      "eBGP session ทั้งหมดจะรีเซ็ตทุกครั้งที่ลิงก์หลักล้มเหลว",
+      "local preference จะถูกโฆษณาข้าม eBGP peer โดยไม่ได้ตั้งใจ",
+      "prefix ทั้งหมดจะถูก aggregate โดยอัตโนมัติที่ branch router"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า unplanned transit ก่อปัญหาสองอย่างคือวงจรของ transit router อาจอิ่มตัวเกินไป และรูปแบบการ route กลายเป็นคาดเดาไม่ได้และไม่ deterministic ตัวอย่างคือทราฟฟิกจาก R31 อาจไหลผ่าน R41 แต่ทราฟฟิกขากลับอาจใช้เส้นทางอื่น ซึ่งทำให้การแก้ปัญหายากขึ้น",
+    "difficulty": "hard",
+    "pages": [7],
+    "evidence": "The transit router's circuits can become oversaturated. • The routing patterns can become unpredictable and nondeterministic."
+  },
+  {
+    "topic": "Conditional Matching & Prefix Lists",
+    "question": "prefix match specification ประกอบด้วยสองส่วนใด",
+    "choices": [
+      "high-order bit pattern และ high-order bit count",
+      "network address และ wildcard mask",
+      "sequence number และ processing action",
+      "AFI และ SAFI"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า prefix match specification ประกอบด้วยสองส่วนคือ high-order bit pattern และ high-order bit count ซึ่งกำหนดจำนวน high-order bit ใน bit pattern ที่จะถูกจับคู่ เอกสารบางฉบับเรียก bit pattern ว่า address หรือ network และเรียก bit count ว่า mask length",
+    "difficulty": "medium",
+    "pages": [14],
+    "evidence": "A prefix match specification contains two parts: a high-order bit pattern and a high-order bit count, which determines the high-order bits in the bit pattern to be matched."
+  },
+  {
+    "topic": "Conditional Matching & Prefix Lists",
+    "question": "พารามิเตอร์ le และ ge ใน prefix list มีความหมายอย่างไร",
+    "choices": [
+      "le คือน้อยกว่าหรือเท่ากับ และ ge คือมากกว่าหรือเท่ากับ",
+      "le คือมากกว่าหรือเท่ากับ และ ge คือน้อยกว่าหรือเท่ากับ",
+      "le คือ prefix length ที่ตรงกันพอดี และ ge คือช่วงที่ยกเว้น",
+      "le คือ local exact และ ge คือ global exact"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าตัวเลือกพารามิเตอร์ matching length คือ le หมายถึงน้อยกว่าหรือเท่ากับ และ ge หมายถึงมากกว่าหรือเท่ากับ ซึ่งทำให้ระบุหลายเครือข่ายที่มี prefix length เฉพาะได้ด้วยคำสั่งเดียว",
+    "difficulty": "medium",
+    "pages": [15],
+    "evidence": "The matching length parameter options are: •le: Less than or equal to, <= •ge: Greater than or equal to, >="
+  },
+  {
+    "topic": "Conditional Matching & Prefix Lists",
+    "question": "สิ่งที่ต้องจำเกี่ยวกับ IPv6 prefix list คือข้อใด",
+    "choices": [
+      "เครือข่าย IPv6 เขียนในรูป hex ไม่ใช่ binary เมื่อระบุช่วง แต่ท้ายที่สุดทำงานในระดับ binary",
+      "ตรรกะการ match ต่างจาก IPv4 อย่างสิ้นเชิงเพราะไม่มี bit count",
+      "IPv6 prefix list ไม่รองรับพารามิเตอร์ ge และ le",
+      "IPv6 prefix list ต้องกำหนดใต้ address family เท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าตรรกะการ match prefix ของ IPv6 ทำงานเหมือน IPv4 ทุกประการ สิ่งสำคัญที่ต้องจำคือเครือข่าย IPv6 เขียนในรูป hex ไม่ใช่ binary เมื่อระบุช่วง แต่ท้ายที่สุดทุกอย่างทำงานในระดับ binary โดยตั้งค่าด้วยคำสั่ง ipv6 prefix-list",
+    "difficulty": "hard",
+    "pages": [18],
+    "evidence": "The most important thing to remember is that IPv6 networks are notated in hex and not in binary when identifying ranges. Ultimately, however, everything functions at the binary level."
+  },
+  {
+    "topic": "Conditional Matching & Prefix Lists",
+    "question": "ในรูปแบบ regex ที่ใช้ parse ตาราง BGP สัญลักษณ์ ^ และ _ มีความหมายอย่างไรตามลำดับ",
+    "choices": [
+      "^ คือจุดเริ่มต้นของสตริง และ _ จับคู่ช่องว่าง",
+      "^ คือจุดสิ้นสุดของสตริง และ _ จับคู่อักขระใด ๆ",
+      "^ จับคู่หนึ่งครั้งหรือมากกว่า และ _ คือจุดเริ่มต้นของสตริง",
+      "^ คือการยกเว้น และ _ จับคู่ศูนย์หรือหนึ่งครั้ง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า ^ บ่งชี้จุดเริ่มต้นของสตริง $ บ่งชี้จุดสิ้นสุดของสตริง _ จับคู่ช่องว่าง + จับคู่หนึ่งครั้งหรือมากกว่า และ ? จับคู่หนึ่งครั้งหรือไม่มีเลย โดย parse ตาราง BGP ด้วยคำสั่ง show bgp afi safi regexp regex-pattern",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "^ indicates the start of a string, $ indicates the end of a string, _ matches a space, + matches one or more instance, ? matches one or no instances"
+  },
+  {
+    "topic": "Route Maps & BGP Route Filtering",
+    "question": "route map ประกอบด้วยองค์ประกอบสี่อย่าง ข้อใดไม่ใช่หนึ่งในนั้น",
+    "choices": [
+      "Address family identifier",
+      "Sequence number",
+      "Conditional matching criteria",
+      "Processing action"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า route map มีสี่องค์ประกอบคือ sequence number ที่กำหนดลำดับการประมวลผล, conditional matching criteria ที่ระบุลักษณะของ prefix, processing action ที่ permit หรือ deny prefix และ optional action ที่ใช้ปรับแต่งค่า ส่วน address family identifier ไม่ใช่องค์ประกอบของ route map",
+    "difficulty": "medium",
+    "pages": [21],
+    "evidence": "A route map has four components: •Sequence number ... •Conditional matching criteria ... •Processing action - Permits or denies the prefix. •Optional action"
+  },
+  {
+    "topic": "Route Maps & BGP Route Filtering",
+    "question": "หากไม่ระบุ processing action ในคำสั่ง route-map ค่าเริ่มต้นคืออะไร",
+    "choices": ["permit", "deny", "ไม่ทำอะไรเลยและข้ามไป", "รับค่าจาก sequence ก่อนหน้า"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า route map ใช้รูปแบบคำสั่ง route-map route-map-name [permit | deny] [sequence-number] และหากไม่ได้ระบุ processing action ค่าเริ่มต้นที่ใช้คือ permit",
+    "difficulty": "medium",
+    "pages": [21],
+    "evidence": "If a processing action is not provided, the default value permit is used."
+  },
+  {
+    "topic": "Route Maps & BGP Route Filtering",
+    "question": "คำสั่ง set ใดของ route map ที่ใช้ prepend AS path ของ network prefix",
+    "choices": [
+      "set as-path prepend {as-number-pattern | last-as 1-10}",
+      "set ip next-hop {ip-address | peer-address | self}",
+      "set local-preference 0-4294967295",
+      "set metric {+value | -value}"
+    ],
+    "answer": 0,
+    "explanation": "ตาราง Route Map Set Actions ระบุว่า set as-path prepend {as-number-pattern | last-as 1-10} ใช้ prepend AS path ของ network prefix ด้วย pattern ที่ระบุหรือจากการทำซ้ำหลายรอบจาก AS ข้างเคียง",
+    "difficulty": "medium",
+    "pages": [26],
+    "evidence": "set as-path prepend {as-number-pattern | last-as 1-10} Prepends the AS path for the network prefix with the pattern specified or from multiple iterations from a neighboring AS."
+  },
+  {
+    "topic": "Route Maps & BGP Route Filtering",
+    "question": "route map ถูกผูกกับ BGP neighbor ด้วยคำสั่งใด และมีข้อกำหนดเรื่องทิศทางอย่างไร",
+    "choices": [
+      "neighbor ip-address route-map route-map-name {in|out} โดยใช้ route map ต่างกันได้ในแต่ละทิศทาง",
+      "neighbor ip-address distribute-list acl {in|out} โดยใช้ได้ทิศทางเดียวเท่านั้น",
+      "neighbor ip-address filter-list path-acl both โดยบังคับใช้สอง ทิศทางพร้อมกัน",
+      "neighbor ip-address send-community both โดยไม่ระบุทิศทาง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า route map ถูกใช้กับ BGP neighbor สำหรับเส้นทางที่โฆษณาออกหรือรับเข้า และใช้ route map ต่างกันได้ในแต่ละทิศทาง โดยผูกกับ BGP neighbor ใต้ address family ที่เจาะจงด้วยคำสั่ง neighbor ip-address route-map route-map-name {in|out}",
+    "difficulty": "hard",
+    "pages": [36],
+    "evidence": "A different route map can be used for each direction. The route map is associated with the BGP neighbor under the specific address family, with the command neighbor ip-address route-map route-map-name {in|out}."
+  },
+  {
+    "topic": "BGP Communities",
+    "question": "พฤติกรรมเริ่มต้นของ IOS และ IOS XE เกี่ยวกับการโฆษณา BGP community คือข้อใด",
+    "choices": [
+      "ไม่โฆษณา community ให้ peer โดยค่าเริ่มต้น ต้องเปิดเป็นราย neighbor",
+      "โฆษณา community ทั้ง standard และ extended ให้ทุก peer โดยค่าเริ่มต้น",
+      "โฆษณาเฉพาะ extended community เท่านั้นโดยค่าเริ่มต้น",
+      "โฆษณา community เฉพาะให้ iBGP peer โดยค่าเริ่มต้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเราเตอร์ IOS และ IOS XE ไม่โฆษณา BGP community ให้ peer โดยค่าเริ่มต้น ต้องเปิดใช้เป็นราย neighbor ด้วยคำสั่ง neighbor ip-address send-community [standard | extended | both] และหากไม่ระบุคีย์เวิร์ด จะส่ง standard community เป็นค่าเริ่มต้น",
+    "difficulty": "hard",
+    "pages": [43],
+    "evidence": "IOS and IOS XE routers do not advertise BGP communities to peers by default. Communities are enabled on a neighbor-by-neighbor basis with the BGP address family configuration command."
+  },
+  {
+    "topic": "BGP Communities",
+    "question": "standard community list และ expanded community list ใช้หมายเลขช่วงใดตามลำดับ",
+    "choices": [
+      "1 ถึง 99 และ 100 ถึง 500",
+      "1 ถึง 99 และ 100 ถึง 199",
+      "1 ถึง 500 และ 501 ถึง 1000",
+      "100 ถึง 199 และ 200 ถึง 299"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า standard community list มีหมายเลข 1 ถึง 99 และ match ได้ทั้ง well-known community หรือหมายเลข private community ในรูป as-number:16-bit-number ส่วน expanded community list มีหมายเลข 100 ถึง 500 และใช้รูปแบบ regex",
+    "difficulty": "hard",
+    "pages": [44],
+    "evidence": "Standard community lists are numbered 1 to 99 and match either well-known communities or a private community number (as-number:16-bit-number). Expanded community lists are numbered 100 to 500 and use regex patterns."
+  },
+  {
+    "topic": "BGP Communities",
+    "question": "well-known community ชื่อ No_Advertise มีความหมายอย่างไร",
+    "choices": [
+      "เส้นทางที่มี community นี้ไม่ควรถูกโฆษณาต่อไปยัง peer ใด",
+      "เส้นทางที่มี community นี้ควรถูกโฆษณาบนอินเทอร์เน็ต",
+      "เส้นทางที่มี community นี้ควรถูก aggregate ก่อนโฆษณา",
+      "เส้นทางที่มี community นี้ต้องตั้ง weight เป็น 0"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบาย well-known community ที่พบบ่อยสามอย่าง โดย Internet คือ community มาตรฐานสำหรับระบุเส้นทางที่ควรโฆษณาบนอินเทอร์เน็ต ส่วน No_Advertise หมายถึงเส้นทางที่มี community นี้ไม่ควรถูกโฆษณาต่อ",
+    "difficulty": "medium",
+    "pages": [42],
+    "evidence": "No_Advertise: Routes with this community should not be advertised t"
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "ขั้นตอนแรกของ BGP best-path algorithm คืออะไร และมีคุณสมบัติอย่างไร",
+    "choices": [
+      "Weight ซึ่งเป็น attribute ของ Cisco ค่ายิ่งสูงยิ่งถูกเลือก และไม่ถูกโฆษณาไปยัง peer",
+      "Local preference ซึ่งเป็น well-known attribute ค่ายิ่งสูงยิ่งถูกเลือก และโฆษณาระหว่าง eBGP peer",
+      "MED ซึ่งเป็น non-transitive attribute ค่ายิ่งต่ำยิ่งถูกเลือก",
+      "AS_Path ที่สั้นที่สุดซึ่งถูกโฆษณาไปทุก peer"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าขั้นตอนแรกของ BGP best-path algorithm คือ weight ซึ่งเป็น attribute ที่ Cisco กำหนดขึ้น เส้นทางที่มี weight สูงกว่าจะถูกเลือก มีผลเฉพาะกับเส้นทางขาออกจากเราเตอร์หรือจาก AS และไม่ถูกโฆษณาไปยัง peer",
+    "difficulty": "medium",
+    "pages": [51],
+    "evidence": "1.Weight – BGP weight is a Cisco-defined attribute. The path with the higher weight is preferred. Influences only outbound routes from a router or an AS. Not advertised to peers."
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "BGP weight เป็นค่าขนาดกี่บิตและอยู่ในช่วงใด",
+    "choices": [
+      "16 บิต ช่วง 0 ถึง 65,535",
+      "32 บิต ช่วง 0 ถึง 4,294,967,295",
+      "8 บิต ช่วง 0 ถึง 255",
+      "16 บิต ช่วง 1 ถึง 65,534"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า weight เป็นค่า 16 บิต ช่วง 0 ถึง 65,535 ที่กำหนดในเครื่องบนเราเตอร์และไม่ถูกโฆษณาไปยังเราเตอร์อื่น เส้นทางที่มี weight สูงกว่าจะถูกเลือก",
+    "difficulty": "hard",
+    "pages": [53],
+    "evidence": "Weight is a 16-bit value (0 to 65,535) assigned locally on the router; it is not advertised to other routers."
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "ค่า local preference เริ่มต้นที่ใช้ในการคำนวณ best path คือเท่าใด และมีขอบเขตการโฆษณาอย่างไร",
+    "choices": [
+      "100 และไม่ถูกโฆษณาระหว่าง eBGP peer แต่รวมอยู่ในการโฆษณาไปยัง iBGP peer",
+      "0 และถูกโฆษณาไปทั้ง iBGP และ eBGP peer",
+      "100 และถูกโฆษณาไปทั้ง iBGP และ eBGP peer",
+      "32,768 และไม่ถูกโฆษณาไปยัง peer ใดเลย"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า local preference เป็นค่า 32 บิต ช่วง 0 ถึง 4,294,967,295 ค่ายิ่งสูงยิ่งถูกเลือก ไม่ถูกโฆษณาระหว่าง eBGP peer และค่าเริ่มต้น 100 ถูกใช้ในการคำนวณ best path และรวมอยู่ในการโฆษณาไปยัง iBGP peer อื่น",
+    "difficulty": "hard",
+    "pages": [54],
+    "evidence": "The default local preference value of 100 is used during best-path calculation, and is included in advertisements to other iBGP peers."
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "เงื่อนไขใดที่ทำให้ MED เป็นปัจจัยตัดสินใจที่มีผลจริง",
+    "choices": [
+      "เส้นทางที่ถูกเปรียบเทียบต้องมาจาก ASN เดียวกัน",
+      "เส้นทางที่ถูกเปรียบเทียบต้องมาจาก ASN ต่างกัน",
+      "ต้องตั้ง weight ให้เท่ากันทุกเส้นทางก่อน",
+      "ต้องปิด local preference บนทุก iBGP peer"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MED เป็น non-transitive attribute ที่ใช้ค่า metric ขนาด 32 บิต ค่ายิ่งต่ำยิ่งถูกเลือก และเพื่อให้ MED เป็นปัจจัยตัดสินใจที่มีผล เส้นทางที่ถูกเปรียบเทียบต้องมาจาก ASN เดียวกัน",
+    "difficulty": "hard",
+    "pages": [59],
+    "evidence": "A lower MED is preferred over a higher MED. For MED to be an effective decision factor, the paths being decided upon must come from the same ASN."
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "ลำดับความน่าเลือกของแหล่งที่มาของเส้นทางในขั้นตอน eBGP over iBGP คือข้อใด",
+    "choices": [
+      "eBGP peer, confederation member AS peer แล้วจึง iBGP peer",
+      "iBGP peer, confederation member AS peer แล้วจึง eBGP peer",
+      "confederation member AS peer, eBGP peer แล้วจึง iBGP peer",
+      "eBGP peer, iBGP peer แล้วจึง confederation member AS peer"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าลำดับการเลือก best path ตามแหล่งที่มาคือ eBGP peer น่าเลือกที่สุด ถัดมาคือ confederation member AS peer และ iBGP peer น่าเลือกน้อยที่สุด โดยหมายเหตุระบุว่า BGP confederation อยู่นอกขอบเขตของ CCNP และ CCIE Enterprise Core",
+    "difficulty": "medium",
+    "pages": [60],
+    "evidence": "The best-path selection order is: 1.eBGP peers (most desirable) 2.Confederation member AS peers 3.iBGP peers (least desirable)"
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "ข้อเสียของขั้นตอน Oldest eBGP Path ใน BGP best-path algorithm คือข้อใด",
+    "choices": [
+      "ไม่นำไปสู่ผลลัพธ์ที่ deterministic",
+      "ทำให้ session ที่เก่าที่สุดถูกรีเซ็ตเป็นระยะ",
+      "บังคับให้ต้องเปรียบเทียบ MED ข้าม ASN",
+      "ทำให้ต้องปิด BGP weight ทั้งหมด"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าขั้นตอน Oldest eBGP Path ทำให้ BGP รักษาเสถียรภาพของเครือข่ายโดยเลือกเส้นทางจาก BGP session ที่เก่าที่สุดหรือ established มานานที่สุด แต่ข้อเสียของเทคนิคนี้คือไม่นำไปสู่ผลลัพธ์ที่ deterministic",
+    "difficulty": "hard",
+    "pages": [52],
+    "evidence": "10.Oldest eBGP Path - BGP maintains stability in a network by preferring the path from the oldest (established) BGP session. The downfall of this technique is that it does not lead to a"
+  },
+  {
+    "topic": "BGP Best-Path Algorithm",
+    "question": "ขั้นตอนที่ 9 ของ BGP best-path algorithm พิจารณาสิ่งใด",
+    "choices": [
+      "IGP cost ที่ต่ำที่สุดไปยัง BGP next-hop address",
+      "MED ที่ต่ำที่สุดของเส้นทางที่เปรียบเทียบ",
+      "จำนวน AS ใน AS_Path ที่น้อยที่สุด",
+      "RID ที่ต่ำที่สุดของ BGP peer"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าขั้นตอนถัดจาก eBGP over iBGP คือ Lowest IGP next hop ซึ่งใช้ IGP cost ที่ต่ำที่สุดไปยัง BGP next-hop address เป็นเกณฑ์ตัดสิน",
+    "difficulty": "hard",
+    "pages": [52],
+    "evidence": "9.Lowest IGP next hop- The next decision step is to use the lowest IGP cost to the BGP next-hop address."
+  }
+]

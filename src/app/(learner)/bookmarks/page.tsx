@@ -5,7 +5,7 @@ import { LearnerPageHeader } from '@/components/learner/learner-page-header';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { DifficultyBadge } from '@/components/ui/status-badge';
+import { DifficultyBadge, QuestionTypeBadge } from '@/components/ui/status-badge';
 import { PageTransition } from '@/components/ui/page-transition';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/toast';
@@ -68,14 +68,16 @@ export default function BookmarksPage() {
           {bookmarks.map((bm, idx) => {
             const q = bm.question;
             if (!q) return null;
+            const qType = q.question_type || 'single_choice';
 
             return (
               <Card key={bm.id} className="p-5 space-y-4 border-[var(--border)] motion-slide-up">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="px-2 py-0.5 rounded bg-[var(--primary-subtle)] text-xs font-bold text-[var(--primary)] border border-blue-200">
                       ข้อที่ {idx + 1}
                     </span>
+                    <QuestionTypeBadge type={qType} />
                     <DifficultyBadge difficulty={q.difficulty} />
                     <span className="text-xs text-[var(--foreground-muted)]">
                       {q.topic_title || 'General'}
@@ -97,20 +99,56 @@ export default function BookmarksPage() {
                   {q.question_text}
                 </div>
 
-                {/* Choices list */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                  {q.choices?.map(c => (
-                    <div
-                      key={c.choice_key}
-                      className="p-2.5 rounded bg-[var(--surface-subtle)] border border-[var(--border)] text-xs flex items-center gap-2"
-                    >
-                      <span className="h-5 w-5 rounded bg-white text-xs font-bold flex items-center justify-center border shrink-0">
-                        {c.choice_key}
-                      </span>
-                      <span className="truncate">{c.choice_text}</span>
+                {/* Fill-in-the-blank Preview */}
+                {qType === 'fill_in_the_blank' && q.word_bank && (
+                  <div className="p-3 rounded bg-[var(--surface-subtle)] border border-[var(--border)] space-y-2">
+                    <span className="text-xs font-semibold text-[var(--foreground-muted)]">
+                      คลังคำศัพท์ตัวเลือก (Word Bank):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {q.word_bank.map((w, wIdx) => (
+                        <span key={wIdx} className="px-2 py-0.5 rounded text-xs bg-purple-50 text-purple-700 border border-purple-200 font-medium">
+                          {w}
+                        </span>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
+
+                {/* Matching Preview */}
+                {qType === 'matching' && q.matching_pairs && (
+                  <div className="p-3 rounded bg-[var(--surface-subtle)] border border-[var(--border)] space-y-2">
+                    <span className="text-xs font-semibold text-[var(--foreground-muted)]">
+                      คู่คำตอบสำหรับจับคู่:
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                      {q.matching_pairs.map((p, pIdx) => (
+                        <div key={p.id} className="p-2 rounded bg-white border border-[var(--border)] flex items-center justify-between gap-1">
+                          <span className="font-semibold text-teal-800">{String.fromCharCode(65 + pIdx)}. {p.left}</span>
+                          <span className="text-zinc-400 font-bold">↔</span>
+                          <span className="text-zinc-600 truncate">{p.right}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Choices list for Single Choice */}
+                {(qType === 'single_choice' || qType === 'numeric') && q.choices && q.choices.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {q.choices.map(c => (
+                      <div
+                        key={c.choice_key}
+                        className="p-2.5 rounded bg-[var(--surface-subtle)] border border-[var(--border)] text-xs flex items-center gap-2"
+                      >
+                        <span className="h-5 w-5 rounded bg-white text-xs font-bold flex items-center justify-center border shrink-0">
+                          {c.choice_key}
+                        </span>
+                        <span className="truncate">{c.choice_text}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Notes / Citation */}
                 {bm.notes && (

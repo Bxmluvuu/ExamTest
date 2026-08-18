@@ -4,7 +4,7 @@ import * as React from 'react';
 import { AdminPageHeader } from '@/components/admin/admin-page-header';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { QuestionStatusBadge, DifficultyBadge } from '@/components/ui/status-badge';
+import { QuestionStatusBadge, DifficultyBadge, QuestionTypeBadge } from '@/components/ui/status-badge';
 import { QuestionEditModal } from '@/components/admin/question-edit-modal';
 import { PageTransition } from '@/components/ui/page-transition';
 import { TableSkeleton } from '@/components/ui/skeleton';
@@ -297,11 +297,14 @@ export default function AdminQuestionsPage() {
                           <div className="font-medium text-[var(--foreground)] line-clamp-2">
                             {q.question_text}
                           </div>
-                          {q.is_ai_generated && (
-                            <span className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded mt-1 inline-block border border-purple-200">
-                              AI Generated
-                            </span>
-                          )}
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <QuestionTypeBadge type={q.question_type} />
+                            {q.is_ai_generated && (
+                              <span className="text-[10px] text-purple-600 bg-purple-50 px-1 rounded inline-block border border-purple-200">
+                                AI Generated
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="p-3 whitespace-nowrap">
                           <div className="text-[var(--foreground)]">{q.topic_title || '-'}</div>

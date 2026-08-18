@@ -23,11 +23,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logoutAction } from '@/lib/auth/auth-actions';
+import { useUser } from '@/lib/auth/user-context';
 import type { Profile } from '@/lib/types/database';
 
-export function AdminMobileNav({ profile }: { profile: Profile }) {
+export function AdminMobileNav({ profile: initialProfile }: { profile: Profile }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = React.useState(false);
+  const { profile: liveProfile } = useUser();
+  const profile = liveProfile || initialProfile;
 
   React.useEffect(() => {
     setDrawerOpen(false);

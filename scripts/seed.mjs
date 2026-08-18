@@ -1,17 +1,20 @@
-import { createInitialSeedData } from '../src/lib/mock-data/seed-store.js';
+import { spawn } from 'child_process';
+import path from 'path';
 
 console.log('========================================================================');
-console.log('  ExamPlatform — Database Seeding Script');
+console.log('  ExamPlatform — Comprehensive Database Seeding');
 console.log('========================================================================');
 
-async function runSeed() {
-  console.log('Seeding initial subjects, blueprints, lecture slides, questions, and attempts...');
-  console.log('✓ Created Profiles: student@example.com, admin@example.com');
-  console.log('✓ Created Subjects: Database Systems, Computer Networks');
-  console.log('✓ Created Chapters, Topics, and Blueprints');
-  console.log('✓ Created Initial Question Bank with Published, Draft, and Needs Review items');
-  console.log('✓ Seeded Student Exam Attempt and Bookmarks');
-  console.log('\nSeeding completed successfully!');
-}
+const child = spawn('node', ['--env-file=.env.local', 'scripts/seed-internetworking.mjs'], {
+  stdio: 'inherit',
+  cwd: process.cwd(),
+});
 
-runSeed().catch(console.error);
+child.on('exit', code => {
+  if (code === 0) {
+    console.log('\n✓ All subjects and question banks seeded successfully into Supabase!');
+  } else {
+    console.error(`\n✗ Seeding exited with code ${code}`);
+    process.exit(code || 1);
+  }
+});

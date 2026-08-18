@@ -1,0 +1,177 @@
+[
+  {
+    "topic": "VLAN Trunking Protocol (VTP)",
+    "question": "VTP role ใดที่รับ VTP advertisement และส่งต่อ แต่ไม่แก้ไข VLAN database ในเครื่อง",
+    "choices": ["Transparent", "Client", "Server", "Off"],
+    "answer": 0,
+    "explanation": "ตาราง VTP role ในสไลด์ระบุว่าสวิตช์แบบ transparent รับและส่งต่อ VTP advertisement แต่ไม่แก้ไข VLAN database ในเครื่อง โดย VLAN ถูกตั้งค่าเฉพาะในเครื่องเท่านั้น ต่างจากโหมด off ที่ไม่ส่งต่อ advertisement เลย",
+    "difficulty": "medium",
+    "pages": [4],
+    "evidence": "Transparent VTP transparent switches receive and forward VTP advertisements but do not modify the local VLAN database. VLANs are configured only locally."
+  },
+  {
+    "topic": "VLAN Trunking Protocol (VTP)",
+    "question": "ข้อใดกล่าวถูกต้องเกี่ยวกับ VTP client",
+    "choices": [
+      "รับ VTP advertisement และแก้ VLAN บนสวิตช์นั้น แต่ตั้งค่า VLAN ในเครื่องไม่ได้",
+      "สร้าง แก้ไข และลบ VLAN ภายใน VTP domain ได้",
+      "ไม่ร่วมใน VTP advertisement และไม่ส่งต่อออกพอร์ตใด ๆ",
+      "รับและส่งต่อ advertisement แต่ไม่แก้ VLAN database ในเครื่อง"
+    ],
+    "answer": 0,
+    "explanation": "ตารางในสไลด์ระบุว่าสวิตช์ client รับ VTP advertisement และแก้ไข VLAN บนสวิตช์นั้น แต่ไม่สามารถตั้งค่า VLAN ในเครื่องได้ ส่วนการสร้าง แก้ไข ลบ VLAN เป็นหน้าที่ของ server",
+    "difficulty": "easy",
+    "pages": [4],
+    "evidence": "Client The client switch receives VTP advertisements and modifies the VLANs on that switch. VLANs cannot be configured locally on a VTP client."
+  },
+  {
+    "topic": "VLAN Trunking Protocol (VTP)",
+    "question": "VTP เวอร์ชันใดที่รองรับ VLAN ครบช่วง 1 ถึง 4094",
+    "choices": [
+      "Version 3 ส่วน version 1 และ 2 จำกัดที่ VLAN 1 ถึง 1005",
+      "Version 2 ส่วน version 1 จำกัดที่ VLAN 1 ถึง 1005",
+      "Version 1 ซึ่งเป็นค่าเริ่มต้นและรองรับทุก VLAN",
+      "ทุกเวอร์ชันรองรับ VLAN 1 ถึง 4094 เท่ากัน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ามี VTP สามเวอร์ชัน โดย version 1 เป็นค่าเริ่มต้น version 1 และ 2 แพร่ VLAN ได้จำกัดที่หมายเลข 1 ถึง 1005 ส่วน version 3 รองรับ VLAN ครบช่วง 1 ถึง 4094",
+    "difficulty": "medium",
+    "pages": [5],
+    "evidence": "Version 1 is default. Versions 1 and 2 have limited propagation to VLANs numbered 1 to 1005. VTP Version 3 allows for the full range of VLANs 1 to 4094."
+  },
+  {
+    "topic": "VLAN Trunking Protocol (VTP)",
+    "question": "หาก VTP domain ใช้ version 3 ต้องใช้คำสั่งใดกำหนด primary VTP server",
+    "choices": ["vtp primary", "vtp mode server", "vtp version 3", "vtp domain primary"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า VTP รองรับการมี VTP server หลายตัวใน domain และหาก VTP domain เป็น version 3 ต้องกำหนด primary VTP server ด้วยคำสั่ง executive ชื่อ vtp primary",
+    "difficulty": "hard",
+    "pages": [5],
+    "evidence": "If a VTP domain is Version 3, the primary VTP server must be set with the executive command vtp primary."
+  },
+  {
+    "topic": "Dynamic Trunking Protocol (DTP)",
+    "question": "หากพอร์ตทั้งสองฝั่งตั้งเป็น dynamic auto ผลลัพธ์คือข้อใด",
+    "choices": [
+      "ไม่เกิด trunk เพราะทั้งสองฝั่งรอฟัง DTP โดยไม่โฆษณา",
+      "เกิด trunk ทันทีเพราะทั้งสองฝั่งรองรับ DTP",
+      "เกิด trunk แต่ใช้ native VLAN 1 บังคับเท่านั้น",
+      "พอร์ตทั้งสองฝั่งถูกปิดเพราะโหมดไม่เข้ากัน"
+    ],
+    "answer": 0,
+    "explanation": "ตารางความเข้ากันได้ของ DTP ในสไลด์แสดงว่าคู่ dynamic auto กับ dynamic auto ไม่เกิด trunk เพราะโหมดนี้เพียงรอฟัง DTP packet และตอบกลับ แต่ไม่โฆษณาออกไปเอง",
+    "difficulty": "medium",
+    "pages": [12],
+    "evidence": "Dynamic auto: Using the command switchport mode dynamic auto, the switch port acts as an access port, but it listens for DTP packets. ... Dynamic Auto ✓ ✓ X"
+  },
+  {
+    "topic": "Dynamic Trunking Protocol (DTP)",
+    "question": "โหมด DTP ใดที่พอร์ตทำงานเป็น access port แต่ทั้งฟังและโฆษณา DTP packet เพื่อพยายามสร้าง trunk",
+    "choices": ["Dynamic desirable", "Dynamic auto", "Trunk", "Access"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าโหมด dynamic desirable ทำให้พอร์ตทำงานเป็น access port แต่ทั้งฟังและโฆษณา DTP packet ไปยังปลายทางเพื่อสร้าง dynamic trunk และหาก negotiate สำเร็จพอร์ตจะกลายเป็น trunk port ส่วน dynamic auto เพียงฟังและตอบกลับเท่านั้น",
+    "difficulty": "medium",
+    "pages": [12],
+    "evidence": "Dynamic desirable - Using the command switchport mode dynamic desirable, the switch port acts as an access port, but listens for and advertises DTP packets to the other end to establish a dynamic trunk."
+  },
+  {
+    "topic": "EtherChannel with PAgP & LACP",
+    "question": "PAgP โฆษณาข้อความด้วย multicast MAC address ใด",
+    "choices": ["0100:0CCC:CCCC", "0180:C200:0002", "0100:5E00:0001", "0180:C200:0000"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า PAgP โฆษณาข้อความด้วย multicast MAC address 0100:0CCC:CCCC และ protocol code 0x0104 ส่วน 0180:C200:0002 เป็น MAC address ที่ LACP ใช้",
+    "difficulty": "hard",
+    "pages": [21],
+    "evidence": "PAgP advertises messages with the multicast MAC address 0100:0CCC:CCCC and the protocol code 0x0104."
+  },
+  {
+    "topic": "EtherChannel with PAgP & LACP",
+    "question": "คู่โหมดใดของ LACP ที่ไม่สามารถสร้าง EtherChannel ได้",
+    "choices": [
+      "passive กับ passive",
+      "active กับ passive",
+      "active กับ active",
+      "active กับ desirable"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าโหมด passive ของ LACP ไม่ริเริ่มสร้าง EtherChannel และไม่ส่ง LACP packet ออกไป หากอุปกรณ์ทั้งสองฝั่งเป็น LACP passive จะไม่เกิด LACP adjacency ส่วนโหมด active สร้าง adjacency ได้เมื่อฝั่งตรงข้ามเป็น active หรือ passive",
+    "difficulty": "medium",
+    "pages": [22],
+    "evidence": "If both devices are LACP passive, an LACP adjacency does not form."
+  },
+  {
+    "topic": "EtherChannel with PAgP & LACP",
+    "question": "LACP fast ให้ประโยชน์อย่างไรและเปิดใช้ด้วยคำสั่งใด",
+    "choices": [
+      "ตรวจจับและถอดลิงก์ได้ใน 3 วินาทีแทน 90 วินาที ด้วยคำสั่ง lacp rate fast",
+      "เพิ่มจำนวนสมาชิก port-channel ได้เป็นสองเท่า ด้วยคำสั่ง lacp max-bundle",
+      "ลดจำนวน LACP packet ลงครึ่งหนึ่ง ด้วยคำสั่ง lacp rate slow",
+      "บังคับให้ทุกสมาชิกใช้ hash เดียวกัน ด้วยคำสั่ง port-channel load-balance"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ามาตรฐาน LACP เดิมส่งแพ็กเก็ตทุก 30 วินาที และถือว่าลิงก์ใช้ไม่ได้เมื่อไม่ได้รับครบสามช่วงคือ 90 วินาที การแก้ไขมาตรฐานให้โฆษณาทุก 1 วินาทีเรียกว่า LACP fast ทำให้ระบุและถอดลิงก์ได้ใน 3 วินาที เปิดใช้บนอินเทอร์เฟซสมาชิกด้วยคำสั่ง lacp rate fast",
+    "difficulty": "hard",
+    "pages": [34],
+    "evidence": "This is known as LACP fast because a link can be identified and removed in 3 seconds compared to the 90 seconds. LACP fast is enabled on the member interfaces with the interface configuration command lacp rate fast."
+  },
+  {
+    "topic": "EtherChannel Troubleshooting & Load Balancing",
+    "question": "คำสั่ง port-channel min-links ใช้ทำสิ่งใด",
+    "choices": [
+      "กำหนดจำนวน adjacency ขั้นต่ำที่ต้องมีก่อน port-channel interface จะ active",
+      "กำหนดจำนวนสมาชิกสูงสุดที่อนุญาตใน port-channel",
+      "กำหนด hash algorithm ที่ใช้กระจายทราฟฟิกในบันเดิล",
+      "กำหนดเวลาที่รอก่อนถอดสมาชิกที่ไม่ตอบสนองออกจากบันเดิล"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าปกติ EtherChannel interface จะ active เมื่อมีสมาชิกเพียงหนึ่งอินเทอร์เฟซสร้าง adjacency สำเร็จ แต่ในบางการออกแบบที่ใช้ LACP ต้องการจำนวน adjacency ขั้นต่ำก่อน port-channel จะ active ซึ่งตั้งได้ด้วยคำสั่ง port-channel min-links",
+    "difficulty": "medium",
+    "pages": [35],
+    "evidence": "In some design scenarios using LACP, a minimum number of adjacencies is required before a port-channel interface becomes active. This option can be configured with the port-channel interface command port-channel min-links min-links."
+  },
+  {
+    "topic": "EtherChannel Troubleshooting & Load Balancing",
+    "question": "ข้อใดไม่ใช่การตั้งค่าที่ต้องตรงกันบนอินเทอร์เฟซสมาชิกของ EtherChannel",
+    "choices": [
+      "IP address ของอินเทอร์เฟซสมาชิกแต่ละพอร์ต",
+      "Native VLAN และ allowed VLAN",
+      "Speed และ duplex",
+      "MTU และ port mode"
+    ],
+    "answer": 0,
+    "explanation": "ตารางในสไลด์ระบุการตั้งค่าที่ต้องตรงกันบนอินเทอร์เฟซสมาชิก ได้แก่ port type, duplex, port mode, MTU, native VLAN, load interval, allowed VLAN, storm control และ speed ส่วน IP address ไม่ได้อยู่ในรายการ เพราะพอร์ตสมาชิกเป็น Layer 2 ในบันเดิล",
+    "difficulty": "medium",
+    "pages": [40],
+    "evidence": "The following configuration settings must match on the member interfaces: Match Settings Port type Duplex Port mode MTU Native VLAN Load interval Allowed VLAN Storm control Speed"
+  },
+  {
+    "topic": "EtherChannel Troubleshooting & Load Balancing",
+    "question": "keyword ใดของคำสั่ง port-channel load-balance hash ที่ใช้ทั้ง source และ destination IP address ร่วมกับ TCP/UDP port ทั้งสองฝั่ง",
+    "choices": [
+      "src-dst-mixed-ip-port",
+      "src-dst-ip",
+      "dst-mixed-ip-port",
+      "src-dst-port"
+    ],
+    "answer": 0,
+    "explanation": "รายการ keyword ในสไลด์ระบุว่า src-dst-mixed-ip-port ใช้ source และ destination IP address ร่วมกับ source และ destination TCP/UDP port ส่วน src-dst-ip ใช้เฉพาะ IP address และ src-dst-port ใช้เฉพาะ TCP/UDP port",
+    "difficulty": "hard",
+    "pages": [42],
+    "evidence": "src-dst-mixed-ip-port: Source and destination IP addresses and source and destination TCP/UDP ports"
+  },
+  {
+    "topic": "EtherChannel Troubleshooting & Load Balancing",
+    "question": "ข้อเสียของ static EtherChannel เมื่อเทียบกับแบบ dynamic คือข้อใด",
+    "choices": [
+      "ไม่มี health integrity check หากสื่อกายภาพเสื่อมแต่ line protocol ยัง up",
+      "รองรับสมาชิกได้น้อยกว่าครึ่งหนึ่งของแบบ dynamic",
+      "ต้องใช้ LACP fast เสมอจึงจะตรวจจับความล้มเหลวได้",
+      "ไม่รองรับการทำ load balancing ด้วย hash"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า static EtherChannel ไม่มี health integrity check หากสื่อกายภาพเสื่อมสภาพแต่ยังคง line protocol ในสถานะ up port-channel จะยังถือว่าลิงก์นั้นใช้ส่งข้อมูลได้ ซึ่งเป็นปัญหาเมื่อมีอุปกรณ์คั่นกลางเช่น network tap, IPS, Layer 2 firewall หรือ DWDM",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "Static EtherChannel does not have a health integrity check. If the physical medium degrades and keeps the line protocol in an up state, the port channel will reflect that link as viable for transferring data."
+  }
+]

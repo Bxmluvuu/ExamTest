@@ -25,7 +25,11 @@ export interface ExamScoringResult {
   graded_answers: Array<{
     question_id: string;
     selected_choice_key?: string;
-    correct_choice_key: string;
+    fill_blank_answers?: Record<string, string> | null;
+    matching_answers?: Record<string, string> | null;
+    correct_choice_key?: string;
+    correct_blank_answers?: Record<string, string>;
+    correct_matching?: Record<string, string>;
     is_correct: boolean;
     explanation: string;
     source_citation?: {
@@ -45,11 +49,9 @@ export function gradeExamAttempt(
   answerKeys: Record<string, QuestionAnswerKey>,
   sources: Record<string, { file_name: string; pages: number[]; evidence: string }> = {}
 ): ExamScoringResult {
-  const answerMap = new Map<string, string>();
+  const answerMap = new Map<string, AttemptAnswer>();
   for (const ans of answers) {
-    if (ans.selected_choice_key) {
-      answerMap.set(ans.question_id, ans.selected_choice_key);
-    }
+    answerMap.set(ans.question_id, ans);
   }
 
   let correctCount = 0;
@@ -68,9 +70,9 @@ export function gradeExamAttempt(
 
   for (const q of questions) {
     const qId = q.question_id;
-    const selectedKey = answerMap.get(qId);
+    const userAns = answerMap.get(qId);
     const keyRecord = answerKeys[qId];
-    const correctKey = keyRecord?.correct_choice_key || 'A';
+    const qType = q.question_snapshot?.question_type || q.question_type || 'single_choice';
     const explanation = keyRecord?.explanation || 'ไม่มีคำอธิบายเพิ่มเติม';
     const sourceCitation = sources[qId] || q.source_citation;
 
@@ -93,40 +95,82 @@ export function gradeExamAttempt(
     top.total += 1;
     topicStats.set(topicName, top);
 
-    if (!selectedKey) {
-      unansweredCount += 1;
-      gradedAnswers.push({
-        question_id: qId,
-        selected_choice_key: undefined,
-        correct_choice_key: correctKey,
-        is_correct: false,
-        explanation,
-        source_citation: sourceCitation,
-      });
-    } else if (selectedKey === correctKey) {
-      correctCount += 1;
-      if (difficultyStats[diff]) difficultyStats[diff].correct += 1;
-      ch.correct += 1;
-      top.correct += 1;
+    let isAttempted = false;
+    let isCorrect = false;
+
+    if (qType === 'fill_in_the_blank') {
+      const userBlanks = userAns?.fill_blank_answers || {};
+      const correctBlanks = keyRecord?.correct_blank_answers || {};
+      const blankKeys = Object.keys(correctBlanks);
+
+      isAttempted = Object.values(userBlanks).some(v => Boolean(v && v.trim()));
+
+      if (isAttempted && blankKeys.length > 0) {
+        isCorrect = blankKeys.every(k => {
+          const userVal = (userBlanks[k] || '').trim().toLowerCase();
+          const targetVal = (correctBlanks[k] || '').trim().toLowerCase();
+          return userVal === targetVal;
+        });
+      }
 
       gradedAnswers.push({
         question_id: qId,
-        selected_choice_key: selectedKey,
-        correct_choice_key: correctKey,
-        is_correct: true,
+        fill_blank_answers: userBlanks,
+        correct_blank_answers: correctBlanks,
+        is_correct: isCorrect,
+        explanation,
+        source_citation: sourceCitation,
+      });
+    } else if (qType === 'matching') {
+      const userMatching = userAns?.matching_answers || {};
+      const correctMatching = keyRecord?.correct_matching || {};
+      const matchKeys = Object.keys(correctMatching);
+
+      isAttempted = Object.values(userMatching).some(v => Boolean(v && v.trim()));
+
+      if (isAttempted && matchKeys.length > 0) {
+        isCorrect = matchKeys.every(k => {
+          const userVal = userMatching[k];
+          const targetVal = correctMatching[k];
+          return userVal === targetVal;
+        });
+      }
+
+      gradedAnswers.push({
+        question_id: qId,
+        matching_answers: userMatching,
+        correct_matching: correctMatching,
+        is_correct: isCorrect,
         explanation,
         source_citation: sourceCitation,
       });
     } else {
-      incorrectCount += 1;
+      // Default: single_choice or numeric
+      const selectedKey = userAns?.selected_choice_key;
+      const correctKey = keyRecord?.correct_choice_key || 'A';
+
+      isAttempted = Boolean(selectedKey);
+      isCorrect = isAttempted && selectedKey === correctKey;
+
       gradedAnswers.push({
         question_id: qId,
-        selected_choice_key: selectedKey,
+        selected_choice_key: selectedKey || undefined,
         correct_choice_key: correctKey,
-        is_correct: false,
+        is_correct: isCorrect,
         explanation,
         source_citation: sourceCitation,
       });
+    }
+
+    if (!isAttempted) {
+      unansweredCount += 1;
+    } else if (isCorrect) {
+      correctCount += 1;
+      if (difficultyStats[diff]) difficultyStats[diff].correct += 1;
+      ch.correct += 1;
+      top.correct += 1;
+    } else {
+      incorrectCount += 1;
     }
   }
 

@@ -2,7 +2,7 @@ export type UserRole = 'student' | 'admin';
 
 export type QuestionStatus = 'draft' | 'needs_review' | 'approved' | 'published' | 'retired';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
-export type QuestionType = 'single_choice' | 'multiple_choice' | 'numeric';
+export type QuestionType = 'single_choice' | 'multiple_choice' | 'numeric' | 'fill_in_the_blank' | 'matching';
 export type ExamMode = 'exam' | 'chapter' | 'weakness' | 'mistakes';
 export type AttemptStatus = 'in_progress' | 'submitted' | 'abandoned';
 export type DocumentType = 'slide' | 'past_exam';
@@ -173,10 +173,25 @@ export interface QuestionSource {
   created_at?: string;
 }
 
+export interface MatchingPair {
+  id: string;
+  left: string;
+  right: string;
+}
+
+export interface FillBlankItem {
+  id: string;
+  position: number;
+  placeholder?: string;
+  correct_word?: string;
+}
+
 export interface QuestionAnswerKey {
   id: string;
   question_id: string;
-  correct_choice_key: 'A' | 'B' | 'C' | 'D';
+  correct_choice_key?: 'A' | 'B' | 'C' | 'D' | string;
+  correct_blank_answers?: Record<string, string>;
+  correct_matching?: Record<string, string>;
   explanation: string;
   created_at?: string;
 }
@@ -207,6 +222,9 @@ export interface Question {
   created_at: string;
   updated_at: string;
   choices?: QuestionChoice[];
+  word_bank?: string[];
+  blanks?: FillBlankItem[];
+  matching_pairs?: MatchingPair[];
   source?: QuestionSource;
   quality_flags?: QuestionQualityFlag[];
 }
@@ -245,12 +263,16 @@ export interface AttemptQuestion {
   topic_title?: string;
   choices?: QuestionChoice[];
   shuffled_choices: QuestionChoice[];
-  user_selected_key?: 'A' | 'B' | 'C' | 'D' | null;
-  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | null;
+  user_selected_key?: 'A' | 'B' | 'C' | 'D' | string | null;
+  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | string | null;
+  fill_blank_answers?: Record<string, string> | null;
+  matching_answers?: Record<string, string> | null;
   is_marked_for_review?: boolean;
   time_spent_seconds?: number;
   is_correct?: boolean;
-  correct_choice_key?: 'A' | 'B' | 'C' | 'D';
+  correct_choice_key?: 'A' | 'B' | 'C' | 'D' | string;
+  correct_blank_answers?: Record<string, string>;
+  correct_matching?: Record<string, string>;
   explanation?: string;
   source?: QuestionSource;
   source_citation?: any;
@@ -261,7 +283,9 @@ export interface AttemptAnswer {
   id?: string;
   attempt_id: string;
   question_id: string;
-  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | null;
+  selected_choice_key?: 'A' | 'B' | 'C' | 'D' | string | null;
+  fill_blank_answers?: Record<string, string> | null;
+  matching_answers?: Record<string, string> | null;
   numeric_answer?: number | null;
   is_correct?: boolean;
   time_spent_seconds?: number;

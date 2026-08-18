@@ -1,0 +1,192 @@
+[
+  {
+    "topic": "EIGRP Fundamentals & Terminology",
+    "question": "คำว่า successor ใน EIGRP หมายถึงสิ่งใด",
+    "choices": [
+      "เราเตอร์ next-hop ตัวแรกของ successor route",
+      "เส้นทางที่มี path metric ต่ำสุดไปยังปลายทาง",
+      "เส้นทางสำรองที่ผ่าน feasibility condition",
+      "ค่า metric ต่ำสุดที่เราเตอร์คำนวณได้เอง"
+    ],
+    "answer": 0,
+    "explanation": "ตารางศัพท์ EIGRP ระบุว่า successor route คือเส้นทางที่มี path metric ต่ำสุดไปยังปลายทาง ส่วน successor คือเราเตอร์ next-hop ตัวแรกของ successor route นั้น",
+    "difficulty": "easy",
+    "pages": [5],
+    "evidence": "Successor The first next-hop router for the successor route."
+  },
+  {
+    "topic": "EIGRP Fundamentals & Terminology",
+    "question": "reported distance (RD) ที่เราเตอร์หนึ่งรายงานมา มีความหมายตรงกับสิ่งใด",
+    "choices": [
+      "feasible distance ของเราเตอร์ที่โฆษณา prefix นั้น",
+      "ค่า metric ที่เราเตอร์ผู้รับคำนวณเองไปยังปลายทาง",
+      "ผลรวมของ hop count ตลอดเส้นทาง",
+      "ค่า metric ต่ำสุดในตาราง topology ของเราเตอร์ผู้รับ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า reported distance คือระยะทางที่เราเตอร์รายงานเพื่อไปถึง prefix และค่า reported distance นี้คือ feasible distance ของเราเตอร์ที่โฆษณา",
+    "difficulty": "medium",
+    "pages": [6],
+    "evidence": "Reported distance (RD) The distance reported by a router to reach a prefix. The reported distance value is the feasible distance for the advertising router."
+  },
+  {
+    "topic": "Topology Table & Feasibility Condition",
+    "question": "feasibility condition ของ EIGRP กำหนดเงื่อนไขใดไว้",
+    "choices": [
+      "reported distance ที่ได้รับต้องน้อยกว่า feasible distance ที่คำนวณได้ในเครื่อง",
+      "reported distance ที่ได้รับต้องมากกว่า feasible distance ที่คำนวณได้ในเครื่อง",
+      "reported distance ต้องเท่ากับ feasible distance พอดี",
+      "hop count ของเส้นทางสำรองต้องน้อยกว่า successor route"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า feasibility condition คือเงื่อนไขที่ reported distance ที่ได้รับสำหรับเส้นทางนั้นต้องน้อยกว่า feasible distance ที่คำนวณได้ในเครื่อง เพื่อให้เส้นทางนั้นถือเป็นเส้นทางสำรอง ตรรกะนี้รับประกันว่าเส้นทางไม่มี loop",
+    "difficulty": "medium",
+    "pages": [7],
+    "evidence": "A condition under which, for a route to be considered a backup route, the reported distance received for that route must be less than the feasible distance calculated locally. This logic guarantees a loop-free path."
+  },
+  {
+    "topic": "Topology Table & Feasibility Condition",
+    "question": "R1 มี FD ไปยัง 10.4.4.0/24 เท่ากับ 3328 ผ่านเส้นทาง R1→R3→R4 และ R4 โฆษณา prefix นี้มาให้ R1 ด้วย RD 2816 ข้อสรุปใดถูกต้อง",
+    "choices": [
+      "เส้นทาง R1→R4 เป็น feasible successor เพราะ RD 2816 ต่ำกว่า FD 3328",
+      "เส้นทาง R1→R4 ไม่ผ่าน feasibility condition เพราะ RD ต่ำกว่า FD",
+      "เส้นทาง R1→R4 กลายเป็น successor route ทันทีเพราะ RD ต่ำสุด",
+      "เส้นทาง R1→R4 ถูกทิ้งเพราะมี RD ต่างจาก FD"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ยกตัวอย่างว่าเส้นทาง R1→R4 เป็น feasible successor เพราะ RD 2816 ต่ำกว่า FD 3328 ของเส้นทาง R1→R3→R4 ซึ่งผ่าน feasibility condition และถูกเก็บไว้เป็นเส้นทางสำรอง",
+    "difficulty": "hard",
+    "pages": [7],
+    "evidence": "The route R1→R4 is the feasible successor because the RD 2816 is lower than the FD 3328 for the R1→R3→R4 path."
+  },
+  {
+    "topic": "EIGRP Metric Calculation",
+    "question": "ค่า K เริ่มต้นของสูตร EIGRP classic metric คือข้อใด",
+    "choices": [
+      "K1 และ K3 เท่ากับ 1 ส่วน K2, K4, K5 เท่ากับ 0",
+      "K1 และ K2 เท่ากับ 1 ส่วน K3, K4, K5 เท่ากับ 0",
+      "K1 ถึง K5 เท่ากับ 1 ทั้งหมด",
+      "K1 เท่ากับ 1 ส่วน K2 ถึง K5 เท่ากับ 256"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าโดยค่าเริ่มต้น K1 และ K3 มีค่าเท่ากับ 1 ส่วน K2, K4 และ K5 ถูกตั้งเป็น 0 ซึ่งทำให้สูตร metric ย่อลงเหลือเฉพาะส่วน bandwidth และ delay",
+    "difficulty": "medium",
+    "pages": [14],
+    "evidence": "By default, K1 and K3 have the value 1, and K2, K4, and K5 are set to 0."
+  },
+  {
+    "topic": "EIGRP Metric Calculation",
+    "question": "ปัญหาของ EIGRP classic metric ที่นำไปสู่การใช้ wide metrics คือข้อใด",
+    "choices": [
+      "ไม่แยกความต่างระหว่างอินเทอร์เฟซ 11 Gbps กับ 20 Gbps เพราะ composite metric คงที่ที่ 256",
+      "คำนวณ delay ในหน่วยวินาทีจึงหยาบเกินไปสำหรับลิงก์ความเร็วสูง",
+      "รองรับ bandwidth ได้ไม่เกิน 100 Mbps",
+      "ต้องตั้งค่า K5 เป็น 1 เสมอจึงคำนวณได้ถูกต้อง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าข้อกำหนดเดิมของ EIGRP วัด delay ในหน่วย 10 μs และ bandwidth ในหน่วยกิโลไบต์ต่อวินาที ซึ่งไม่ scale กับอินเทอร์เฟซความเร็วสูง ตัวอย่างแสดงว่าไม่มีการแยกความต่างระหว่างอินเทอร์เฟซ 11 Gbps กับ 20 Gbps เพราะ composite metric คงที่ที่ 256",
+    "difficulty": "hard",
+    "pages": [17],
+    "evidence": "Notice that there is not a differentiation between an 11 Gbps interface and a 20 Gbps interface. The composite metric stays at 256, despite having different bandwidth rates."
+  },
+  {
+    "topic": "EIGRP Metric Calculation",
+    "question": "จากตัวอย่างในสไลด์ composite metric ของอินเทอร์เฟซ GigabitEthernet และ 10 GigabitEthernet คือเท่าใดตามลำดับ",
+    "choices": ["2816 และ 512", "512 และ 256", "281 และ 512", "3328 และ 2816"],
+    "answer": 0,
+    "explanation": "ตัวอย่างการคำนวณในสไลด์แสดงว่า GigabitEthernet มี composite metric เท่ากับ 2816 ขณะที่ 10 GigabitEthernet มี composite metric เท่ากับ 512",
+    "difficulty": "hard",
+    "pages": [17],
+    "evidence": "GigabitEthernet: ... Composite Metric = 10 + 1 x 256 = 2816 10 GigabitEthernet: ... Composite Metric = 1 + 1 x 256 = 512"
+  },
+  {
+    "topic": "EIGRP Metric Calculation",
+    "question": "EIGRP variance value คำนวณจากอะไร และเส้นทางใดจะถูกติดตั้งลง RIB",
+    "choices": [
+      "FD ของเส้นทางคูณด้วย variance multiplier และ feasible successor ที่มี metric ต่ำกว่าค่านี้จะถูกติดตั้ง",
+      "metric ของ successor บวกกับ variance multiplier และเส้นทางที่ metric เท่ากันจะถูกติดตั้ง",
+      "RD ของ feasible successor หารด้วย variance multiplier และเส้นทางที่หารลงตัวจะถูกติดตั้ง",
+      "hop count คูณด้วย variance multiplier และเส้นทางที่มี hop น้อยกว่าจะถูกติดตั้ง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า EIGRP variance value คือ FD ของเส้นทางคูณด้วย EIGRP variance multiplier และ feasible successor ใดที่มี FD ต่ำกว่าค่า variance นี้จะถูกติดตั้งลง RIB การหาค่า multiplier ทำโดยนำ metric ของ feasible successor หารด้วย metric ของ successor route โดยปัดเศษขึ้นเป็นจำนวนเต็ม",
+    "difficulty": "hard",
+    "pages": [21],
+    "evidence": "The EIGRP variance value is the feasible distance (FD) for a route multiplied by the EIGRP variance multiplier. Any feasible successor's FD with a metric below the EIGRP variance value is installed into the RIB."
+  },
+  {
+    "topic": "Failure Detection, DUAL & Summarization",
+    "question": "ค่าเริ่มต้นของ EIGRP hello timer และ hold time คือข้อใด",
+    "choices": [
+      "hello 5 วินาที และ hold time เป็น 3 เท่าของ hello interval",
+      "hello 10 วินาที และ hold time 40 วินาที",
+      "hello 2 วินาที และ hold time 20 วินาที",
+      "hello 60 วินาที ในทุกประเภทอินเทอร์เฟซ และ hold time 180 วินาที"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า EIGRP hello timer เริ่มต้นคือ 5 วินาที แต่เป็น 60 วินาทีบนอินเทอร์เฟซความเร็วต่ำ (T1 หรือต่ำกว่า) และค่า hold time เริ่มต้นเป็น 3 เท่าของ hello interval",
+    "difficulty": "medium",
+    "pages": [23],
+    "evidence": "The default EIGRP hello timer is 5 seconds, but it is 60 seconds on slow-speed interfaces (T1 or lower). The hold time value defaults to 3 times the hello interval."
+  },
+  {
+    "topic": "Failure Detection, DUAL & Summarization",
+    "question": "เมื่อ hold time ของ EIGRP นับถึง 0 จะเกิดอะไรขึ้น",
+    "choices": [
+      "EIGRP ประกาศว่าเพื่อนบ้านนั้นไม่สามารถเข้าถึงได้และแจ้ง DUAL ว่ามีการเปลี่ยน topology",
+      "EIGRP ส่ง query packet ไปยังเพื่อนบ้านทุกตัวทันทีโดยไม่ตัดความสัมพันธ์",
+      "EIGRP เพิ่ม hold time เป็นสองเท่าและรออีกหนึ่งรอบ",
+      "EIGRP ลบ prefix ทั้งหมดออกจาก topology table แต่คง neighbor ไว้"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า EIGRP ใช้ hold time เป็นระยะเวลาที่ถือว่าเราเตอร์ยังเข้าถึงได้และทำงานอยู่ หาก hold time นับถึง 0 EIGRP จะประกาศว่าเพื่อนบ้านนั้นไม่สามารถเข้าถึงได้ และแจ้ง DUAL ว่ามีการเปลี่ยนแปลง topology",
+    "difficulty": "medium",
+    "pages": [23],
+    "evidence": "If the hold time reaches 0, EIGRP declares the neighbor unreachable and notifies DUAL of a topology change."
+  },
+  {
+    "topic": "Failure Detection, DUAL & Summarization",
+    "question": "เมื่อไม่มี feasible successor สำหรับ prefix หนึ่ง DUAL จะทำอย่างไร และสถานะของ route เปลี่ยนเป็นอะไร",
+    "choices": [
+      "คำนวณเส้นทางใหม่และเปลี่ยนสถานะจาก passive เป็น active แล้วส่ง query packet ออกไป",
+      "คำนวณเส้นทางใหม่และเปลี่ยนสถานะจาก active เป็น passive แล้วรอ reply",
+      "ใช้ successor route เดิมต่อไปโดยไม่เปลี่ยนสถานะ",
+      "ลบ prefix ออกทันทีโดยไม่ส่ง query"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าถ้าไม่มี feasible successor สำหรับ prefix DUAL ต้องคำนวณเส้นทางใหม่ สถานะของ route เปลี่ยนจาก passive (P) เป็น active (A) ในตาราง topology และเราเตอร์ที่ตรวจพบการเปลี่ยน topology จะส่ง query packet ไปยังเพื่อนบ้าน EIGRP โดย query นั้นตั้งค่า delay เป็น infinity",
+    "difficulty": "hard",
+    "pages": [25],
+    "evidence": "If a feasible successor is not available for a prefix, DUAL must perform a new route calculation. The route state changes from passive (P) to active (A) in the EIGRP topology table."
+  },
+  {
+    "topic": "Failure Detection, DUAL & Summarization",
+    "question": "เมื่อเราเตอร์ EIGRP ได้รับ query packet ที่ไม่ได้มาจาก successor ของเส้นทางนั้น เราเตอร์จะทำอย่างไรกับค่า delay ที่ตั้งเป็น infinity",
+    "choices": [
+      "ตรวจพบแต่เพิกเฉย เพราะ query ไม่ได้มาจาก successor แล้วตอบด้วยข้อมูล EIGRP ของตน",
+      "ยอมรับทันทีและเปลี่ยนสถานะ route เป็น active ตามไปด้วย",
+      "ส่ง query ต่อไปยังเพื่อนบ้านทุกตัวโดยไม่ตอบกลับ",
+      "ลบ prefix นั้นออกจาก topology table ทันที"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเมื่อได้รับ query packet หาก query ไม่ได้มาจาก successor ของเส้นทางนั้น เราเตอร์จะตรวจพบว่า delay ถูกตั้งเป็น infinity แต่เพิกเฉยเพราะไม่ได้มาจาก successor แล้วตอบกลับด้วยข้อมูล EIGRP ของตน",
+    "difficulty": "hard",
+    "pages": [25],
+    "evidence": "If the query did not come from the successor for that route, it detects the delay set for infinity but ignores it because it did not come from the successor."
+  },
+  {
+    "topic": "Failure Detection, DUAL & Summarization",
+    "question": "การติดตั้งหลายเส้นทางสำหรับ prefix เดียวกันลงใน RIB เรียกว่าอะไร",
+    "choices": [
+      "equal-cost multipathing (ECMP)",
+      "unequal-cost load balancing",
+      "route summarization",
+      "stub routing"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการติดตั้งหลายเส้นทางลงใน RIB สำหรับ prefix เดียวกันเรียกว่า equal-cost multipathing หรือ ECMP ส่วน unequal-cost load balancing ทำได้โดยการปรับค่า variance multiplier ของ EIGRP",
+    "difficulty": "easy",
+    "pages": [21],
+    "evidence": "Installing multiple paths into the RIB for the same prefix is called equal-cost multipathing (ECMP)."
+  }
+]

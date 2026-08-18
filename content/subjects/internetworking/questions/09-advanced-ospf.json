@@ -1,0 +1,182 @@
+[
+  {
+    "topic": "OSPF Areas & Area Border Routers",
+    "question": "เหตุใดทุก OSPF area จึงต้องเชื่อมต่อกับ Area 0",
+    "choices": [
+      "เพราะ OSPF คาดหวังให้ทุก area ฉีดข้อมูลเส้นทางเข้าสู่ backbone และ Area 0 โฆษณาต่อไปยัง area อื่น",
+      "เพราะ Area 0 เป็น area เดียวที่รัน SPF algorithm ได้",
+      "เพราะ Area 0 เก็บ LSDB ทั้งหมดของโดเมนไว้เพียงที่เดียว",
+      "เพราะ Area 0 ทำหน้าที่เป็น DR ให้ทุก segment ในโดเมน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า Area 0 เป็น area พิเศษที่เรียกว่า backbone และโดยการออกแบบ ทุก area ต้องเชื่อมต่อกับ Area 0 เพราะ OSPF คาดหวังว่าทุก area จะฉีดข้อมูลเส้นทางเข้าสู่ backbone แล้ว Area 0 จึงโฆษณาเส้นทางเหล่านั้นเข้าไปใน area อื่น",
+    "difficulty": "medium",
+    "pages": [6],
+    "evidence": "By design, all areas must connect to Area 0 because OSPF expects all areas to inject routing information into the backbone, and Area 0 advertises the routes into other areas."
+  },
+  {
+    "topic": "OSPF Areas & Area Border Routers",
+    "question": "เราเตอร์จะเป็น area border router (ABR) ที่ถูกต้องได้เมื่อใด",
+    "choices": [
+      "เมื่อเชื่อมต่อกับ Area 0 และ OSPF area อื่น",
+      "เมื่อเชื่อมต่อกับ area ที่ไม่ใช่ Area 0 อย่างน้อยสอง area",
+      "เมื่อทำ redistribution จากโปรโตคอลอื่นเข้า OSPF",
+      "เมื่อถูกเลือกเป็น DR บน segment ที่เชื่อมสอง area"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า ABR คือเราเตอร์ OSPF ที่เชื่อมต่อกับ Area 0 และ OSPF area อื่น ABR รับผิดชอบโฆษณาเส้นทางจาก area หนึ่งและฉีดเข้าไปใน OSPF area อื่น ตัวอย่างในสไลด์ระบุว่า R1 เป็น ABR ที่ถูกต้องเพราะเข้าร่วมใน Area 0",
+    "difficulty": "medium",
+    "pages": [6],
+    "evidence": "Area border routers (ABRs) are OSPF routers connected to Area 0 and another OSPF area. ... R1 is a proper ABR because it now participates in Area 0."
+  },
+  {
+    "topic": "OSPF LSA Types",
+    "question": "LSA type ใดที่โฆษณา network prefix ซึ่งมีต้นกำเนิดจาก area อื่น",
+    "choices": [
+      "Type 3 summary LSA",
+      "Type 1 router LSA",
+      "Type 2 network LSA",
+      "Type 5 AS external LSA"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า type 3 summary LSA โฆษณา network prefix ที่มีต้นกำเนิดจาก area อื่น ส่วน type 1 โฆษณา LSA ที่เกิดภายใน area type 2 โฆษณา multi-access network segment ที่ผูกกับ DR และ type 5 โฆษณาเส้นทางที่ถูก redistribute เข้ามา",
+    "difficulty": "easy",
+    "pages": [13],
+    "evidence": "Type 3, summary LSA - Advertises network prefixes originating from a different area."
+  },
+  {
+    "topic": "OSPF LSA Types",
+    "question": "LSA type ใดที่ใช้โฆษณาเส้นทางที่ถูก redistribute เข้ามาใน NSSA",
+    "choices": [
+      "Type 7 NSSA external LSA",
+      "Type 5 AS external LSA",
+      "Type 4 ASBR summary LSA",
+      "Type 3 summary LSA"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า OSPF ใช้ LSA หกประเภทสำหรับ IPv4 routing โดย type 7 NSSA external LSA โฆษณาเส้นทางที่ถูก redistribute เข้ามาใน NSSA ส่วน type 4 โฆษณา summary LSA สำหรับ ASBR ที่เจาะจง",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "Type 7, NSSA external LSA - Advertises redistributed routes in NSSAs."
+  },
+  {
+    "topic": "OSPF LSA Types",
+    "question": "บทบาทของ ABR ที่เกี่ยวข้องกับ type 3 LSA คือข้อใด",
+    "choices": [
+      "เข้าร่วมหลาย OSPF area และทำให้เครือข่ายที่ผูกกับ type 1 LSA เข้าถึงได้ใน area ที่ไม่ใช่ต้นกำเนิด",
+      "แปลง type 1 LSA ให้เป็น type 5 LSA ก่อนโฆษณาเข้า backbone",
+      "รวม type 2 LSA ของทุก segment ให้เป็น LSA เดียวต่อ area",
+      "จำกัดให้ type 3 LSA แพร่กระจายเฉพาะภายใน area ต้นกำเนิดเท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า type 3 LSA แทนเครือข่ายจาก area อื่น และบทบาทของ ABR คือเข้าร่วมในหลาย OSPF area และทำให้แน่ใจว่าเครือข่ายที่ผูกกับ type 1 LSA สามารถเข้าถึงได้ใน OSPF area ที่ไม่ใช่ต้นกำเนิด",
+    "difficulty": "hard",
+    "pages": [17],
+    "evidence": "The role of the ABRs is to participate in multiple OSPF areas and ensure that the networks associated with type 1 LSAs are reachable in the non-originating OSPF areas."
+  },
+  {
+    "topic": "OSPF LSA Types",
+    "question": "กฎพื้นฐานข้อใดที่ ABR ใช้ในการสร้าง type 3 LSA จาก type 3 LSA ที่ได้รับมาจาก area ที่ไม่ใช่ backbone",
+    "choices": [
+      "แทรกเข้า LSDB สำหรับ area ต้นทางเท่านั้น ไม่สร้าง type 3 LSA ให้ area อื่น",
+      "สร้าง type 3 LSA ต่อไปยังทุก area รวมถึง Area 0 ที่ถูกแบ่งส่วน",
+      "แปลงเป็น type 1 LSA ก่อนแล้วจึงโฆษณาเข้า backbone",
+      "สร้าง type 3 LSA ให้เฉพาะ area ที่ไม่ใช่ backbone ทุก area"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุกฎสามข้อ โดยข้อที่เกี่ยวกับ type 3 LSA ที่ได้รับจาก area ที่ไม่ใช่ backbone คือ จะแทรกเข้า LSDB สำหรับ area ต้นทางเท่านั้น ABR ไม่สร้าง type 3 LSA สำหรับ area อื่น รวมถึง Area 0 ที่ถูกแบ่งส่วน",
+    "difficulty": "hard",
+    "pages": [22],
+    "evidence": "Type 3 LSAs received from a nonbackbone area only insert into the LSDB for the source area. ABRs do not create a type 3 LSA for the other areas (including a segmented Area 0)."
+  },
+  {
+    "topic": "OSPF LSA Types",
+    "question": "วิธีแก้ปัญหา discontiguous network ที่ง่ายที่สุดตามสไลด์คือข้อใด",
+    "choices": [
+      "ทำให้ Area 0 ต่อเนื่องกัน",
+      "สร้าง virtual link ทุกครั้งที่พบปัญหา",
+      "สร้าง GRE tunnel เชื่อมทุก area เข้าด้วยกัน",
+      "เปลี่ยน area ที่แยกส่วนให้เป็น NSSA"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าวิธีแก้ที่ง่ายที่สุดสำหรับ discontiguous network คือทำให้ Area 0 ต่อเนื่องกัน และมีฟังก์ชันอื่นเช่น virtual link หรือการใช้ GRE tunnel ซึ่งไม่ได้ครอบคลุมในรายวิชานี้ สถานการณ์จริงของ discontiguous network มักเกิดจาก Area 0 ถูกแบ่งส่วนเพราะฮาร์ดแวร์ล้มเหลว",
+    "difficulty": "medium",
+    "pages": [22],
+    "evidence": "The simplest fix for a discontiguous network is to ensure that Area 0 is contiguous."
+  },
+  {
+    "topic": "OSPF Path Selection",
+    "question": "OSPF เลือกเส้นทางระหว่าง intra-area route และ interarea route อย่างไร",
+    "choices": [
+      "เส้นทางที่โฆษณาผ่าน type 1 LSA ถูกเลือกเหนือ type 3 LSA เสมอ",
+      "เส้นทางที่มี total path metric ต่ำสุดถูกเลือกเสมอไม่ว่าจะเป็น LSA ประเภทใด",
+      "เส้นทางที่โฆษณาผ่าน type 3 LSA ถูกเลือกเหนือ type 1 LSA เสมอ",
+      "เส้นทางที่ผ่านจำนวน area น้อยที่สุดถูกเลือกก่อน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าเส้นทางที่โฆษณาผ่าน type 1 LSA ของ area หนึ่งถูกเลือกเหนือ type 3 LSA เสมอ ตัวอย่างในสไลด์แสดงว่า R1 เลือกเส้นทาง intra-area ข้ามลิงก์ serial ที่ช้ากว่าแทนที่จะใช้ Ethernet ที่เร็วกว่าซึ่งเป็นเส้นทาง interarea แม้ metric รวมจะต่ำกว่า",
+    "difficulty": "hard",
+    "pages": [24],
+    "evidence": "Routes advertised via a type 1 LSA for an area are always preferred over type 3 LSAs."
+  },
+  {
+    "topic": "OSPF Path Selection",
+    "question": "หากมี intra-area route หลายเส้นทางไปยังปลายทางเดียวกัน OSPF ทำอย่างไร",
+    "choices": [
+      "ติดตั้งเส้นทางที่มี total path metric ต่ำสุด และหาก metric เสมอกันจะติดตั้งทั้งสองเส้นทางลง OSPF RIB",
+      "ติดตั้งเฉพาะเส้นทางแรกที่คำนวณเสร็จเท่านั้น",
+      "ติดตั้งเส้นทางที่ผ่าน ABR เป็นลำดับแรกเสมอ",
+      "ติดตั้งทุกเส้นทางไม่ว่า metric จะต่างกันเท่าใด"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าถ้ามี intra-area route หลายเส้นทาง เส้นทางที่มี total path metric ต่ำสุดจะถูกติดตั้งลง OSPF RIB ซึ่งจะถูกเสนอต่อไปยัง global RIB ของเราเตอร์ และหาก metric เสมอกันทั้งสองเส้นทางจะถูกติดตั้งลง OSPF RIB",
+    "difficulty": "medium",
+    "pages": [24],
+    "evidence": "If multiple intra-area routes exist, the path with the lowest total path metric is installed in the OSPF Routing Information Base (RIB) ... If there is a tie in metric, both routes install into the OSPF RIB."
+  },
+  {
+    "topic": "Summarization & Route Filtering",
+    "question": "ค่า metric เริ่มต้นของ summary LSA ถูกกำหนดอย่างไร",
+    "choices": [
+      "เป็นค่า metric ที่ต่ำที่สุดที่ผูกกับ LSA ในช่วงสรุปนั้น แต่ตั้งค่าเองได้",
+      "เป็นผลรวมของ metric ของทุก prefix ในช่วงสรุป",
+      "เป็นค่า metric ที่สูงที่สุดในช่วงสรุปเสมอและแก้ไขไม่ได้",
+      "เป็นค่าคงที่ 1 สำหรับทุก summary LSA"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าค่า metric เริ่มต้นของ summary LSA คือ metric ที่เล็กที่สุดที่ผูกกับ LSA แต่สามารถตั้งค่าได้ในการกำหนดค่า OSPF ทำงานเหมือน EIGRP โดยตรวจทุก prefix ในช่วงสรุปเมื่อมี type 1 LSA ที่ตรงกันถูกเพิ่มหรือลบ",
+    "difficulty": "hard",
+    "pages": [32],
+    "evidence": "The default metric for the summary LSA is the smallest metric associated with an LSA. However, it can be set as part of the configuration."
+  },
+  {
+    "topic": "Summarization & Route Filtering",
+    "question": "หาก prefix ที่มี metric ต่ำสุดในช่วงสรุปถูกลบออกไป OSPF ทำอย่างไรกับ summary LSA",
+    "choices": [
+      "ระบุ metric ใหม่ที่สูงขึ้นแล้วโฆษณา summary LSA ใหม่ด้วย metric นั้น",
+      "ถอน summary LSA ออกทั้งหมดจนกว่า prefix เดิมจะกลับมา",
+      "คง metric เดิมไว้เพื่อความเสถียรของ topology",
+      "เปลี่ยน summary LSA เป็น type 5 LSA แทน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าถ้ามี metric ต่ำกว่าปรากฏขึ้น summary LSA จะถูกโฆษณาด้วย metric ใหม่ และถ้า metric ต่ำสุดถูกลบออกไป จะมีการระบุ metric ใหม่ที่สูงขึ้น แล้วโฆษณา summary LSA ใหม่ด้วย metric ที่สูงขึ้นนั้น",
+    "difficulty": "hard",
+    "pages": [32],
+    "evidence": "if the lowest metric is removed, a newer and higher metric is identified, and a new summary LSA is advertised with the higher metric."
+  },
+  {
+    "topic": "Summarization & Route Filtering",
+    "question": "คำสั่งใดใช้กรองเส้นทางด้วยวิธีที่ง่ายที่สุดในระหว่างการสรุป prefix และให้ผลลัพธ์อย่างไร",
+    "choices": [
+      "area area-id range network subnet-mask not-advertise ซึ่งป้องกันการสร้าง type 3 LSA สำหรับเครือข่ายในช่วงนั้น",
+      "area area-id range network subnet-mask cost 0 ซึ่งทำให้ LSA มี cost ต่ำสุด",
+      "area area-id stub no-summary ซึ่งบล็อกทุก LSA ที่เข้ามาใน area",
+      "distribute-list prefix in ซึ่งกรอง LSA ที่รับเข้ามาทั้งหมด"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าวิธีกรองเส้นทางที่ง่ายที่สุดคือใช้คีย์เวิร์ด not-advertise ในระหว่างการสรุป prefix ซึ่งป้องกันการสร้าง type 3 LSA สำหรับเครือข่ายในช่วงนั้น ทำให้เส้นทางย่อยมองเห็นได้เฉพาะใน area ที่เส้นทางนั้นเกิดขึ้น โดยโครงสร้างคำสั่งเต็มคือ area area-id range network subnet-mask not-advertise ใต้ OSPF process",
+    "difficulty": "medium",
+    "pages": [37],
+    "evidence": "The full command structure is area area-id range network subnet-mask not-advertise under the OSPF process."
+  }
+]

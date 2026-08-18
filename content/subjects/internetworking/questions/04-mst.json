@@ -1,0 +1,157 @@
+[
+  {
+    "topic": "CST, PVST & MST Topologies",
+    "question": "MST จัดการ VLAN กับ STP tree อย่างไร",
+    "choices": [
+      "แมป VLAN หนึ่งหรือหลาย VLAN เข้าสู่ STP tree เดียวที่เรียกว่า MST instance",
+      "สร้าง STP tree แยกหนึ่งต้นต่อหนึ่ง VLAN เสมอ",
+      "รวมทุก VLAN เข้า STP tree เดียวเท่านั้นโดยไม่แยก instance",
+      "ยกเลิกการใช้ STP tree และใช้ RPF แทน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MST แมป VLAN หนึ่งหรือหลาย VLAN เข้าสู่ STP tree เดียวที่เรียกว่า MST instance (MSTI) ทำให้แม้เพิ่ม VLAN เข้ามา สวิตช์ก็ยังคงรักษาจำนวน STP topology เท่าเดิมหาก VLAN นั้นถูกจัดให้ตรงกับ MSTI ที่มีอยู่",
+    "difficulty": "easy",
+    "pages": [6],
+    "evidence": "MST maps one or multiple VLANs into one STP tree, called an MST instance (MSTI)."
+  },
+  {
+    "topic": "MST Regions & Internal Spanning Tree",
+    "question": "MST region คืออะไร",
+    "choices": [
+      "กลุ่มสวิตช์ MST ที่มี high-level configuration เหมือนกัน และปรากฏต่อสวิตช์ภายนอกเป็นสวิตช์เสมือนตัวเดียว",
+      "กลุ่ม VLAN ที่ถูก prune ออกจาก trunk link เดียวกัน",
+      "ชุดของ port-channel ที่ใช้ load-balancing hash เดียวกัน",
+      "กลุ่มสวิตช์ที่ใช้ VTP domain name เดียวกันเท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ากลุ่มสวิตช์ MST ที่มี high-level configuration เหมือนกันเรียกว่า MST region และ MST มีกลไกที่ทำให้ region ปรากฏต่อสวิตช์ภายนอกเป็นสวิตช์เสมือนตัวเดียว",
+    "difficulty": "medium",
+    "pages": [7],
+    "evidence": "A group of MST switches with the same high-level configuration is known as an MST region. MST incorporates mechanisms that make an MST region appear as a single virtual switch to external switches."
+  },
+  {
+    "topic": "MST Regions & Internal Spanning Tree",
+    "question": "instance ใดของ MST ที่เรียกว่า internal spanning tree (IST) และทำงานบนทุกพอร์ตใน MST region",
+    "choices": ["instance 0", "instance 1", "instance 16", "instance 4094"],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MST ใช้ instance พิเศษคือ instance 0 ที่เรียกว่า internal spanning tree (IST) ซึ่งเป็น instance แรกเสมอและทำงานบนทุกพอร์ตอินเทอร์เฟซใน MST region โดยไม่คำนึงถึง VLAN ที่ผูกกับพอร์ตนั้น",
+    "difficulty": "medium",
+    "pages": [8],
+    "evidence": "MST uses a special instance, instance 0, called the internal spanning tree (IST). It is always the first instance and runs on all switch port interfaces in the MST region regardless of the VLANs associated with the ports."
+  },
+  {
+    "topic": "MST Regions & Internal Spanning Tree",
+    "question": "MST ลดปริมาณ STP traffic ได้อย่างไร",
+    "choices": [
+      "ซ้อนข้อมูลของ MSTI อื่นไว้ใน IST BPDU จึงโฆษณา BPDU เพียงชุดเดียว",
+      "ส่ง BPDU เฉพาะเมื่อ topology เปลี่ยนแปลงเท่านั้น",
+      "ยืดค่า hello time เป็น 10 วินาทีโดยอัตโนมัติ",
+      "ส่ง BPDU ออกเฉพาะพอร์ตที่เป็น region boundary"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าข้อมูลเพิ่มเติมเกี่ยวกับ MSTI อื่น ๆ ถูกซ้อนไว้ใน IST BPDU ที่ส่งไปทั่ว MST region ทำให้ MST โฆษณา BPDU เพียงชุดเดียวและลดปริมาณ STP traffic",
+    "difficulty": "hard",
+    "pages": [8],
+    "evidence": "Additional information about other MSTIs is nested in the IST BPDU that is transmitted throughout the MST region. This allows MST to advertise only one set of BPDUs, which minimizes STP traffic."
+  },
+  {
+    "topic": "MST Regions & Internal Spanning Tree",
+    "question": "โดยค่าเริ่มต้น MST รองรับ instance ได้จำนวนเท่าใด",
+    "choices": ["16 instance", "4 instance", "64 instance", "1005 instance"],
+    "answer": 0,
+    "explanation": "หมายเหตุในสไลด์ระบุว่า MST รองรับได้ถึง 16 MST instance โดยค่าเริ่มต้น",
+    "difficulty": "easy",
+    "pages": [8],
+    "evidence": "Note: Up to 16 MST instances are supported by default."
+  },
+  {
+    "topic": "MST Configuration & Tuning",
+    "question": "คำสั่งใดใช้กำหนด MST version number และมีเงื่อนไขใดกำกับ",
+    "choices": [
+      "revision version โดยต้องตรงกันทุกสวิตช์ใน MST region เดียวกัน",
+      "name mst-region-name โดยต้องตรงกันทุกสวิตช์ใน region",
+      "instance instance-id vlan vlan-list โดยต้องไม่ซ้ำกัน",
+      "spanning-tree mode mst โดยต้องตั้งก่อนคำสั่งอื่นทุกครั้ง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MST version number กำหนดด้วยคำสั่ง sub-mode configuration ชื่อ revision version และหมายเลขเวอร์ชันต้องตรงกันสำหรับสวิตช์ทุกตัวใน MST region เดียวกัน ส่วนการตั้งชื่อ region ใช้คำสั่ง name mst-region-name",
+    "difficulty": "medium",
+    "pages": [10],
+    "evidence": "The MST version number must match for all switches in the same MST region. The MST version number is configured with the sub-mode configuration command revision version."
+  },
+  {
+    "topic": "MST Configuration & Tuning",
+    "question": "ค่าเริ่มต้นของ MST region name คือข้อใด",
+    "choices": [
+      "สตริงว่าง",
+      "ชื่อ default",
+      "ชื่อเดียวกับ VTP domain",
+      "ชื่อที่สร้างจาก MAC address ของสวิตช์"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MST region ถูกรับรู้ผ่านสวิตช์ที่ใช้ชื่อร่วมกัน และโดยค่าเริ่มต้น region name เป็นสตริงว่าง โดยตั้งได้ด้วยคำสั่ง name mst-region-name",
+    "difficulty": "medium",
+    "pages": [10],
+    "evidence": "MST regions are recognized by switches that share a common name. By default, a region name is an empty string."
+  },
+  {
+    "topic": "MST Misconfigurations & Boundary Design",
+    "question": "การตั้งค่าผิดพลาดที่พบบ่อยสองอย่างภายใน MST region คือข้อใด",
+    "choices": [
+      "การกำหนด VLAN ให้ IST และการ prune trunk link",
+      "การตั้ง revision number ผิดและการเปิด portfast บน trunk",
+      "การใช้ VTP version 1 และการปิด DTP",
+      "การตั้ง native VLAN ไม่ตรงและการเปิด BPDU filter"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ามีการตั้งค่าผิดพลาดที่พบบ่อยสองอย่างภายใน MST region คือ VLAN assignment to the IST และ trunk link pruning",
+    "difficulty": "medium",
+    "pages": [14],
+    "evidence": "There are two common misconfigurations within the MST region: • VLAN assignment to the IST • Trunk link pruning"
+  },
+  {
+    "topic": "MST Misconfigurations & Boundary Design",
+    "question": "MST region boundary คือพอร์ตลักษณะใด",
+    "choices": [
+      "พอร์ตที่เชื่อมกับสวิตช์ใน MST region อื่น หรือเชื่อมกับ 802.1D/802.1W BPDU",
+      "พอร์ตที่เชื่อมกับโฮสต์และเปิด portfast ไว้",
+      "พอร์ตที่เป็นสมาชิกของ IST instance เท่านั้น",
+      "พอร์ตที่ถูกกำหนดเป็น root port ของ instance 0"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า MST region boundary คือพอร์ตใด ๆ ที่เชื่อมต่อกับสวิตช์ซึ่งอยู่ใน MST region อื่น หรือเชื่อมต่อกับ 802.1D หรือ 802.1W BPDU และ MSTI จะไม่ปฏิสัมพันธ์กันนอก region",
+    "difficulty": "hard",
+    "pages": [17],
+    "evidence": "An MST region boundary is any port that connects to a switch that is in a different MST region or that connects to 802.1D or 802.1W BPDUs."
+  },
+  {
+    "topic": "MST Misconfigurations & Boundary Design",
+    "question": "ฟีเจอร์ใดที่ใช้ในการส่งต่อ CST ที่ MST region boundary และเหตุใดจึงจำเป็น",
+    "choices": [
+      "PVST simulation เพราะ topology ของ PVST+/RSTP ไม่เข้าใจโครงสร้างของ IST BPDU",
+      "BPDU filter เพราะต้องกรอง BPDU ที่มาจาก region อื่นออกทั้งหมด",
+      "Root guard เพราะต้องกัน region อื่นเป็น root bridge",
+      "UDLD aggressive เพราะต้องตรวจสอบทิศทางของลิงก์ข้าม region"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการส่งต่อ CST ที่ MST region boundary ใช้ฟีเจอร์ PVST simulation ซึ่งส่ง PVST+ และ RSTP BPDU ออกไปหนึ่งชุดต่อหนึ่ง VLAN กลไกนี้จำเป็นเพราะ topology ของ PVST+/RSTP ไม่เข้าใจโครงสร้างของ IST BPDU",
+    "difficulty": "hard",
+    "pages": [17],
+    "evidence": "The PVST simulation mechanism is required because PVST+/RSTP topologies do not understand the structure of IST BPDUs."
+  },
+  {
+    "topic": "MST Misconfigurations & Boundary Design",
+    "question": "การออกแบบให้ MST region เป็น root bridge ให้ผลลัพธ์อย่างไรในสภาพแวดล้อมที่มี PVST+",
+    "choices": [
+      "ทุก boundary port ของ region flood IST BPDU ชุดเดียวกันไปทุก VLAN ทำให้ IST ถูกเลือกเหนือสวิตช์อื่น",
+      "ทุก boundary port ถูกปิดเพื่อป้องกัน loop ข้าม region",
+      "PVST+ switch จะหยุดส่ง BPDU และรอรับจาก region เท่านั้น",
+      "VLAN ทั้งหมดใน PVST+ จะถูกแมปเข้า MSTI ตามหมายเลข VLAN อัตโนมัติ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการทำให้ MST region เป็น root bridge ทำให้ boundary port ทั้งหมดของ region flood IST instance BPDU ชุดเดียวกันไปยังทุก VLAN ใน PVST topology ส่งผลให้ IST instance ถูกเลือกเหนือสวิตช์อื่นใน PVST+ topology และ region ปรากฏเป็นอุปกรณ์เดียว โดยสวิตช์ PVST+ จะตรวจพบและปิดลิงก์สำรองไว้ในสถานะ blocking",
+    "difficulty": "hard",
+    "pages": [19],
+    "evidence": "The MST region as the root bridge ensures that all region boundary ports flood the same IST instance BPDU to all the VLANs in the PVST topology. This makes the IST instance preferred over any other switch in the PVST+ topology."
+  }
+]

@@ -1,0 +1,212 @@
+[
+  {
+    "topic": "Network Device Communication & OSI",
+    "question": "อุปกรณ์ Ethernet ใช้กลไกใดเพื่อให้มีเพียงอุปกรณ์เดียวส่งข้อมูลในแต่ละ collision domain",
+    "choices": [
+      "CSMA/CD (Carrier Sense Multiple Access/Collision Detect)",
+      "CSMA/CA (Carrier Sense Multiple Access/Collision Avoidance)",
+      "Token Passing",
+      "TDMA (Time Division Multiple Access)"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า Ethernet devices ใช้ CSMA/CD เพื่อให้แน่ใจว่ามีอุปกรณ์เดียวส่งข้อมูลในแต่ละช่วงเวลาภายใน collision domain โดยอุปกรณ์จะส่งหรือรับข้อมูลได้ทีละอย่างเท่านั้น (half duplex)",
+    "difficulty": "easy",
+    "pages": [5],
+    "evidence": "Ethernet devices use Carrier Sense multiple Access/Collision Detect (CSMA/CD) to ensure that only one device talks at a time in a collision domain."
+  },
+  {
+    "topic": "Network Device Communication & OSI",
+    "question": "เมื่อสวิตช์ได้รับเฟรมที่มี destination MAC address ซึ่งไม่มีอยู่ใน MAC address table สวิตช์จะทำสิ่งใด",
+    "choices": [
+      "ส่งเฟรมออกทุกพอร์ตของสวิตช์ (unknown unicast flooding)",
+      "ทิ้งเฟรมนั้นทันทีเพื่อป้องกัน loop",
+      "ส่งเฟรมกลับออกทางพอร์ตที่รับเข้ามาเท่านั้น",
+      "ส่ง ARP request เพื่อค้นหาปลายทางก่อนแล้วจึงส่งเฟรม"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่า unknown unicast flooding เกิดขึ้นเมื่อแพ็กเก็ตมี destination MAC address ที่ไม่อยู่ใน MAC address table ของสวิตช์ ทำให้สวิตช์ส่งแพ็กเก็ตนั้นออกทุกพอร์ต",
+    "difficulty": "medium",
+    "pages": [6],
+    "evidence": "Unknown unicast flooding occurs when a packet contains a destination MAC address that is not in the switch's MAC address table. The switch forwards the packet out of every switch port."
+  },
+  {
+    "topic": "Network Device Communication & OSI",
+    "question": "ข้อใดกล่าวถูกต้องเกี่ยวกับขอบเขตของ broadcast traffic บนเครือข่าย",
+    "choices": [
+      "Broadcast ไม่ข้าม Layer 3 boundary จาก subnet หนึ่งไปอีก subnet",
+      "Broadcast ถูกส่งข้ามทุก subnet ที่เราเตอร์เชื่อมต่ออยู่",
+      "Broadcast ถูกส่งออกเฉพาะพอร์ตที่เป็น trunk เท่านั้น",
+      "Broadcast ถูกจำกัดไว้เฉพาะพอร์ตต้นทางที่รับเข้ามา"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า broadcast traffic ถูกส่งออกทุกพอร์ตของสวิตช์ในบรอดคาสต์โดเมนเดียวกัน แต่ network broadcast จะไม่ข้าม Layer 3 boundary จาก subnet หนึ่งไปยังอีก subnet",
+    "difficulty": "easy",
+    "pages": [6],
+    "evidence": "Network broadcasts do not cross Layer 3 boundaries (from one subnet to another)."
+  },
+  {
+    "topic": "VLANs, Access Ports & Trunk Ports",
+    "question": "คำสั่งใดใช้กำหนดพอร์ตของ Catalyst switch ให้เป็น access port พร้อมผูกกับ VLAN ที่ต้องการ",
+    "choices": [
+      "switchport mode access แล้วตามด้วย switchport access vlan vlan-id",
+      "switchport mode trunk แล้วตามด้วย switchport trunk native vlan vlan-id",
+      "no switchport แล้วตามด้วย ip address",
+      "switchport mode dynamic auto แล้วตามด้วย vlan vlan-id"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าใช้คำสั่ง switchport mode access เพื่อกำหนดพอร์ตเป็น access port และผูก VLAN เข้ากับพอร์ตด้วยคำสั่ง switchport access vlan vlan-id โดย access port จะถูกกำหนดให้อยู่ใน VLAN เดียวเท่านั้น",
+    "difficulty": "easy",
+    "pages": [10],
+    "evidence": "Use the command switchport mode access to manually configure a port as an access port. A specific VLAN is associated to the port with the command switchport access {vlan vlan-id | name vlanname}."
+  },
+  {
+    "topic": "VLANs, Access Ports & Trunk Ports",
+    "question": "ตามมาตรฐาน 802.1Q ทราฟฟิกที่รับเข้ามาบน trunk port โดยไม่มี VLAN tag จะถูกจัดให้อยู่ใน VLAN ใด",
+    "choices": [
+      "Native VLAN ของ trunk port นั้น ซึ่งค่าเริ่มต้นคือ VLAN 1",
+      "VLAN 1002 ซึ่งเป็น VLAN สำรองของระบบ",
+      "VLAN ที่มีหมายเลขต่ำสุดในรายการ allowed VLAN",
+      "ถูกทิ้งทั้งหมดเพราะไม่มี tag กำกับ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าในมาตรฐาน 802.1Q ทราฟฟิกที่ส่งหรือรับบน trunk port โดยไม่มี 802.1Q VLAN tag จะถูกเชื่อมโยงกับ native VLAN และค่าเริ่มต้นของ native VLAN คือ VLAN 1 ทั้งสองฝั่งของ trunk ควรตั้ง native VLAN ให้ตรงกัน",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "In the 802.1Q standard, any traffic that is advertised or received on a trunk port without the 802.1Q VLAN tag is associated to the native VLAN. The default native VLAN is VLAN 1."
+  },
+  {
+    "topic": "VLANs, Access Ports & Trunk Ports",
+    "question": "เหตุใดจึงต้องตั้งค่า native VLAN ให้ตรงกันทั้งสองฝั่งของ trunk link",
+    "choices": [
+      "เพราะหากไม่ตรงกัน ทราฟฟิกอาจเปลี่ยน VLAN โดยไม่ได้ตั้งใจ",
+      "เพราะ trunk จะไม่สามารถ negotiate ด้วย DTP ได้เลย",
+      "เพราะ STP จะปิดพอร์ตทั้งสองฝั่งทันทีที่ตรวจพบ",
+      "เพราะ VTP จะไม่สามารถโฆษณา VLAN database ข้าม trunk ได้"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์เตือนว่า native VLAN ควรตรงกันบน trunk port ทั้งสองฝั่ง มิฉะนั้นทราฟฟิกอาจเปลี่ยน VLAN โดยไม่ได้ตั้งใจ ซึ่งทำให้โฮสต์ที่อยู่ต่าง VLAN สื่อสารกันได้อย่างไม่คาดคิด",
+    "difficulty": "medium",
+    "pages": [13],
+    "evidence": "The native VLAN should match on both trunk ports, or traffic can change VLANs unintentionally."
+  },
+  {
+    "topic": "MAC Address Table & Layer 3 Forwarding",
+    "question": "สวิตช์สร้าง MAC address table ขึ้นมาได้อย่างไร",
+    "choices": [
+      "ตรวจสอบ source MAC address ของทราฟฟิกที่สวิตช์ได้รับ",
+      "ตรวจสอบ destination MAC address ของทราฟฟิกที่สวิตช์ส่งออก",
+      "รับตารางสำเร็จรูปมาจาก root bridge ผ่าน BPDU",
+      "สอบถามจากเราเตอร์ปลายทางด้วยโปรโตคอล ARP เป็นระยะ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าสวิตช์สร้าง MAC address table โดยตรวจสอบ source MAC address ของทราฟฟิกที่ได้รับเข้ามา ข้อมูลนี้ช่วยลด unknown unicast flooding และทำให้การสื่อสารเป็นแบบ point-to-point มากขึ้น",
+    "difficulty": "easy",
+    "pages": [15],
+    "evidence": "A switch builds the MAC address table by examining the source MAC address for the traffic that it receives."
+  },
+  {
+    "topic": "MAC Address Table & Layer 3 Forwarding",
+    "question": "ข้อใดอธิบาย switched virtual interface (SVI) บน Catalyst switch ได้ถูกต้อง",
+    "choices": [
+      "เป็น VLAN interface ที่กำหนด IP ได้ และต้องมีพอร์ตใน VLAN นั้นอยู่ในสถานะ up จึงจะ up",
+      "เป็นพอร์ตกายภาพที่ถูกแปลงเป็น Layer 3 ด้วยคำสั่ง no switchport",
+      "เป็น loopback interface ที่ใช้สำหรับ management เท่านั้นและไม่ต้องผูกกับ VLAN",
+      "เป็น trunk interface เสมือนที่รวมหลาย VLAN เข้าเป็นลิงก์เดียว"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่า SVI หรือ VLAN interface สร้างด้วยคำสั่ง interface vlan vlan-id และสวิตช์ต้องมีอินเทอร์เฟซที่ผูกกับ VLAN นั้นอยู่ในสถานะ up เพื่อให้ SVI อยู่ในสถานะ up ส่วนการแปลงพอร์ตด้วย no switchport คือ routed switchport ซึ่งเป็นอีกกรณีหนึ่ง",
+    "difficulty": "medium",
+    "pages": [26],
+    "evidence": "An SVI is configured by defining the VLAN on the switch and then defining the VLAN interface with the command interface vlan vlan-id. The switch must have an interface associated to that VLAN in an up state for the SVI to be in an up state."
+  },
+  {
+    "topic": "MAC Address Table & Layer 3 Forwarding",
+    "question": "คำสั่งใดใช้แปลงพอร์ตของ multilayer switch จาก Layer 2 switch port ให้เป็น routed switchport",
+    "choices": [
+      "no switchport ใน interface configuration mode",
+      "interface vlan vlan-id ใน global configuration mode",
+      "switchport mode trunk ใน interface configuration mode",
+      "ip routing ใน global configuration mode"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าพอร์ตของ multilayer switch สามารถแปลงจาก Layer 2 switch port เป็น routed switch port ได้ด้วยคำสั่ง no switchport ใน interface configuration mode ซึ่งช่วยหลีกเลี่ยงการสร้าง transit VLAN และผลกระทบจาก spanning tree",
+    "difficulty": "medium",
+    "pages": [27],
+    "evidence": "Instead, the multilayer switch port can be converted from a Layer 2 switch port to a routed switch port with the interface configuration command no switchport."
+  },
+  {
+    "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+    "question": "ทราฟฟิกประเภทใดที่ต้องถูกจัดการด้วย process switching (software switching)",
+    "choices": [
+      "แพ็กเก็ตที่มีต้นทางหรือปลายทางเป็นตัวเราเตอร์เอง เช่น control traffic และ routing protocol",
+      "แพ็กเก็ต unicast ทั่วไปที่มีปลายทางอยู่ใน CEF table แล้ว",
+      "แพ็กเก็ตที่ถูกสวิตช์ผ่าน ASIC ของ line card ทุกกรณี",
+      "แพ็กเก็ตที่ตรงกับ TCAM entry แบบ exact match"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า process switching จัดการแพ็กเก็ตที่มีต้นทางหรือปลายทางเป็นเราเตอร์เอง (control traffic หรือ routing protocol) แพ็กเก็ตที่ซับซ้อนเกินกว่าฮาร์ดแวร์จะจัดการได้ เช่น IP options และแพ็กเก็ตที่ต้องการข้อมูลเพิ่มเติมที่ยังไม่ทราบ เช่น ARP",
+    "difficulty": "medium",
+    "pages": [31],
+    "evidence": "Packets sourced or destined to the router (using control traffic or routing protocols) • Packets that are too complex for the hardware to handle (IP packets with IP options) • Packets that require extra information that is not currently known (e.g., ARP)"
+  },
+  {
+    "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+    "question": "TCAM entry ถูกจัดเก็บในรูปแบบ Value, Mask, Result (VMR) ส่วน Result มีหน้าที่ใด",
+    "choices": [
+      "ระบุแอ็กชันที่ต้องดำเนินการเมื่อ match กับ value และ mask",
+      "ระบุฟิลด์ที่ต้องค้นหา เช่น IP address และ protocol",
+      "ระบุฟิลด์ที่สนใจซึ่งจะถูก query",
+      "ระบุจำนวน entry สูงสุดที่ TCAM รองรับได้"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์อธิบายว่า TCAM entry เก็บในรูปแบบ VMR โดย value ระบุฟิลด์ที่ควรค้นหา mask ระบุฟิลด์ที่สนใจและจะถูก query ส่วน result ระบุแอ็กชันที่ต้องทำเมื่อเกิด match กับ value และ mask",
+    "difficulty": "hard",
+    "pages": [33],
+    "evidence": "The result indicates the action that should be taken with a match on the value and mask."
+  },
+  {
+    "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+    "question": "distributed CEF (dCEF) เพิ่ม packet throughput ของเราเตอร์ด้วยวิธีใด",
+    "choices": [
+      "ดาวน์โหลดโครงสร้างข้อมูล CEF ไปยัง forwarding ASIC และ CPU ของทุก line card",
+      "ย้ายการสวิตช์ทั้งหมดกลับไปที่ CPU กลางเพียงตัวเดียว",
+      "แปลง TCAM entry ให้เป็นรูปแบบ software table ที่ยืดหยุ่นกว่า",
+      "ลดขนาด routing table โดยการ summarize ทุก prefix อัตโนมัติ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า dCEF เป็นกลไกที่ดาวน์โหลดโครงสร้างข้อมูล CEF ไปยัง forwarding ASIC และ CPU ของ line card ทุกใบ เพื่อให้ทุกใบร่วมทำ packet switching ได้ ทำให้การสวิตช์เกิดในระดับ distributed และเพิ่ม throughput ของเราเตอร์",
+    "difficulty": "hard",
+    "pages": [38],
+    "evidence": "dCEF is a mechanism in which the CEF data structures are downloaded to forwarding ASICs and the CPUs of all line cards so that they can participate in packet switching."
+  },
+  {
+    "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+    "question": "หลังเปลี่ยน SDM template ด้วยคำสั่ง sdm prefer บน Catalyst 9000 ต้องทำสิ่งใดเพื่อให้มีผล",
+    "choices": [
+      "รีสตาร์ตสวิตช์ด้วยคำสั่ง reload",
+      "ล้าง MAC address table ด้วย clear mac address-table",
+      "สั่ง write memory แล้วรอให้ TCAM จัดสรรใหม่อัตโนมัติ",
+      "ปิดและเปิด interface ทุกพอร์ตที่เกี่ยวข้อง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าหน่วยความจำสำหรับ TCAM table ถูกจัดสรรแบบ static ในช่วง bootup อัตราส่วนการจัดสรรแก้ได้ด้วย SDM template ผ่านคำสั่ง sdm prefer {vlan | advanced} และต้องรีสตาร์ตสวิตช์ด้วยคำสั่ง reload",
+    "difficulty": "medium",
+    "pages": [40],
+    "evidence": "The SDM template can be configured on Catalyst 9000 switches with the global configuration command sdm prefer {vlan | advanced}. The switch must then be restarted with the reload command."
+  },
+  {
+    "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+    "question": "Stateful switchover (SSO) ให้ประโยชน์อย่างไรเมื่อ route processor เกิดความล้มเหลว",
+    "choices": [
+      "ซิงโครไนซ์ configuration และ control plane state ระหว่าง RP สองตัว ทำให้ยังฟอร์เวิร์ดด้วย CEF entry เดิมได้",
+      "รีเซ็ต routing protocol adjacency ทั้งหมดทันทีเพื่อคำนวณเส้นทางใหม่",
+      "ย้ายการฟอร์เวิร์ดแพ็กเก็ตทั้งหมดไปทำที่ CPU แบบ process switching",
+      "ลบ CEF table แล้วสร้างใหม่จาก RIB ของ RP สำรอง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า RP failure อาจทำให้ routing protocol adjacency รีเซ็ตและเกิด packet loss จึงควรซ่อนความล้มเหลวและให้เราเตอร์ฟอร์เวิร์ดต่อด้วย CEF entry ที่โปรแกรมไว้ก่อนหน้า SSO เป็นฟีเจอร์ redundancy ที่ให้เราเตอร์ซึ่งมี RP สองตัวซิงโครไนซ์ configuration และ control plane state",
+    "difficulty": "hard",
+    "pages": [39],
+    "evidence": "Stateful switchover (SSO) is a redundancy feature that allows a Cisco router with two RPs to synchronize router configuration and control plane state information."
+  }
+]

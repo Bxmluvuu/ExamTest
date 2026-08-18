@@ -18,11 +18,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { logoutAction } from '@/lib/auth/auth-actions';
+import { useUser } from '@/lib/auth/user-context';
 import type { Profile } from '@/lib/types/database';
 
-export function LearnerSidebar({ profile }: { profile: Profile }) {
+export function LearnerSidebar({ profile: initialProfile }: { profile: Profile }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { profile: liveProfile, displayName } = useUser();
+  const profile = liveProfile || initialProfile;
 
   const navItems = [
     { label: 'ภาพรวม', href: '/dashboard', icon: LayoutDashboard, exact: true },

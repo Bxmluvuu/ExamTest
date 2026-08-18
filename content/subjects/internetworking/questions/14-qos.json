@@ -1,0 +1,287 @@
+[
+  {
+    "topic": "The Need for QoS & Delay Types",
+    "question": "ค่า refractive index เฉลี่ยของ optical fiber ประมาณเท่าใด และมีผลต่อความเร็วแสงอย่างไร",
+    "choices": [
+      "ประมาณ 1.5 โดยความเร็วแสงในตัวกลางเท่ากับ c หารด้วย n",
+      "ประมาณ 1.5 โดยความเร็วแสงในตัวกลางเท่ากับ c คูณด้วย n",
+      "ประมาณ 3.0 โดยความเร็วแสงลดลงเป็นครึ่งหนึ่งเสมอ",
+      "ประมาณ 1.0 เพราะ fiber ให้สภาวะเทียบเท่าสุญญากาศ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าค่า refractive index เฉลี่ยของ optical fiber อยู่ที่ประมาณ 1.5 และความเร็วแสงผ่านตัวกลาง v เท่ากับความเร็วแสงในสุญญากาศ c หารด้วย refractive index n ยิ่งค่า refractive index มาก แสงยิ่งเดินทางช้าลง",
+    "difficulty": "hard",
+    "pages": [7],
+    "evidence": "The average refractive index value of an optical fiber is about 1.5. The speed of light through a medium v is equal to the speed of light in a vacuum c divided by the refractive index n, or v = c / n."
+  },
+  {
+    "topic": "The Need for QoS & Delay Types",
+    "question": "serialization delay คำนวณอย่างไร และมีลักษณะอย่างไร",
+    "choices": [
+      "ขนาดแพ็กเก็ตเป็นบิตหารด้วยความเร็วสาย และเป็นค่าคงที่ที่ขึ้นกับความเร็วลิงก์",
+      "ขนาดแพ็กเก็ตคูณด้วยความเร็วสาย และเป็นค่าที่แปรผันตามโหลด",
+      "ระยะทางหารด้วยความเร็วแสงในตัวกลาง และเป็นค่าคงที่",
+      "ผลต่างของ latency ระหว่างแพ็กเก็ตใน flow เดียวกัน"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า serialization delay คือเวลาที่ใช้วางบิตทั้งหมดของแพ็กเก็ตลงบนลิงก์ เป็นค่าคงที่ที่ขึ้นกับความเร็วลิงก์ ยิ่งความเร็วสูง delay ยิ่งต่ำ และคำนวณจากขนาดแพ็กเก็ตเป็นบิตหารด้วยความเร็วสายเป็นบิตต่อวินาที",
+    "difficulty": "medium",
+    "pages": [8],
+    "evidence": "The serialization delay s is equal to the packet size in bits divided by the line speed in bits per second."
+  },
+  {
+    "topic": "The Need for QoS & Delay Types",
+    "question": "หากแพ็กเก็ตหนึ่งใช้เวลา 50 ms และแพ็กเก็ตถัดไปใช้ 70 ms ค่า jitter เท่าใด และเรียกว่าอะไร",
+    "choices": [
+      "20 ms เรียกว่า delay variation หรือ jitter",
+      "120 ms เรียกว่า cumulative delay",
+      "60 ms เรียกว่า average latency",
+      "20 ms เรียกว่า serialization delay"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ยกตัวอย่างว่าถ้าแพ็กเก็ตหนึ่งใช้เวลา 50 ms ข้ามเครือข่ายและแพ็กเก็ตถัดไปใช้ 70 ms ค่า jitter คือ 20 ms โดย delay variation หรือ jitter คือผลต่างของ latency ระหว่างแพ็กเก็ตใน flow เดียวกัน",
+    "difficulty": "medium",
+    "pages": [9],
+    "evidence": "Delay variation, also referred to as jitter, is the difference in the latency between packets in a single flow. For example, if one packet takes 50 ms ... and the following packet takes 70 ms, the jitter is 20 ms."
+  },
+  {
+    "topic": "QoS Models (IntServ & DiffServ)",
+    "question": "โปรโตคอลใดที่ IntServ ใช้จองทรัพยากรและให้ call admission control",
+    "choices": [
+      "RSVP (Resource Reservation Protocol)",
+      "RTP (Real-time Transport Protocol)",
+      "LDP (Label Distribution Protocol)",
+      "NBAR (Network Based Application Recognition)"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า IntServ ใช้ Resource Reservation Protocol (RSVP) เพื่อจองทรัพยากรทั่วเครือข่ายและให้ call admission control เพื่อรับประกันว่าไม่มีทราฟฟิก IP อื่นใช้แบนด์วิดท์ที่จองไว้ได้ แต่แบนด์วิดท์ที่จองแล้วไม่ได้ใช้จะสูญเปล่า",
+    "difficulty": "medium",
+    "pages": [11],
+    "evidence": "Resource Reservation Protocol (RSVP): •Used to reserve resources throughout a network •Provides call admission control (CAC) to guarantee that no other IP traffic can use the reserved bandwidth"
+  },
+  {
+    "topic": "QoS Models (IntServ & DiffServ)",
+    "question": "เหตุใด DiffServ จึงไม่ถือเป็นโซลูชัน QoS แบบ end-to-end",
+    "choices": [
+      "เพราะไม่สามารถบังคับการรับประกัน QoS แบบ end-to-end ได้ เนื่องจากจัดการแบบ hop-by-hop",
+      "เพราะต้องใช้ signaling protocol ที่ทุก node ต้องรองรับ",
+      "เพราะต้องเก็บ RSVP flow state ไว้ที่ทุกอุปกรณ์",
+      "เพราะรองรับได้เพียงสองคลาสของทราฟฟิกเท่านั้น"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า DiffServ ไม่ต้องใช้ signaling protocol ขยายตัวได้ดีเพราะไม่ต้องเก็บ RSVP flow state และจัดการคุณลักษณะ QoS แบบ hop-by-hop โดยนโยบายถูกนิยามอย่างเป็นอิสระที่แต่ละอุปกรณ์ DiffServ จึงไม่ถือเป็นโซลูชัน end-to-end เพราะไม่สามารถบังคับการรับประกัน QoS แบบ end-to-end ได้",
+    "difficulty": "hard",
+    "pages": [14],
+    "evidence": "DiffServ is not considered an end-to-end QoS solution because end-to-end QoS guarantees cannot be enforced."
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "ฟิลด์ PCP ตามข้อกำหนด IEEE 802.1p มีขนาดเท่าใดและรองรับระดับความสำคัญกี่ระดับ",
+    "choices": [
+      "3 บิต รองรับ 8 ระดับ คือค่า 0 ถึง 7",
+      "3 บิต รองรับ 6 ระดับ คือค่า 0 ถึง 5",
+      "6 บิต รองรับ 64 ระดับ คือค่า 0 ถึง 63",
+      "8 บิต รองรับ 256 ระดับ คือค่า 0 ถึง 255"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าฟิลด์ PCP ขนาด 3 บิตนิยามโดยข้อกำหนด IEEE 802.1p ใช้มาร์กแพ็กเก็ตว่าอยู่ใน CoS ใด การมาร์ก CoS อนุญาตให้เฟรม Ethernet ระดับ Layer 2 ถูกมาร์กด้วยค่าความสำคัญแปดระดับ คือ 0 ถึง 7 โดย 0 ต่ำสุดและ 7 สูงสุด",
+    "difficulty": "medium",
+    "pages": [20],
+    "evidence": "The CoS marking allows a Layer 2 Ethernet frame to be marked with eight different levels of priority values, 0 to 7, where 0 is the lowest priority and 7 is the highest."
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "ค่า PCP 5 และ 4 สัมพันธ์กับประเภททราฟฟิกใดตามลำดับ",
+    "choices": [
+      "Voice ที่ต้องการ latency และ jitter น้อยกว่า 10 ms และ Video ที่น้อยกว่า 100 ms",
+      "Video ที่น้อยกว่า 100 ms และ Voice ที่น้อยกว่า 10 ms",
+      "Critical Application และ Excellent Effort",
+      "Internetwork Control และ Network Control"
+    ],
+    "answer": 0,
+    "explanation": "ตาราง PCP ในสไลด์ระบุว่าค่า 5 คือ VO หรือ Voice ที่ต้องการ latency และ jitter น้อยกว่า 10 ms และค่า 4 คือ VI หรือ Video ที่ต้องการ latency และ jitter น้อยกว่า 100 ms ส่วนค่า 6 คือ Internetwork Control และ 7 คือ Network Control",
+    "difficulty": "hard",
+    "pages": [20],
+    "evidence": "4 VI Video with < 100 ms latency and jitter 5 VO Voice with < 10 ms latency and jitter"
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "per-hop behavior (PHB) ในบริบทของ DiffServ หมายถึงอะไร",
+    "choices": [
+      "พฤติกรรมการฟอร์เวิร์ดที่สังเกตได้จากภายนอกซึ่งใช้กับกลุ่มแพ็กเก็ตที่มีค่า DiffServ เดียวกัน",
+      "การจัดสรรแบนด์วิดท์แบบคงที่ให้แต่ละอินเทอร์เฟซในเครือข่าย",
+      "การจองทรัพยากรแบบ end-to-end ผ่าน signaling protocol",
+      "การกำหนดค่า CoS ที่ขอบเครือข่ายเพียงจุดเดียว"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า per-hop behavior คือพฤติกรรมการฟอร์เวิร์ดที่สังเกตได้จากภายนอกซึ่งถูกใช้ที่ DiffServ-compliant node กับกลุ่มแพ็กเก็ตที่มีค่า DiffServ เดียวกันข้ามลิงก์ในทิศทางหนึ่ง โดย PHB คือการเร่ง หน่วง หรือทิ้งกลุ่มแพ็กเก็ตด้วยกลไก QoS หนึ่งหรือหลายอย่างบนพื้นฐาน per-hop ตามค่า DSCP",
+    "difficulty": "hard",
+    "pages": [23],
+    "evidence": "Per-hop behavior (PHB) is the externally observable forwarding behavior (forwarding treatment) applied at a DiffServ-compliant node to a collection of packets with the same DiffServ value crossing a link in a particular direction (DiffServ BA)."
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "ข้อใดกล่าวถูกต้องเกี่ยวกับ AF class ทั้งสี่คลาสของ AF PHB",
+    "choices": [
+      "หมายเลขคลาสไม่ได้แสดงลำดับความสำคัญ AF4 ไม่ได้รับการปฏิบัติดีกว่า AF1",
+      "AF4 ได้รับการปฏิบัติดีกว่า AF1 เสมอเพราะหมายเลขสูงกว่า",
+      "AF1 ได้รับการปฏิบัติดีกว่า AF4 เพราะหมายเลขต่ำกว่า",
+      "ทั้งสี่คลาสต้องถูกจัดการรวมกันเป็นคลาสเดียวเสมอ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่ามี AF class ที่นิยามตามมาตรฐานสี่คลาสคือ AF1, AF2, AF3 และ AF4 หมายเลขคลาส AF ไม่ได้แสดงลำดับความสำคัญ AF4 ไม่ได้รับการปฏิบัติที่ดีกว่า AF1 และแต่ละคลาสควรถูกจัดการอย่างเป็นอิสระ",
+    "difficulty": "hard",
+    "pages": [26],
+    "evidence": "The AF class number does not represent precedence. AF4 does not get any preferential treatment over AF1. Each class should be treated independently."
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "แพ็กเก็ตที่ต้องการ EF PHB ควรถูกมาร์กด้วยค่า DSCP ใด",
+    "choices": [
+      "binary 101110 หรือ 46 ในเลขฐานสิบ",
+      "binary 011010 หรือ 26 ในเลขฐานสิบ",
+      "binary 101000 หรือ 40 ในเลขฐานสิบ",
+      "binary 001000 หรือ 8 ในเลขฐานสิบ"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าแพ็กเก็ตที่ต้องการ EF ควรถูกมาร์กด้วยค่า DSCP binary 101110 ซึ่งเท่ากับ 46 ในเลขฐานสิบ และบิตที่ 5 ถึง 7 คือ 101 แมปตรงกับ IP Precedence 5 เพื่อความเข้ากันได้ย้อนหลัง",
+    "difficulty": "medium",
+    "pages": [29],
+    "evidence": "Packets requiring EF should be marked with DSCP binary value 101110 (46 in decimal). Bits 5 to 7 (101) of the EF DSCP value map directly to IP Precedence 5 for backward compatibility."
+  },
+  {
+    "topic": "Classification & Marking (DSCP PHB)",
+    "question": "scavenger class มีจุดประสงค์อย่างไร",
+    "choices": [
+      "ให้บริการที่ต่ำกว่า best-effort สำหรับแอปที่ไม่ช่วยเป้าหมายธุรกิจ",
+      "ให้บริการที่สูงกว่า best-effort แต่ต่ำกว่า AF สำหรับแอปทั่วไป",
+      "รับประกันแบนด์วิดท์ขั้นต่ำให้ทราฟฟิก voice",
+      "ป้องกันการ starvation ของคลาส EF ระหว่างที่เกิด congestion"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า scavenger class มีจุดประสงค์ให้บริการที่ต่ำกว่า best-effort สำหรับแอปพลิเคชันที่ช่วยเป้าหมายทางธุรกิจน้อยหรือไม่ช่วยเลย เช่น peer-to-peer, เกม และวิดีโอบันเทิง ซึ่งมักถูกจำกัดอัตราอย่างหนักหรือบล็อกทั้งหมด",
+    "difficulty": "medium",
+    "pages": [30],
+    "evidence": "The scavenger class is intended to provide less than best-effort services. Applications assigned to the scavenger class have little or no contribution to the business objectives of an organization"
+  },
+  {
+    "topic": "Policing & Shaping",
+    "question": "สูตรคำนวณ committed time interval (Tc) ในอัลกอริทึม token bucket คือข้อใด",
+    "choices": [
+      "Tc = (Bc [bits] / CIR [bps]) × 1000",
+      "Tc = (CIR [bps] / Bc [bits]) × 1000",
+      "Tc = Bc [bytes] × CIR [bps]",
+      "Tc = (Bc [bits] + CIR [bps]) / 1000"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า committed time interval (Tc) คือช่วงเวลาในหน่วยมิลลิวินาทีที่ committed burst ถูกส่งออกไป และคำนวณได้ด้วยสูตร Tc = (Bc [bits] / CIR [bps]) × 1000",
+    "difficulty": "hard",
+    "pages": [38],
+    "evidence": "Committed Time Interval (Tc) - The time interval, in milliseconds (ms), over which the committed burst (Bc) is sent. Tc can be calculated with the formula Tc = (Bc [bits] / CIR [bps]) × 1000."
+  },
+  {
+    "topic": "Policing & Shaping",
+    "question": "เหตุใดจึงแนะนำให้ค่า Bc มากกว่าหรือเท่ากับขนาดแพ็กเก็ต IP ที่ใหญ่ที่สุดใน traffic stream",
+    "choices": [
+      "เพราะไม่เช่นนั้นจะไม่มี token พอสำหรับแพ็กเก็ตใหญ่ ทำให้เกินอัตราที่กำหนดเสมอ",
+      "เพราะไม่เช่นนั้น token ที่เกินมาจะถูกเก็บไว้ใช้ในอนาคตอย่างไม่จำกัด",
+      "เพราะไม่เช่นนั้น Tc จะกลายเป็นศูนย์และคำนวณไม่ได้",
+      "เพราะไม่เช่นนั้น CIR จะถูกปรับขึ้นอัตโนมัติเป็นสองเท่า"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าแนะนำให้ค่า Bc มากกว่าหรือเท่ากับขนาดแพ็กเก็ต IP ที่ใหญ่ที่สุดที่เป็นไปได้ใน traffic stream ไม่เช่นนั้นจะไม่มี token เพียงพอใน token bucket สำหรับแพ็กเก็ตขนาดใหญ่ และแพ็กเก็ตเหล่านั้นจะเกินอัตราที่กำหนดไว้เสมอ",
+    "difficulty": "hard",
+    "pages": [40],
+    "evidence": "It is recommended for the Bc value to be larger than or equal to the size of the largest possible IP packet in a traffic stream. Otherwise, there will never be enough tokens in the token bucket for larger packets, and they will always exceed the defined rate."
+  },
+  {
+    "topic": "Policing & Shaping",
+    "question": "เมื่อ token bucket เต็มความจุสูงสุด token ที่เพิ่มเข้ามาใหม่จะเป็นอย่างไร",
+    "choices": [
+      "ถูกทิ้งและไม่สามารถนำไปใช้กับแพ็กเก็ตในอนาคตได้",
+      "ถูกเก็บไว้ในบัฟเฟอร์สำรองเพื่อใช้ในช่วง burst ถัดไป",
+      "ถูกโอนไปยัง token bucket ใบที่สองโดยอัตโนมัติ",
+      "ทำให้ CIR ถูกปรับลดลงชั่วคราวจนกว่าจะมีที่ว่าง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าถ้า bucket เต็มถึงความจุสูงสุด token ที่เพิ่มเข้ามาใหม่จะถูกทิ้ง และ token ที่ถูกทิ้งไม่สามารถนำไปใช้กับแพ็กเก็ตในอนาคตได้",
+    "difficulty": "medium",
+    "pages": [40],
+    "evidence": "If the bucket fills up to the maximum capacity, newly added tokens are discarded. Discarded tokens are not available for use in future packets."
+  },
+  {
+    "topic": "Congestion Management & Avoidance",
+    "question": "เหตุใดจึงต้อง police ทราฟฟิกในคลาส priority ของ LLQ ระหว่างที่เกิด congestion",
+    "choices": [
+      "เพื่อป้องกันไม่ให้ priority queue ทำให้คลาส CBWFQ ที่ไม่ใช่ priority ขาดทรัพยากร",
+      "เพื่อให้ priority queue ได้แบนด์วิดท์ทั้งหมดของอินเทอร์เฟซ",
+      "เพื่อบังคับให้ทราฟฟิก priority ถูกมาร์กเป็น DSCP EF อัตโนมัติ",
+      "เพื่อให้ CBWFQ scheduler ทำงานแบบ round-robin เท่ากันทุกคลาส"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า LLQ สร้าง high-priority queue ที่ถูกให้บริการก่อนเสมอ และระหว่างที่เกิด congestion คลาส priority ของ LLQ จะถูก police เพื่อป้องกันไม่ให้ priority queue ทำให้คลาส CBWFQ ที่ไม่ใช่ priority ขาดทรัพยากรเหมือน legacy PQ เมื่อกำหนด LLQ ต้องระบุอัตรา policing เป็นแบนด์วิดท์คงที่หรือเป็นเปอร์เซ็นต์ของแบนด์วิดท์อินเทอร์เฟซ",
+    "difficulty": "hard",
+    "pages": [60],
+    "evidence": "During times of congestion, LLQ priority classes are policed to prevent the PQ from starving the CBWFQ non-priority classes (as legacy PQ does)."
+  },
+  {
+    "topic": "Congestion Management & Avoidance",
+    "question": "เหตุใดจึงควรหลีกเลี่ยง tail drop สำหรับทราฟฟิก TCP",
+    "choices": [
+      "เพราะอาจทำให้เกิด TCP global synchronization ซึ่งส่งผลให้ลิงก์ถูกใช้งานต่ำกว่าที่ควร",
+      "เพราะ tail drop ทิ้งเฉพาะแพ็กเก็ตที่มี IP Precedence สูงก่อน",
+      "เพราะ tail drop ทำให้ TCP เพิ่ม window size เร็วเกินไปจนลิงก์อิ่มตัว",
+      "เพราะ tail drop ต้องอาศัยการตั้งค่า ECN bit ทุกครั้ง"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า tail drop เป็นกลไกทิ้งแพ็กเก็ตเริ่มต้นที่ปฏิบัติกับทราฟฟิกทุกประเภทเท่ากันโดยไม่แยกคลาส เมื่อบัฟเฟอร์ของ output queue เต็ม แพ็กเก็ตทุกตัวที่พยายามเข้าคิวจะถูกทิ้งไม่ว่าจะมีความสำคัญใด และควรหลีกเลี่ยง tail drop สำหรับทราฟฟิก TCP เพราะอาจทำให้เกิด TCP global synchronization ซึ่งส่งผลให้ลิงก์ถูกใช้งานต่ำกว่าที่ควรอย่างมีนัยสำคัญ",
+    "difficulty": "medium",
+    "pages": [62],
+    "evidence": "Tail drop should be avoided for TCP traffic because it can cause TCP global synchronization, which results in significant link underutilization."
+  },
+  {
+    "topic": "Congestion Management & Avoidance",
+    "question": "WRED ต่างจาก RED อย่างไร",
+    "choices": [
+      "ความสุ่มของการทิ้งแพ็กเก็ตถูกปรับด้วยน้ำหนักที่แสดงด้วย IP Precedence หรือ DSCP",
+      "WRED ทิ้งแพ็กเก็ตทั้งคิวเมื่อบัฟเฟอร์เต็มแทนการทิ้งแบบสุ่ม",
+      "WRED ทำงานเฉพาะกับทราฟฟิก UDP ส่วน RED ใช้กับ TCP",
+      "WRED ไม่สามารถตั้งค่า ECN bit ได้ ขณะที่ RED ทำได้"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่าการนำ RED ไปใช้ของ Cisco เรียกว่า Weighted RED ความต่างคือความสุ่มของการทิ้งแพ็กเก็ตถูกปรับได้ด้วยน้ำหนักของทราฟฟิกที่แสดงด้วย IP Precedence หรือ DSCP แพ็กเก็ตที่มีค่า IPP ต่ำกว่าจะถูกทิ้งอย่างรุนแรงกว่าค่าที่สูงกว่า และ WRED ยังใช้ตั้ง IP ECN bit ได้",
+    "difficulty": "medium",
+    "pages": [63],
+    "evidence": "The difference between RED and WRED is that the randomness of packet drops can be manipulated by traffic weights denoted by either IP Precedence (IPP) or DSCP."
+  },
+  {
+    "topic": "Congestion Management & Avoidance",
+    "question": "ตามตัวอย่างของ WRED แพ็กเก็ตที่มีค่า AFx3 กับ AFx1 ถูกทิ้งอย่างไร",
+    "choices": [
+      "AFx3 ถูกทิ้งรุนแรงกว่า AFx2 และ AFx2 ถูกทิ้งรุนแรงกว่า AFx1",
+      "AFx1 ถูกทิ้งรุนแรงกว่า AFx2 และ AFx2 ถูกทิ้งรุนแรงกว่า AFx3",
+      "ทั้งสามค่าถูกทิ้งด้วยความน่าจะเป็นเท่ากัน",
+      "AFx3 ไม่ถูกทิ้งเลยเพราะเป็นคลาสที่มีความสำคัญสูงสุด"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ยกตัวอย่างว่า IPP 3 จะถูกทิ้งรุนแรงกว่า IPP 5 และในกรณี DSCP นั้น AFx3 จะถูกทิ้งรุนแรงกว่า AFx2 และ AFx2 ถูกทิ้งรุนแรงกว่า AFx1",
+    "difficulty": "hard",
+    "pages": [63],
+    "evidence": "For example, IPP 3 would be dropped more aggressively than IPP 5 or DSCP, AFx3 would be dropped more aggressively than AFx2, and AFx2 would be dropped more aggressively than AFx1."
+  },
+  {
+    "topic": "The Need for QoS & Delay Types",
+    "question": "ข้อใดเป็นวิธีป้องกัน packet loss ตามที่สไลด์ระบุ",
+    "choices": [
+      "เพิ่มความเร็วลิงก์ หรือใช้กลไก QoS แบบ congestion-avoidance",
+      "ลดขนาด MTU ของทุกอินเทอร์เฟซลงครึ่งหนึ่ง",
+      "ปิดการใช้ dejitter buffer บนอุปกรณ์ปลายทาง",
+      "เปลี่ยนไปใช้ IntServ เพื่อจองแบนด์วิดท์ทุก flow"
+    ],
+    "answer": 0,
+    "explanation": "สไลด์ระบุว่า packet loss มักเป็นผลของ congestion บนอินเทอร์เฟซ และป้องกันได้ด้วยแนวทางเช่นการเพิ่มความเร็วลิงก์ หรือการใช้กลไก QoS แบบ congestion-avoidance",
+    "difficulty": "easy",
+    "pages": [9],
+    "evidence": "Packet loss is usually a result of congestion on an interface, and can be prevented by implementing one of the following approaches: •Increase link speed. •Implement QoS congestion-avoi"
+  }
+]

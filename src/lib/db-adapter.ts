@@ -100,6 +100,31 @@ export async function getDocumentById(id: string): Promise<SourceDocument | null
   return store.source_documents.find(d => d.id === id) || null;
 }
 
+export async function getDocumentPages(id: string): Promise<any[]> {
+  const store = getDataStore();
+  const found = store.source_pages.filter(p => p.document_id === id);
+  if (found.length > 0) return found;
+
+  try {
+    const pagesMap = (await import('./mock-data/internetworking-pages.json')).default as Record<string, any[]>;
+    if (pagesMap[id]) return pagesMap[id];
+    
+    // Also try matching by title or document sequence
+    const doc = store.source_documents.find(d => d.id === id);
+    if (doc) {
+      for (const [key, pages] of Object.entries(pagesMap)) {
+        if (pages.length > 0 && (pages[0].title.includes(doc.title) || doc.title.includes(pages[0].title))) {
+          return pages;
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  return [];
+}
+
 // ----------------------------------------------------
 // EXAM BLUEPRINTS & PRACTICE
 // ----------------------------------------------------
@@ -125,6 +150,9 @@ export async function createExamAttemptAction(params: {
   let blueprint: ExamBlueprint | undefined;
   if (params.blueprintId) {
     blueprint = store.exam_blueprints.find(b => b.id === params.blueprintId);
+  } else if (params.mode === 'exam') {
+    // Find active blueprint or comprehensive blueprint
+    blueprint = store.exam_blueprints.find(b => b.subject_id === params.subjectId && b.is_active);
   }
 
   // Get user past attempts for recent questions avoiding
@@ -136,7 +164,24 @@ export async function createExamAttemptAction(params: {
   // Mistakes list
   const mistakeQuestionIds = recentAnswerRecords.filter(ans => ans.is_correct === false).map(ans => ans.question_id);
 
-  const subjectQuestions = store.questions.filter(q => q.subject_id === params.subjectId);
+  // Build lookup maps for choices, chapters, and topics
+  const choicesMap = new Map<string, QuestionChoice[]>();
+  store.question_choices.forEach(c => {
+    if (c.question_id) {
+      if (!choicesMap.has(c.question_id)) choicesMap.set(c.question_id, []);
+      choicesMap.get(c.question_id)!.push(c);
+    }
+  });
+  const chapterMap = new Map(store.chapters.map(c => [c.id, c.title]));
+  const topicMap = new Map(store.topics.map(t => [t.id, t.title]));
+
+  const rawSubjectQuestions = store.questions.filter(q => q.subject_id === params.subjectId);
+  const subjectQuestions = rawSubjectQuestions.map(q => ({
+    ...q,
+    chapter_title: q.chapter_title || (q.chapter_id ? chapterMap.get(q.chapter_id) : undefined) || 'General',
+    topic_title: q.topic_title || (q.topic_id ? topicMap.get(q.topic_id) : undefined) || 'General',
+    choices: (q.choices && q.choices.length > 0) ? q.choices : (choicesMap.get(q.id) || []),
+  }));
 
   const targetCount = params.targetCount || blueprint?.question_count || 10;
   const duration = blueprint?.duration_minutes || (targetCount * 2);
@@ -230,8 +275,12 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
       return {
         ...q,
         selected_choice_key: userAns?.selected_choice_key,
+        fill_blank_answers: userAns?.fill_blank_answers,
+        matching_answers: userAns?.matching_answers,
         is_correct: userAns?.is_correct,
         correct_choice_key: key?.correct_choice_key,
+        correct_blank_answers: key?.correct_blank_answers,
+        correct_matching: key?.correct_matching,
         explanation: key?.explanation,
         source_citation: src ? {
           file_name: src.file_name,
@@ -250,6 +299,8 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
     return {
       ...q,
       selected_choice_key: userAns?.selected_choice_key,
+      fill_blank_answers: userAns?.fill_blank_answers,
+      matching_answers: userAns?.matching_answers,
       // No answer keys!
     };
   });
@@ -260,7 +311,9 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
 export async function saveAttemptAnswerAction(params: {
   attemptId: string;
   questionId: string;
-  selectedChoiceKey: 'A' | 'B' | 'C' | 'D';
+  selectedChoiceKey?: 'A' | 'B' | 'C' | 'D' | string | null;
+  fillBlankAnswers?: Record<string, string> | null;
+  matchingAnswers?: Record<string, string> | null;
   userId: string;
   responseTimeSeconds?: number;
 }): Promise<{ success: boolean; error?: string }> {
@@ -285,6 +338,8 @@ export async function saveAttemptAnswerAction(params: {
     attempt_id: params.attemptId,
     question_id: params.questionId,
     selected_choice_key: params.selectedChoiceKey,
+    fill_blank_answers: params.fillBlankAnswers,
+    matching_answers: params.matchingAnswers,
     answered_at: new Date().toISOString(),
     response_time_seconds: params.responseTimeSeconds || 0,
   };
@@ -507,8 +562,13 @@ export async function updateQuestionStatusAction(
 
 export async function saveQuestionAction(
   questionData: Omit<Partial<Question>, 'choices'> & {
-    choices: Array<{ key: 'A' | 'B' | 'C' | 'D'; text: string }>;
-    correctChoice: 'A' | 'B' | 'C' | 'D';
+    choices?: Array<{ key: 'A' | 'B' | 'C' | 'D' | string; text: string }>;
+    word_bank?: string[];
+    blanks?: any[];
+    matching_pairs?: any[];
+    correctChoice?: 'A' | 'B' | 'C' | 'D' | string;
+    correctBlankAnswers?: Record<string, string>;
+    correctMatching?: Record<string, string>;
     explanation: string;
     sourceCitation?: { file_name: string; pages: number[]; evidence_text: string };
   },
@@ -520,6 +580,7 @@ export async function saveQuestionAction(
 
   const chapter = store.chapters.find(c => c.id === questionData.chapter_id);
   const topic = store.topics.find(t => t.id === questionData.topic_id);
+  const qType = questionData.question_type || 'single_choice';
 
   const questionObj: Question = {
     id: qId,
@@ -529,19 +590,22 @@ export async function saveQuestionAction(
     chapter_title: chapter?.title || 'Chapter',
     topic_title: topic?.title || 'Topic',
     question_text: questionData.question_text || '',
-    question_type: questionData.question_type || 'single_choice',
+    question_type: qType,
     difficulty: questionData.difficulty || 'medium',
     status: questionData.status || 'draft',
     is_ai_generated: Boolean(questionData.is_ai_generated),
     created_at: questionData.created_at || new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    choices: questionData.choices.map((c, idx) => ({
+    choices: (questionData.choices || []).map((c, idx) => ({
       id: `c-${qId}-${c.key}`,
       question_id: qId,
-      choice_key: c.key,
+      choice_key: c.key as any,
       choice_text: c.text,
       sequence_order: idx + 1,
     })),
+    word_bank: questionData.word_bank,
+    blanks: questionData.blanks,
+    matching_pairs: questionData.matching_pairs,
   };
 
   if (isNew) {
@@ -558,6 +622,8 @@ export async function saveQuestionAction(
     id: akIdx >= 0 ? store.question_answer_keys[akIdx].id : `ak-${qId}`,
     question_id: qId,
     correct_choice_key: questionData.correctChoice,
+    correct_blank_answers: questionData.correctBlankAnswers,
+    correct_matching: questionData.correctMatching,
     explanation: questionData.explanation,
   };
   if (akIdx >= 0) store.question_answer_keys[akIdx] = akObj;

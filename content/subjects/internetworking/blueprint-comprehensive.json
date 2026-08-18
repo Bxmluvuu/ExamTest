@@ -1,0 +1,75 @@
+{
+  "name": "CCNP ENCOR Comprehensive Exam (100 ข้อ)",
+  "slug": "encor-comprehensive-100",
+  "description": "แบบทดสอบประมวลความรู้ครอบคลุมทั้ง 14 บทเรียนตามมาตรฐาน Cisco CCNP Enterprise Core (ENCOR 350-401)",
+  "questionCount": 100,
+  "durationMinutes": 120,
+  "difficultyDistribution": {
+    "easy": 0.25,
+    "medium": 0.55,
+    "hard": 0.2
+  },
+  "topicDistribution": [
+    {
+      "topic": "Forwarding Architectures (CEF, TCAM, SDM)",
+      "weight": 0.08
+    },
+    {
+      "topic": "Root Bridge Election & Path Cost",
+      "weight": 0.08
+    },
+    {
+      "topic": "Rapid Spanning Tree Protocol (RSTP)",
+      "weight": 0.07
+    },
+    {
+      "topic": "Root Guard, PortFast & BPDU Guard",
+      "weight": 0.07
+    },
+    {
+      "topic": "MST Regions & Internal Spanning Tree",
+      "weight": 0.07
+    },
+    {
+      "topic": "EtherChannel with PAgP & LACP",
+      "weight": 0.08
+    },
+    {
+      "topic": "Path Selection & Administrative Distance",
+      "weight": 0.07
+    },
+    {
+      "topic": "Topology Table & Feasibility Condition",
+      "weight": 0.08
+    },
+    {
+      "topic": "OSPF Neighbors & Adjacency Requirements",
+      "weight": 0.08
+    },
+    {
+      "topic": "OSPF LSA Types",
+      "weight": 0.08
+    },
+    {
+      "topic": "OSPFv3 Fundamentals & LSA Types",
+      "weight": 0.06
+    },
+    {
+      "topic": "BGP Sessions, Messages & Neighbor States",
+      "weight": 0.08
+    },
+    {
+      "topic": "BGP Best-Path Algorithm",
+      "weight": 0.08
+    },
+    {
+      "topic": "Multicast Fundamentals & Traffic Types",
+      "weight": 0.06
+    },
+    {
+      "topic": "Classification & Marking (DSCP PHB)",
+      "weight": 0.07
+    }
+  ],
+  "avoidRecentQuestionCount": 50
+}

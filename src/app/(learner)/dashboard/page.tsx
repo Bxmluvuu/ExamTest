@@ -24,23 +24,23 @@ import {
   Sparkles,
   BookOpen,
 } from 'lucide-react';
+import { useUser } from '@/lib/auth/user-context';
 import type { Subject, UserAnalyticsSummary, ExamAttempt, Profile } from '@/lib/types/database';
 
 export default function DashboardPage() {
-  const [user, setUser] = React.useState<Profile>(() => getCurrentSessionUser());
+  const { profile, displayName } = useUser();
   const [subjects, setSubjects] = React.useState<Subject[]>([]);
   const [analytics, setAnalytics] = React.useState<UserAnalyticsSummary | null>(null);
   const [inProgressAttempt, setInProgressAttempt] = React.useState<ExamAttempt | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
 
   React.useEffect(() => {
-    const u = getCurrentSessionUser();
-    setUser(u);
+    const userId = profile?.id || getCurrentSessionUser().id;
     setIsLoading(true);
 
     Promise.all([
       getSubjects(),
-      getUserAnalyticsData(u.id),
+      getUserAnalyticsData(userId),
     ]).then(([subs, userAnalytics]) => {
       setSubjects(subs);
       setAnalytics(userAnalytics);
@@ -48,9 +48,9 @@ export default function DashboardPage() {
     });
 
     const store = getDataStore();
-    const active = store.exam_attempts.find(a => a.user_id === u.id && a.status === 'in_progress');
+    const active = store.exam_attempts.find(a => a.user_id === userId && a.status === 'in_progress');
     setInProgressAttempt(active || null);
-  }, []);
+  }, [profile?.id]);
 
   const totalQuestions = analytics?.total_questions_answered || 0;
   const avgScore = analytics?.average_score_percentage || 0;
@@ -59,9 +59,9 @@ export default function DashboardPage() {
 
   return (
     <PageTransition className="space-y-6">
-      {/* Page Header with Greeting */}
+      {/* Page Header with Dynamic Greeting */}
       <LearnerPageHeader
-        title={`สวัสดี, ${user.full_name}`}
+        title={`สวัสดี, ${displayName}`}
         description="ยินดีต้อนรับสู่ระบบคลังข้อสอบและวิเคราะห์จุดอ่อนรายบุคคล ทบทวนเนื้อหาและฝึกฝนข้อสอบได้ตลอดเวลา"
         actions={
           <Button asChild variant="primary" size="md" className="bg-blue-600 hover:bg-blue-700 shadow-xs">

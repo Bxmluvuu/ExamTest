@@ -1,0 +1,24 @@
+{
+  "name": "Routing Protocols Deep Dive Blueprint",
+  "slug": "encor-routing-blueprint",
+  "description": "เจาะลึก IP Routing, EIGRP, OSPF, OSPFv3 และ BGP สำหรับทบทวนเนื้อหาครึ่งหลังของรายวิชา",
+  "questionCount": 30,
+  "durationMinutes": 45,
+  "difficultyDistribution": {
+    "easy": 0.2,
+    "medium": 0.5,
+    "hard": 0.3
+  },
+  "topicDistribution": [
+    { "topic": "Routing Protocol Algorithms", "weight": 0.12 },
+    { "topic": "Static Routing Types", "weight": 0.1 },
+    { "topic": "EIGRP Metric Calculation", "weight": 0.13 },
+    { "topic": "Failure Detection, DUAL & Summarization", "weight": 0.1 },
+    { "topic": "OSPF LSA Types", "weight": 0.15 },
+    { "topic": "OSPF Path Selection", "weight": 0.1 },
+    { "topic": "OSPFv3 Fundamentals & LSA Types", "weight": 0.1 },
+    { "topic": "BGP Sessions, Messages & Neighbor States", "weight": 0.1 },
+    { "topic": "BGP Best-Path Algorithm", "weight": 0.1 }
+  ],
+  "avoidRecentQuestionCount": 30
+}
