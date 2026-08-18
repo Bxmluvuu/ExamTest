@@ -8,6 +8,7 @@ import {
   ZoomIn,
   ZoomOut,
   Maximize2,
+  Minimize2,
   ExternalLink,
   Download,
   BookOpen,
@@ -15,6 +16,9 @@ import {
   List,
   Search,
   CheckCircle,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -37,39 +41,186 @@ export function DocumentViewer({
   signedUrl?: string;
 }) {
   const [currentPage, setCurrentPage] = React.useState(1);
-  const [viewMode, setViewMode] = React.useState<'pdf' | 'text'>('pdf');
+  const [totalPages, setTotalPages] = React.useState(document.page_count || 1);
+  const [viewMode, setViewMode] = React.useState<'canvas' | 'text'>('canvas');
   const [zoomLevel, setZoomLevel] = React.useState(100);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [pages, setPages] = React.useState<SlidePage[]>([]);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showOutline, setShowOutline] = React.useState(false);
 
+  // PDF.js rendering states
+  const [pdfDoc, setPdfDoc] = React.useState<any>(null);
+  const [isLoadingPdf, setIsLoadingPdf] = React.useState(true);
+  const [isRenderingPage, setIsRenderingPage] = React.useState(false);
+  const [pdfLoadError, setPdfLoadError] = React.useState<string | null>(null);
+
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const renderTaskRef = React.useRef<any>(null);
 
-  // PDF direct URL (uses static route or API stream)
-  const pdfUrl = `/documents/${document.id}.pdf`;
+  // PDF direct URL endpoints
   const pdfApiUrl = `/api/documents/${document.id}/pdf`;
+  const pdfStaticUrl = `/documents/${document.id}.pdf`;
 
-  // Load pages metadata for outline & search
+  // 1. Load pages metadata for outline & search
   React.useEffect(() => {
     fetch(`/api/documents/${document.id}/pages`)
       .then(res => (res.ok ? res.json() : null))
       .then(data => {
         if (data?.pages && data.pages.length > 0) {
           setPages(data.pages);
+          if (data.pages.length > totalPages) {
+            setTotalPages(data.pages.length);
+          }
         } else {
           const map = internetworkingPages as Record<string, SlidePage[]>;
-          setPages(map[document.id] || []);
+          const fallback = map[document.id] || [];
+          setPages(fallback);
+          if (fallback.length > 0) setTotalPages(fallback.length);
         }
       })
       .catch(() => {
         const map = internetworkingPages as Record<string, SlidePage[]>;
-        setPages(map[document.id] || []);
+        const fallback = map[document.id] || [];
+        setPages(fallback);
+        if (fallback.length > 0) setTotalPages(fallback.length);
       });
-  }, [document.id]);
+  }, [document.id, totalPages]);
 
-  const totalPages = pages.length || document.page_count || 1;
+  // 2. Load PDF Document via PDF.js on Client-Side (No Iframe restrictions)
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    let isMounted = true;
+    setIsLoadingPdf(true);
+    setPdfLoadError(null);
+
+    async function initPdf() {
+      try {
+        const pdfjs = await import('pdfjs-dist');
+        
+        // Configure Web Worker
+        if (!pdfjs.GlobalWorkerOptions.workerSrc) {
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs`;
+        }
+
+        const loadingTask = pdfjs.getDocument({
+          url: pdfApiUrl,
+          cMapUrl: 'https://unpkg.com/pdfjs-dist@4.10.38/cmaps/',
+          cMapPacked: true,
+          standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@4.10.38/standard_fonts/',
+        });
+
+        const doc = await loadingTask.promise;
+        if (isMounted) {
+          setPdfDoc(doc);
+          setTotalPages(doc.numPages);
+          setIsLoadingPdf(false);
+        }
+      } catch (err: any) {
+        console.warn('PDF.js failed to load, falling back to static file or text view:', err);
+        // Try static URL fallback
+        try {
+          const pdfjs = await import('pdfjs-dist');
+          const staticTask = pdfjs.getDocument({ url: pdfStaticUrl });
+          const doc = await staticTask.promise;
+          if (isMounted) {
+            setPdfDoc(doc);
+            setTotalPages(doc.numPages);
+            setIsLoadingPdf(false);
+            return;
+          }
+        } catch (staticErr) {
+          if (isMounted) {
+            setIsLoadingPdf(false);
+            setPdfLoadError('ไม่สามารถโหลดไฟล์ PDF ได้ กรุณากดปุ่มเปิดแท็บใหม่หรือดูโหมดสรุป');
+          }
+        }
+      }
+    }
+
+    initPdf();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [pdfApiUrl, pdfStaticUrl]);
+
+  // 3. Render Canvas whenever page or zoom changes
+  React.useEffect(() => {
+    if (!pdfDoc || !canvasRef.current || viewMode !== 'canvas') return;
+
+    let isCancelled = false;
+
+    async function renderPage() {
+      try {
+        if (renderTaskRef.current) {
+          try {
+            renderTaskRef.current.cancel();
+          } catch {
+            // Ignore cancel errors
+          }
+        }
+
+        setIsRenderingPage(true);
+        const page = await pdfDoc.getPage(currentPage);
+        if (isCancelled || !canvasRef.current) return;
+
+        const canvas = canvasRef.current;
+        const parentWidth = canvas.parentElement?.clientWidth || 800;
+        const unscaledViewport = page.getViewport({ scale: 1 });
+        
+        // Base scale fits container width
+        const baseScale = Math.min(2.0, (parentWidth - 32) / unscaledViewport.width);
+        const scale = Math.max(0.6, baseScale * (zoomLevel / 100));
+
+        const viewport = page.getViewport({ scale });
+        const context = canvas.getContext('2d');
+        if (!context) return;
+
+        // Retina / High-DPI support
+        const pixelRatio = window.devicePixelRatio || 1;
+        canvas.width = Math.floor(viewport.width * pixelRatio);
+        canvas.height = Math.floor(viewport.height * pixelRatio);
+        canvas.style.width = `${Math.floor(viewport.width)}px`;
+        canvas.style.height = `${Math.floor(viewport.height)}px`;
+
+        const transform = pixelRatio !== 1 ? [pixelRatio, 0, 0, pixelRatio, 0, 0] : null;
+
+        const renderContext = {
+          canvasContext: context,
+          transform: transform || undefined,
+          viewport: viewport,
+        };
+
+        const task = page.render(renderContext);
+        renderTaskRef.current = task;
+
+        await task.promise;
+        if (!isCancelled) {
+          setIsRenderingPage(false);
+        }
+      } catch (err: any) {
+        if (err?.name !== 'RenderingCancelledException' && !isCancelled) {
+          console.error('Canvas render error:', err);
+          setIsRenderingPage(false);
+        }
+      }
+    }
+
+    renderPage();
+
+    return () => {
+      isCancelled = true;
+      if (renderTaskRef.current) {
+        try {
+          renderTaskRef.current.cancel();
+        } catch {
+          // ignore
+        }
+      }
+    };
+  }, [pdfDoc, currentPage, zoomLevel, viewMode]);
 
   const handleNext = () => {
     if (currentPage < totalPages) {
@@ -83,12 +234,15 @@ export function DocumentViewer({
     }
   };
 
-  // Keyboard navigation for presentation
+  // Keyboard navigation
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
         handleNext();
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
         handlePrev();
       }
     };
@@ -113,7 +267,7 @@ export function DocumentViewer({
 
   const activePage: SlidePage = pages[currentPage - 1] || {
     pageNumber: currentPage,
-    title: `${document.title} - Page ${currentPage}`,
+    title: `${document.title} - หน้าที่ ${currentPage}`,
     rawText: `สไลด์บรรยาย: ${document.title} (หน้าที่ ${currentPage}/${totalPages})`,
     bullets: [document.extraction_text_summary || 'CCNP Enterprise Core Networking Lecture Material'],
   };
@@ -122,7 +276,7 @@ export function DocumentViewer({
     if (!searchQuery.trim()) return pages;
     const q = searchQuery.toLowerCase();
     return pages.filter(
-      p => p.rawText.toLowerCase().includes(q) || p.title.toLowerCase().includes(q)
+      p => p.rawText?.toLowerCase().includes(q) || p.title?.toLowerCase().includes(q)
     );
   }, [pages, searchQuery]);
 
@@ -130,7 +284,7 @@ export function DocumentViewer({
     <div
       ref={containerRef}
       className={`flex flex-col rounded-lg border border-[var(--border)] bg-[var(--surface)] overflow-hidden shadow-xs ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-zinc-900 border-none' : ''
+        isFullscreen ? 'fixed inset-0 z-50 rounded-none bg-zinc-950 border-none' : ''
       }`}
     >
       {/* Top Toolbar */}
@@ -141,31 +295,31 @@ export function DocumentViewer({
             <Presentation className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-[var(--foreground)] truncate max-w-[260px] sm:max-w-md">
+            <h2 className="text-sm font-semibold text-[var(--foreground)] truncate max-w-[240px] sm:max-w-md">
               {document.title}
             </h2>
             <div className="text-[11px] text-[var(--foreground-muted)] flex items-center gap-2">
-              <span className="font-medium text-blue-600">สไลด์จริง (Original PDF)</span>
+              <span className="font-medium text-blue-600">สไลด์ PDF ({totalPages} หน้า)</span>
               <span>•</span>
-              <span>{totalPages} หน้าทั้งหมด</span>
+              <span>หน้าที่ {currentPage} จาก {totalPages}</span>
             </div>
           </div>
         </div>
 
         {/* Center/Right: View Mode & Action Controls */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Toggle between Real PDF Slide & Extracted Notes */}
+          {/* Toggle between High-Res Canvas & Extracted Notes */}
           <div className="flex items-center rounded-lg border border-[var(--border-strong)] bg-[var(--surface)] p-0.5 text-xs font-medium">
             <button
-              onClick={() => setViewMode('pdf')}
+              onClick={() => setViewMode('canvas')}
               className={`px-3 py-1.5 rounded-md flex items-center gap-1.5 cursor-pointer transition-colors ${
-                viewMode === 'pdf'
+                viewMode === 'canvas'
                   ? 'bg-blue-600 text-white font-semibold shadow-2xs'
                   : 'text-[var(--foreground-secondary)] hover:text-[var(--foreground)]'
               }`}
             >
               <Presentation className="h-3.5 w-3.5" />
-              <span>สไลด์จริง (PDF)</span>
+              <span>สไลด์ต้นฉบับ</span>
             </button>
             <button
               onClick={() => setViewMode('text')}
@@ -189,64 +343,140 @@ export function DocumentViewer({
                 ? 'bg-blue-600 text-white border-blue-600 font-medium'
                 : 'border-[var(--border-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--foreground)]'
             }`}
-            title="สารบัญหน้าสไลด์"
+            title="สารบัญสไลด์"
           >
             <List className="h-4 w-4" />
             <span className="hidden sm:inline">สารบัญ</span>
           </button>
 
-          {/* External Open / Download */}
+          {/* Open in New Tab Button */}
           <a
             href={pdfApiUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors inline-flex items-center gap-1 text-xs"
-            title="เปิดสไลด์เต็มในแท็บใหม่"
+            title="เปิดอ่าน PDF ในแท็บใหม่"
           >
             <ExternalLink className="h-4 w-4" />
             <span className="hidden md:inline">เปิดแท็บใหม่</span>
           </a>
 
+          {/* Download Button */}
           <a
             href={pdfApiUrl}
             download={`${document.title}.pdf`}
             className="p-2 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors inline-flex items-center gap-1 text-xs"
-            title="ดาวน์โหลดไฟล์สไลด์ PDF"
+            title="ดาวน์โหลดไฟล์ PDF"
           >
             <Download className="h-4 w-4" />
-            <span className="hidden md:inline">ดาวน์โหลด</span>
           </a>
 
+          {/* Fullscreen Button */}
           <button
+            type="button"
             onClick={toggleFullscreen}
-            className="p-2 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
-            title="เต็มหน้าจอ (Fullscreen)"
+            className="p-2 rounded-md border border-[var(--border-strong)] bg-[var(--surface)] hover:bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors"
+            title={isFullscreen ? 'ออกจากโหมดเต็มจอ' : 'เปิดเต็มจอ (Presentation)'}
           >
-            <Maximize2 className="h-4 w-4" />
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      {/* Main Content Viewer Body */}
-      <div className="grid grid-cols-1 md:grid-cols-12 min-h-[600px] flex-1 bg-zinc-900">
-        {/* Optional Sidebar for Outline / Search */}
+      {/* Floating Presentation Control Bar */}
+      <div className="bg-zinc-900 text-white px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-800">
+        {/* Page Navigators */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handlePrev}
+            disabled={currentPage <= 1}
+            className="h-8 px-2 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            <span>ก่อนหน้า</span>
+          </Button>
+
+          <div className="flex items-center gap-1.5 px-2 font-mono text-zinc-300">
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              value={currentPage}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1 && val <= totalPages) {
+                  setCurrentPage(val);
+                }
+              }}
+              className="w-12 h-7 bg-zinc-800 text-center rounded border border-zinc-700 text-xs text-white focus:outline-none focus:border-blue-500"
+            />
+            <span className="text-zinc-500">/</span>
+            <span>{totalPages}</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleNext}
+            disabled={currentPage >= totalPages}
+            className="h-8 px-2 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
+          >
+            <span>ถัดไป</span>
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+
+        {/* Zoom & Quick Actions */}
+        <div className="flex items-center gap-2">
+          {viewMode === 'canvas' && (
+            <div className="flex items-center gap-1 border-r border-zinc-800 pr-3 mr-1">
+              <button
+                type="button"
+                onClick={() => setZoomLevel(prev => Math.max(60, prev - 15))}
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                title="ย่อขนาด"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <span className="w-12 text-center font-mono text-[11px] text-zinc-400">
+                {zoomLevel}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(prev => Math.min(200, prev + 15))}
+                className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+                title="ขยายขนาด"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+
+          <span className="text-[11px] text-zinc-400 hidden sm:inline">
+            {activePage?.title || document.title}
+          </span>
+        </div>
+      </div>
+
+      {/* Main Slide & Outline Split Body */}
+      <div className="grid grid-cols-1 md:grid-cols-12 flex-1 min-h-[600px] overflow-hidden">
+        {/* Slide Outline Sidebar */}
         {showOutline && (
-          <div className="md:col-span-3 border-r border-zinc-700 bg-zinc-800 p-3 space-y-3 max-h-[750px] overflow-y-auto">
+          <div className="md:col-span-3 border-r border-zinc-800 bg-zinc-900 p-3 overflow-y-auto max-h-[750px] space-y-3">
             <div className="relative">
-              <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-400" />
+              <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-500" />
               <input
                 type="text"
                 placeholder="ค้นหาในสไลด์..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full h-8 pl-8 pr-2 text-xs rounded border border-zinc-600 bg-zinc-700 text-white placeholder:text-zinc-400"
+                className="w-full h-8 pl-8 pr-2 text-xs rounded bg-zinc-800 border border-zinc-700 text-white placeholder:text-zinc-500 focus:outline-none focus:border-blue-500"
               />
             </div>
 
-            <div className="space-y-1 text-xs">
-              <div className="text-[11px] font-semibold text-zinc-400 px-1 uppercase tracking-wider">
-                รายการหน้าสไลด์ ({filteredPages.length})
-              </div>
+            <div className="space-y-1">
               {filteredPages.map(p => {
                 const isSelected = p.pageNumber === currentPage;
                 return (
@@ -254,14 +484,11 @@ export function DocumentViewer({
                     key={p.pageNumber}
                     onClick={() => {
                       setCurrentPage(p.pageNumber);
-                      if (iframeRef.current) {
-                        iframeRef.current.src = `${pdfApiUrl}#page=${p.pageNumber}&view=FitH`;
-                      }
                     }}
                     className={`w-full text-left p-2 rounded transition-colors cursor-pointer text-xs ${
                       isSelected
                         ? 'bg-blue-600 text-white font-semibold'
-                        : 'hover:bg-zinc-700 text-zinc-300'
+                        : 'hover:bg-zinc-800 text-zinc-300'
                     }`}
                   >
                     <div className="flex items-center justify-between">
@@ -278,73 +505,64 @@ export function DocumentViewer({
           </div>
         )}
 
-        {/* Real PDF Viewer Window */}
+        {/* Real Slide Canvas / Interactive Presentation Window */}
         <div
           className={`${
             showOutline ? 'md:col-span-9' : 'md:col-span-12'
-          } flex flex-col items-center justify-center p-2 sm:p-4 bg-zinc-950 min-h-[600px]`}
+          } flex flex-col items-center justify-center p-3 sm:p-6 bg-zinc-950 min-h-[620px] overflow-auto relative`}
         >
-          {viewMode === 'pdf' ? (
-            /* REAL PDF OBJECT / IFRAME VIEWER WITH ROBUST FALLBACK */
-            <div className="w-full h-full min-h-[650px] flex flex-col rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl">
-              {/* Quick Actions Helper Strip */}
-              <div className="bg-zinc-800/80 px-4 py-2 border-b border-zinc-700/60 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-300">
-                <span className="text-zinc-400">
-                  หากเบราว์เซอร์ของคุณบล็อกการแสดงผล PDF ในหน้าเว็บ:
-                </span>
-                <div className="flex items-center gap-2">
-                  <a
-                    href={pdfApiUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span>เปิดสไลด์ในแท็บใหม่</span>
-                  </a>
-                  <button
-                    type="button"
-                    onClick={() => setViewMode('text')}
-                    className="px-2.5 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-white font-medium inline-flex items-center gap-1.5 transition-colors"
-                  >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>สลับเป็นโหมดสรุปเนื้อหา</span>
-                  </button>
+          {viewMode === 'canvas' ? (
+            /* PURE HTML5 CANVAS VIEWER (Zero Iframe, No browser blocks) */
+            <div className="w-full flex flex-col items-center justify-center min-h-[580px] my-auto">
+              {isLoadingPdf ? (
+                <div className="flex flex-col items-center gap-3 text-zinc-400 py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+                  <p className="text-sm font-medium">กำลังโหลดสไลด์ PDF...</p>
                 </div>
-              </div>
-
-              <object
-                data={`${pdfApiUrl}#page=${currentPage}&view=FitH&toolbar=1`}
-                type="application/pdf"
-                className="w-full flex-1 min-h-[600px]"
-              >
-                <iframe
-                  ref={iframeRef}
-                  src={`${pdfApiUrl}#page=${currentPage}&view=FitH&toolbar=1`}
-                  className="w-full flex-1 min-h-[600px] border-0"
-                  title={document.title}
-                  loading="eager"
-                >
-                  <div className="p-8 text-center text-zinc-400 space-y-3 my-auto">
-                    <p>เบราว์เซอร์ไม่รองรับการแสดงผลไฟล์ PDF ในหน้านี้</p>
-                    <div className="flex justify-center gap-3">
-                      <a
-                        href={pdfApiUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold text-xs inline-flex items-center gap-1.5"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        <span>เปิดอ่านไฟล์ PDF ในหน้าต่างใหม่</span>
-                      </a>
-                    </div>
+              ) : pdfLoadError ? (
+                <div className="max-w-md p-6 rounded-xl bg-zinc-900 border border-zinc-800 text-center space-y-4 text-zinc-300 my-auto">
+                  <AlertCircle className="h-10 w-10 text-amber-400 mx-auto" />
+                  <div>
+                    <h3 className="font-semibold text-sm text-white mb-1">ไม่สามารถแสดงผล PDF Canvas ได้</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">
+                      คุณสามารถสลับไปดูโหมดสรุปสไลด์ หรือเปิดไฟล์ต้นฉบับในหน้าต่างใหม่ได้ทันที
+                    </p>
                   </div>
-                </iframe>
-              </object>
+                  <div className="flex justify-center gap-2 pt-2">
+                    <Button
+                      onClick={() => setViewMode('text')}
+                      variant="primary"
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <BookOpen className="h-3.5 w-3.5 mr-1.5" />
+                      <span>ดูโหมดสรุปสไลด์</span>
+                    </Button>
+                    <a
+                      href={pdfApiUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-md border border-zinc-700 hover:bg-zinc-800 text-xs font-medium inline-flex items-center gap-1.5 text-white"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>เปิดในแท็บใหม่</span>
+                    </a>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative flex items-center justify-center rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 transition-transform">
+                  <canvas ref={canvasRef} className="block max-w-full h-auto" />
+                  {isRenderingPage && (
+                    <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-xs flex items-center justify-center text-white">
+                      <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
-            /* TEXT / NOTES VIEW */
-            <div className="w-full max-w-3xl min-h-[500px] bg-white rounded-lg shadow-xl border border-zinc-200 p-6 sm:p-10 flex flex-col justify-between my-auto">
+            /* PRESENTATION SLIDE & NOTES VIEW */
+            <div className="w-full max-w-3xl min-h-[500px] bg-white rounded-xl shadow-2xl border border-zinc-200 p-6 sm:p-10 flex flex-col justify-between my-auto">
               <div>
                 <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-5">
                   <div>
@@ -362,20 +580,20 @@ export function DocumentViewer({
 
                 <div className="space-y-4 text-zinc-700 text-sm leading-relaxed">
                   {activePage.bullets && activePage.bullets.length > 0 ? (
-                    <div className="space-y-2.5">
+                    <div className="space-y-3">
                       {activePage.bullets.map((b, idx) => (
-                        <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-zinc-800">
+                        <div key={idx} className="flex items-start gap-2.5 text-xs sm:text-sm text-zinc-800 bg-zinc-50 p-3 rounded-lg border border-zinc-100">
                           <span className="h-2 w-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                          <span>{b}</span>
+                          <span className="leading-relaxed">{b}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p>{activePage.rawText}</p>
+                    <p className="text-zinc-800 leading-relaxed">{activePage.rawText}</p>
                   )}
 
                   {activePage.rawText && activePage.rawText.length > 120 && (
-                    <div className="mt-5 p-4 rounded-md bg-zinc-50 border border-zinc-200 text-xs text-zinc-600">
+                    <div className="mt-5 p-4 rounded-lg bg-zinc-50 border border-zinc-200 text-xs text-zinc-600">
                       <div className="font-semibold text-zinc-700 mb-1 flex items-center gap-1.5">
                         <BookOpen className="h-3.5 w-3.5 text-blue-600" />
                         <span>ข้อความสกัดจากเอกสารสไลด์ (Extracted Text):</span>
@@ -388,24 +606,24 @@ export function DocumentViewer({
 
               <div className="pt-6 mt-6 border-t border-zinc-100 flex justify-between items-center text-xs text-zinc-400">
                 <span>Course: Internetworking</span>
-                <span>ExamPlatform Lecture Viewer</span>
+                <span>ExamPlatform Slide Viewer</span>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Status bar */}
+      {/* Bottom Status Bar */}
       <div className="p-3 border-t border-[var(--border)] bg-[var(--surface)] flex flex-wrap items-center justify-between text-xs text-[var(--foreground-muted)] gap-3">
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center text-emerald-600 font-medium">
             <CheckCircle className="h-4 w-4 mr-1" />
-            <span>พร้อมเปิดอ่านสไลด์ต้นฉบับ ({totalPages} หน้า)</span>
+            <span>สไลด์พร้อมใช้งาน ({totalPages} หน้า)</span>
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[11px] text-[var(--foreground-muted)]">
-            ใช้ปุ่มลูกศร ซ้าย/ขวา บนคีย์บอร์ดเพื่อเปลี่ยนหน้า
+            กดปุ่มลูกศร ◀ ▶ หรือ Spacebar บนคีย์บอร์ดเพื่อเปลี่ยนหน้าสไลด์
           </span>
         </div>
       </div>
