@@ -99,16 +99,16 @@ export function DocumentViewer({
       try {
         const pdfjs = await import('pdfjs-dist');
         
-        // Configure Web Worker
-        if (!pdfjs.GlobalWorkerOptions.workerSrc) {
-          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs`;
+        // Configure Web Worker using local bundle with unpkg fallback matching exact installed version
+        if (typeof window !== 'undefined') {
+          pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
         }
 
         const loadingTask = pdfjs.getDocument({
           url: pdfApiUrl,
-          cMapUrl: 'https://unpkg.com/pdfjs-dist@4.10.38/cmaps/',
+          cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
           cMapPacked: true,
-          standardFontDataUrl: 'https://unpkg.com/pdfjs-dist@4.10.38/standard_fonts/',
+          standardFontDataUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/standard_fonts/`,
         });
 
         const doc = await loadingTask.promise;
@@ -118,11 +118,16 @@ export function DocumentViewer({
           setIsLoadingPdf(false);
         }
       } catch (err: any) {
-        console.warn('PDF.js failed to load, falling back to static file or text view:', err);
-        // Try static URL fallback
+        console.warn('Primary PDF load failed, trying static / cdn worker fallback:', err);
         try {
           const pdfjs = await import('pdfjs-dist');
-          const staticTask = pdfjs.getDocument({ url: pdfStaticUrl });
+          pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+          
+          const staticTask = pdfjs.getDocument({
+            url: pdfStaticUrl,
+            cMapUrl: `https://unpkg.com/pdfjs-dist@${pdfjs.version}/cmaps/`,
+            cMapPacked: true,
+          });
           const doc = await staticTask.promise;
           if (isMounted) {
             setPdfDoc(doc);
@@ -133,7 +138,7 @@ export function DocumentViewer({
         } catch (staticErr) {
           if (isMounted) {
             setIsLoadingPdf(false);
-            setPdfLoadError('ไม่สามารถโหลดไฟล์ PDF ได้ กรุณากดปุ่มเปิดแท็บใหม่หรือดูโหมดสรุป');
+            setPdfLoadError('ไม่สามารถโหลด Canvas PDF ได้ กรุณากดปุ่มเปิดแท็บใหม่ หรือดูโหมดสไลด์สรุปเนื้อหา');
           }
         }
       }
