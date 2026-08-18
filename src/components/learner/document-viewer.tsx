@@ -18,7 +18,7 @@ import {
   CheckCircle,
   Loader2,
   AlertCircle,
-  RefreshCw,
+  Scan,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -44,10 +44,17 @@ export function DocumentViewer({
   const [totalPages, setTotalPages] = React.useState(document.page_count || 1);
   const [viewMode, setViewMode] = React.useState<'canvas' | 'text'>('canvas');
   const [zoomLevel, setZoomLevel] = React.useState(100);
+  const [fitMode, setFitMode] = React.useState<'width' | 'page'>('width');
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   const [pages, setPages] = React.useState<SlidePage[]>([]);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [showOutline, setShowOutline] = React.useState(false);
+
+  // Dynamic container dimensions for perfect full-width fit
+  const [containerSize, setContainerSize] = React.useState<{ width: number; height: number }>({
+    width: 1100,
+    height: 750,
+  });
 
   // PDF.js rendering states
   const [pdfDoc, setPdfDoc] = React.useState<any>(null);
@@ -56,6 +63,7 @@ export function DocumentViewer({
   const [pdfLoadError, setPdfLoadError] = React.useState<string | null>(null);
 
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const viewerBodyRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const renderTaskRef = React.useRef<any>(null);
 
@@ -63,7 +71,24 @@ export function DocumentViewer({
   const pdfApiUrl = `/api/documents/${document.id}/pdf`;
   const pdfStaticUrl = `/documents/${document.id}.pdf`;
 
-  // 1. Load pages metadata for outline & search
+  // 1. Observe container size for responsive full-width fitting
+  React.useEffect(() => {
+    if (!viewerBodyRef.current) return;
+    const ro = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.contentRect.width > 0) {
+          setContainerSize({
+            width: Math.floor(entry.contentRect.width),
+            height: Math.floor(entry.contentRect.height || 750),
+          });
+        }
+      }
+    });
+    ro.observe(viewerBodyRef.current);
+    return () => ro.disconnect();
+  }, [showOutline, isFullscreen, viewMode]);
+
+  // 2. Load pages metadata for outline & search
   React.useEffect(() => {
     fetch(`/api/documents/${document.id}/pages`)
       .then(res => (res.ok ? res.json() : null))
@@ -88,7 +113,7 @@ export function DocumentViewer({
       });
   }, [document.id, totalPages]);
 
-  // 2. Load PDF Document via PDF.js on Client-Side (No Iframe restrictions)
+  // 3. Load PDF Document via PDF.js on Client-Side
   React.useEffect(() => {
     if (typeof window === 'undefined') return;
     let isMounted = true;
@@ -99,7 +124,7 @@ export function DocumentViewer({
       try {
         const pdfjs = await import('pdfjs-dist');
         
-        // Configure Web Worker using local bundle with unpkg fallback matching exact installed version
+        // Configure Web Worker using bundled local worker
         if (typeof window !== 'undefined') {
           pdfjs.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
         }
@@ -118,7 +143,7 @@ export function DocumentViewer({
           setIsLoadingPdf(false);
         }
       } catch (err: any) {
-        console.warn('Primary PDF load failed, trying static / cdn worker fallback:', err);
+        console.warn('Primary PDF load failed, trying cdn worker fallback:', err);
         try {
           const pdfjs = await import('pdfjs-dist');
           pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -151,7 +176,7 @@ export function DocumentViewer({
     };
   }, [pdfApiUrl, pdfStaticUrl]);
 
-  // 3. Render Canvas whenever page or zoom changes
+  // 4. Render Canvas with Auto Full-Width Fitting
   React.useEffect(() => {
     if (!pdfDoc || !canvasRef.current || viewMode !== 'canvas') return;
 
@@ -172,18 +197,31 @@ export function DocumentViewer({
         if (isCancelled || !canvasRef.current) return;
 
         const canvas = canvasRef.current;
-        const parentWidth = canvas.parentElement?.clientWidth || 800;
         const unscaledViewport = page.getViewport({ scale: 1 });
         
-        // Base scale fits container width
-        const baseScale = Math.min(2.0, (parentWidth - 32) / unscaledViewport.width);
-        const scale = Math.max(0.6, baseScale * (zoomLevel / 100));
+        // Compute available space (accounting for padding)
+        const availableWidth = Math.max(320, containerSize.width - 24);
+        const availableHeight = Math.max(400, containerSize.height - 24);
+
+        let baseScale = 1.0;
+        if (fitMode === 'page') {
+          baseScale = Math.min(
+            availableWidth / unscaledViewport.width,
+            availableHeight / unscaledViewport.height
+          );
+        } else {
+          // Fit Width (Default Full-Width)
+          baseScale = availableWidth / unscaledViewport.width;
+        }
+
+        // Apply custom zoom multiplier
+        const scale = baseScale * (zoomLevel / 100);
 
         const viewport = page.getViewport({ scale });
         const context = canvas.getContext('2d');
         if (!context) return;
 
-        // Retina / High-DPI support
+        // Retina / High-DPI support (devicePixelRatio)
         const pixelRatio = window.devicePixelRatio || 1;
         canvas.width = Math.floor(viewport.width * pixelRatio);
         canvas.height = Math.floor(viewport.height * pixelRatio);
@@ -225,7 +263,7 @@ export function DocumentViewer({
         }
       }
     };
-  }, [pdfDoc, currentPage, zoomLevel, viewMode]);
+  }, [pdfDoc, currentPage, zoomLevel, fitMode, containerSize, viewMode]);
 
   const handleNext = () => {
     if (currentPage < totalPages) {
@@ -389,7 +427,7 @@ export function DocumentViewer({
       </div>
 
       {/* Floating Presentation Control Bar */}
-      <div className="bg-zinc-900 text-white px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-800">
+      <div className="bg-zinc-900 text-white px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs border-b border-zinc-800">
         {/* Page Navigators */}
         <div className="flex items-center gap-2">
           <Button
@@ -397,7 +435,7 @@ export function DocumentViewer({
             size="sm"
             onClick={handlePrev}
             disabled={currentPage <= 1}
-            className="h-8 px-2 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
+            className="h-8 px-2.5 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
             <span>ก่อนหน้า</span>
@@ -415,7 +453,7 @@ export function DocumentViewer({
                   setCurrentPage(val);
                 }
               }}
-              className="w-12 h-7 bg-zinc-800 text-center rounded border border-zinc-700 text-xs text-white focus:outline-none focus:border-blue-500"
+              className="w-12 h-7 bg-zinc-800 text-center rounded border border-zinc-700 text-xs text-white focus:outline-none focus:border-blue-500 font-semibold"
             />
             <span className="text-zinc-500">/</span>
             <span>{totalPages}</span>
@@ -426,31 +464,50 @@ export function DocumentViewer({
             size="sm"
             onClick={handleNext}
             disabled={currentPage >= totalPages}
-            className="h-8 px-2 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
+            className="h-8 px-2.5 text-zinc-300 hover:text-white hover:bg-zinc-800 disabled:opacity-30"
           >
             <span>ถัดไป</span>
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         </div>
 
-        {/* Zoom & Quick Actions */}
+        {/* Fit Presets & Zoom Controls */}
         <div className="flex items-center gap-2">
           {viewMode === 'canvas' && (
-            <div className="flex items-center gap-1 border-r border-zinc-800 pr-3 mr-1">
+            <div className="flex items-center gap-1.5 border-r border-zinc-800 pr-3 mr-1">
+              {/* Fit Width / Page Toggle */}
               <button
                 type="button"
-                onClick={() => setZoomLevel(prev => Math.max(60, prev - 15))}
+                onClick={() => {
+                  setFitMode(fitMode === 'width' ? 'page' : 'width');
+                  setZoomLevel(100);
+                }}
+                className={`px-2 py-1 rounded text-[11px] font-medium transition-colors flex items-center gap-1 ${
+                  fitMode === 'width'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'
+                }`}
+                title={fitMode === 'width' ? 'สลับเป็นพอดีหน้าจอ' : 'สลับเป็นพอดีความกว้างเต็มจอ'}
+              >
+                <Scan className="h-3 w-3" />
+                <span>{fitMode === 'width' ? 'พอดีความกว้าง' : 'พอดีทั้งหน้า'}</span>
+              </button>
+
+              {/* Zoom Controls */}
+              <button
+                type="button"
+                onClick={() => setZoomLevel(prev => Math.max(50, prev - 15))}
                 className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
                 title="ย่อขนาด"
               >
                 <ZoomOut className="h-3.5 w-3.5" />
               </button>
-              <span className="w-12 text-center font-mono text-[11px] text-zinc-400">
+              <span className="w-12 text-center font-mono text-[11px] text-zinc-300 font-medium">
                 {zoomLevel}%
               </span>
               <button
                 type="button"
-                onClick={() => setZoomLevel(prev => Math.min(200, prev + 15))}
+                onClick={() => setZoomLevel(prev => Math.min(250, prev + 15))}
                 className="p-1.5 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
                 title="ขยายขนาด"
               >
@@ -459,17 +516,17 @@ export function DocumentViewer({
             </div>
           )}
 
-          <span className="text-[11px] text-zinc-400 hidden sm:inline">
+          <span className="text-[11px] text-zinc-400 hidden sm:inline truncate max-w-[200px] lg:max-w-xs">
             {activePage?.title || document.title}
           </span>
         </div>
       </div>
 
       {/* Main Slide & Outline Split Body */}
-      <div className="grid grid-cols-1 md:grid-cols-12 flex-1 min-h-[600px] overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-12 flex-1 min-h-[620px] overflow-hidden">
         {/* Slide Outline Sidebar */}
         {showOutline && (
-          <div className="md:col-span-3 border-r border-zinc-800 bg-zinc-900 p-3 overflow-y-auto max-h-[750px] space-y-3">
+          <div className="md:col-span-3 border-r border-zinc-800 bg-zinc-900 p-3 overflow-y-auto max-h-[800px] space-y-3">
             <div className="relative">
               <Search className="h-3.5 w-3.5 absolute left-2.5 top-2.5 text-zinc-500" />
               <input
@@ -510,17 +567,18 @@ export function DocumentViewer({
           </div>
         )}
 
-        {/* Real Slide Canvas / Interactive Presentation Window */}
+        {/* Real Slide Canvas Viewport Body */}
         <div
+          ref={viewerBodyRef}
           className={`${
             showOutline ? 'md:col-span-9' : 'md:col-span-12'
-          } flex flex-col items-center justify-center p-3 sm:p-6 bg-zinc-950 min-h-[620px] overflow-auto relative`}
+          } flex flex-col items-center justify-start p-2 sm:p-4 bg-zinc-950 min-h-[620px] overflow-auto relative`}
         >
           {viewMode === 'canvas' ? (
-            /* PURE HTML5 CANVAS VIEWER (Zero Iframe, No browser blocks) */
+            /* AUTO FULL-WIDTH HIGH-DPI CANVAS VIEWER */
             <div className="w-full flex flex-col items-center justify-center min-h-[580px] my-auto">
               {isLoadingPdf ? (
-                <div className="flex flex-col items-center gap-3 text-zinc-400 py-20">
+                <div className="flex flex-col items-center gap-3 text-zinc-400 py-24">
                   <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
                   <p className="text-sm font-medium">กำลังโหลดสไลด์ PDF...</p>
                 </div>
@@ -555,10 +613,10 @@ export function DocumentViewer({
                   </div>
                 </div>
               ) : (
-                <div className="relative flex items-center justify-center rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 transition-transform">
+                <div className="relative flex items-center justify-center rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 transition-all max-w-full">
                   <canvas ref={canvasRef} className="block max-w-full h-auto" />
                   {isRenderingPage && (
-                    <div className="absolute inset-0 bg-zinc-950/40 backdrop-blur-xs flex items-center justify-center text-white">
+                    <div className="absolute inset-0 bg-zinc-950/30 backdrop-blur-2xs flex items-center justify-center text-white">
                       <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
                     </div>
                   )}
@@ -567,7 +625,7 @@ export function DocumentViewer({
             </div>
           ) : (
             /* PRESENTATION SLIDE & NOTES VIEW */
-            <div className="w-full max-w-3xl min-h-[500px] bg-white rounded-xl shadow-2xl border border-zinc-200 p-6 sm:p-10 flex flex-col justify-between my-auto">
+            <div className="w-full max-w-4xl min-h-[520px] bg-white rounded-xl shadow-2xl border border-zinc-200 p-6 sm:p-10 flex flex-col justify-between my-auto">
               <div>
                 <div className="flex justify-between items-start border-b border-zinc-200 pb-3 mb-5">
                   <div>
