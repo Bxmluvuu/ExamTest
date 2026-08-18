@@ -55,8 +55,8 @@ export default function SubjectsListPage() {
                 subject={subject}
                 coveragePercentage={subStat?.coverage_percentage || 0}
                 averageScore={subStat?.average_score}
-                chaptersCount={4}
-                docsCount={subject.slug === 'database-systems' ? 4 : 2}
+                chaptersCount={subject.chapters_count ?? 14}
+                docsCount={subject.documents_count ?? 16}
               />
             );
           })}

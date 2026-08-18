@@ -74,6 +74,8 @@ export interface Subject {
   language: string;
   question_target: number;
   icon?: string;
+  chapters_count?: number;
+  documents_count?: number;
   created_at: string;
   updated_at: string;
 }

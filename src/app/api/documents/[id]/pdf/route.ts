@@ -15,6 +15,14 @@ export async function GET(
     return NextResponse.json({ error: 'Document not found' }, { status: 404 });
   }
 
+  const responseHeaders = {
+    'Content-Type': 'application/pdf',
+    'Cache-Control': 'public, max-age=86400, immutable',
+    'X-Frame-Options': 'SAMEORIGIN',
+    'Content-Security-Policy': "frame-ancestors 'self' https://exam-test-azure.vercel.app http://localhost:3000",
+    'Access-Control-Allow-Origin': '*',
+  };
+
   // 1. Check in public/documents first
   const publicPath = path.join(process.cwd(), 'public', 'documents', `${id}.pdf`);
   if (fs.existsSync(publicPath)) {
@@ -22,9 +30,8 @@ export async function GET(
     return new Response(fileBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
+        ...responseHeaders,
         'Content-Disposition': `inline; filename="${encodeURIComponent(path.basename(doc.file_path || `${id}.pdf`))}"`,
-        'Cache-Control': 'public, max-age=86400, immutable',
       },
     });
   }
@@ -46,9 +53,8 @@ export async function GET(
     return new Response(fileBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'application/pdf',
+        ...responseHeaders,
         'Content-Disposition': `inline; filename="${encodeURIComponent(baseName)}"`,
-        'Cache-Control': 'public, max-age=86400, immutable',
       },
     });
   }
@@ -66,7 +72,7 @@ export async function GET(
         return new Response(Buffer.from(arrayBuffer), {
           status: 200,
           headers: {
-            'Content-Type': 'application/pdf',
+            ...responseHeaders,
             'Content-Disposition': `inline; filename="${encodeURIComponent(path.basename(doc.file_path))}"`,
           },
         });

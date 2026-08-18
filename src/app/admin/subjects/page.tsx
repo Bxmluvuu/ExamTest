@@ -129,7 +129,9 @@ export default function AdminSubjectsPage() {
                   <h3 className="font-semibold text-base text-[var(--foreground)] mt-2">{sub.name}</h3>
                   <p className="text-xs text-[var(--foreground-muted)] line-clamp-2">{sub.description}</p>
 
-                  <div className="pt-2 flex items-center gap-3 text-xs text-[var(--foreground-muted)]">
+                  <div className="pt-2 flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
+                    <span>{sub.chapters_count || 14} บทเรียน</span>
+                    <span>•</span>
                     <span>{subDocs.length} เอกสาร PDF</span>
                     <span>•</span>
                     <span>Slug: <code>{sub.slug}</code></span>

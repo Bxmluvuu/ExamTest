@@ -29,7 +29,13 @@ describe('Blueprint Engine', () => {
     expect(published.length).toBeLessThanOrEqual(5);
     published.forEach(item => {
       expect(item.question.status).toBe('published');
-      expect(item.shuffledChoices.length).toBe(4);
+      if (item.question.question_type === 'single_choice' || !item.question.question_type) {
+        expect(item.shuffledChoices.length).toBe(4);
+      } else if (item.question.question_type === 'fill_in_the_blank') {
+        expect(item.snapshot.word_bank?.length).toBeGreaterThan(0);
+      } else if (item.question.question_type === 'matching') {
+        expect(item.snapshot.matching_pairs?.length).toBeGreaterThan(0);
+      }
     });
   });
 

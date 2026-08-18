@@ -68,7 +68,15 @@ export function setCurrentSessionUser(userId: string): void {
 // ----------------------------------------------------
 export async function getSubjects(): Promise<Subject[]> {
   const store = getDataStore();
-  return [...store.subjects];
+  return store.subjects.map(s => {
+    const chaptersCount = store.chapters.filter(c => c.subject_id === s.id).length;
+    const docsCount = store.source_documents.filter(d => d.subject_id === s.id).length;
+    return {
+      ...s,
+      chapters_count: chaptersCount,
+      documents_count: docsCount,
+    };
+  });
 }
 
 export async function getSubjectBySlug(slug: string): Promise<{

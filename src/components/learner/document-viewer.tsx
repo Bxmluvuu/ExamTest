@@ -285,15 +285,62 @@ export function DocumentViewer({
           } flex flex-col items-center justify-center p-2 sm:p-4 bg-zinc-950 min-h-[600px]`}
         >
           {viewMode === 'pdf' ? (
-            /* REAL PDF IFRAME / EMBED VIEWER */
+            /* REAL PDF OBJECT / IFRAME VIEWER WITH ROBUST FALLBACK */
             <div className="w-full h-full min-h-[650px] flex flex-col rounded-lg overflow-hidden border border-zinc-800 bg-zinc-900 shadow-2xl">
-              <iframe
-                ref={iframeRef}
-                src={`${pdfApiUrl}#page=${currentPage}&view=FitH&toolbar=1`}
-                className="w-full flex-1 min-h-[650px] border-0"
-                title={document.title}
-                loading="eager"
-              />
+              {/* Quick Actions Helper Strip */}
+              <div className="bg-zinc-800/80 px-4 py-2 border-b border-zinc-700/60 flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-300">
+                <span className="text-zinc-400">
+                  หากเบราว์เซอร์ของคุณบล็อกการแสดงผล PDF ในหน้าเว็บ:
+                </span>
+                <div className="flex items-center gap-2">
+                  <a
+                    href={pdfApiUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-2.5 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-medium inline-flex items-center gap-1.5 transition-colors shadow-xs"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>เปิดสไลด์ในแท็บใหม่</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setViewMode('text')}
+                    className="px-2.5 py-1 rounded bg-zinc-700 hover:bg-zinc-600 text-white font-medium inline-flex items-center gap-1.5 transition-colors"
+                  >
+                    <BookOpen className="h-3.5 w-3.5" />
+                    <span>สลับเป็นโหมดสรุปเนื้อหา</span>
+                  </button>
+                </div>
+              </div>
+
+              <object
+                data={`${pdfApiUrl}#page=${currentPage}&view=FitH&toolbar=1`}
+                type="application/pdf"
+                className="w-full flex-1 min-h-[600px]"
+              >
+                <iframe
+                  ref={iframeRef}
+                  src={`${pdfApiUrl}#page=${currentPage}&view=FitH&toolbar=1`}
+                  className="w-full flex-1 min-h-[600px] border-0"
+                  title={document.title}
+                  loading="eager"
+                >
+                  <div className="p-8 text-center text-zinc-400 space-y-3 my-auto">
+                    <p>เบราว์เซอร์ไม่รองรับการแสดงผลไฟล์ PDF ในหน้านี้</p>
+                    <div className="flex justify-center gap-3">
+                      <a
+                        href={pdfApiUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 rounded-md bg-blue-600 text-white font-semibold text-xs inline-flex items-center gap-1.5"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>เปิดอ่านไฟล์ PDF ในหน้าต่างใหม่</span>
+                      </a>
+                    </div>
+                  </div>
+                </iframe>
+              </object>
             </div>
           ) : (
             /* TEXT / NOTES VIEW */
