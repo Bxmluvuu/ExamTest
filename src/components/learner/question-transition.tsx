@@ -42,8 +42,8 @@ export function QuestionTransition({
     <div
       key={displayedKey}
       className={cn(
-        'transition-all duration-120 ease-out',
-        animating ? 'opacity-70 scale-[0.995]' : 'opacity-100 scale-100',
+        'transition-opacity duration-150 ease-out',
+        animating ? 'opacity-50' : 'opacity-100',
         className
       )}
     >

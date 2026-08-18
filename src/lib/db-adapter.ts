@@ -194,9 +194,16 @@ export async function createExamAttemptAction(params: {
   const targetCount = params.targetCount || blueprint?.question_count || 10;
   const duration = blueprint?.duration_minutes || (targetCount * 2);
 
+  const answerKeyMap: Record<string, QuestionAnswerKey> = {};
+  store.question_answer_keys.forEach(k => {
+    answerKeyMap[k.question_id] = k;
+  });
+
   const selectedItems = selectQuestionsForAttempt({
     blueprint,
     allQuestions: subjectQuestions,
+    allAnswerKeys: answerKeyMap,
+    allChoices: store.question_choices,
     mode: params.mode,
     targetCount,
     selectedChapterId: params.chapterId,
@@ -232,7 +239,7 @@ export async function createExamAttemptAction(params: {
 
   store.exam_attempts.push(newAttempt);
 
-  // Insert attempt questions with randomized choices & snapshots
+  // Insert attempt questions with randomized choices & snapshots & mapped correct keys
   selectedItems.forEach((item, index) => {
     store.attempt_questions.push({
       id: `attq-${attemptId}-${index + 1}`,
@@ -240,6 +247,7 @@ export async function createExamAttemptAction(params: {
       question_id: item.question.id,
       sequence_order: index + 1,
       shuffled_choices: item.shuffledChoices,
+      correct_choice_key: item.correctChoiceKey,
       question_snapshot: item.snapshot,
     });
   });
@@ -286,7 +294,7 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
         fill_blank_answers: userAns?.fill_blank_answers,
         matching_answers: userAns?.matching_answers,
         is_correct: userAns?.is_correct,
-        correct_choice_key: key?.correct_choice_key,
+        correct_choice_key: q.correct_choice_key || key?.correct_choice_key,
         correct_blank_answers: key?.correct_blank_answers,
         correct_matching: key?.correct_matching,
         explanation: key?.explanation,
@@ -309,7 +317,11 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
       selected_choice_key: userAns?.selected_choice_key,
       fill_blank_answers: userAns?.fill_blank_answers,
       matching_answers: userAns?.matching_answers,
-      // No answer keys!
+      correct_choice_key: undefined,
+      correct_blank_answers: undefined,
+      correct_matching: undefined,
+      explanation: undefined,
+      source_citation: undefined,
     };
   });
 

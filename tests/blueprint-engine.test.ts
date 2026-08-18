@@ -82,4 +82,82 @@ describe('Blueprint Engine', () => {
 
     expect(result.length).toBe(1);
   });
+
+  it('strictly selects only easy questions when easy difficulty is selected', () => {
+    const store = createInitialSeedData();
+    const result = selectQuestionsForAttempt({
+      allQuestions: store.questions,
+      mode: 'exam',
+      targetCount: 10,
+      selectedDifficulty: 'easy',
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    result.forEach(item => {
+      expect(item.question.difficulty).toBe('easy');
+    });
+  });
+
+  it('strictly selects only hard questions when hard difficulty is selected', () => {
+    const store = createInitialSeedData();
+    const result = selectQuestionsForAttempt({
+      allQuestions: store.questions,
+      mode: 'exam',
+      targetCount: 10,
+      selectedDifficulty: 'hard',
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    result.forEach(item => {
+      expect(item.question.difficulty).toBe('hard');
+    });
+  });
+
+  it('strictly selects only medium questions when medium difficulty is selected', () => {
+    const store = createInitialSeedData();
+    const result = selectQuestionsForAttempt({
+      allQuestions: store.questions,
+      mode: 'exam',
+      targetCount: 10,
+      selectedDifficulty: 'medium',
+    });
+
+    expect(result.length).toBeGreaterThan(0);
+    result.forEach(item => {
+      expect(item.question.difficulty).toBe('medium');
+    });
+  });
+
+  it('randomizes choice positions and distributes correct answers across A, B, C, D instead of always A', () => {
+    const store = createInitialSeedData();
+    const answerKeyMap: Record<string, any> = {};
+    store.question_answer_keys.forEach(k => {
+      answerKeyMap[k.question_id] = k;
+    });
+
+    const observedCorrectKeys = new Set<string>();
+
+    for (let run = 0; run < 20; run++) {
+      const selected = selectQuestionsForAttempt({
+        allQuestions: store.questions.filter(q => q.question_type === 'single_choice' || !q.question_type),
+        allAnswerKeys: answerKeyMap,
+        allChoices: store.question_choices,
+        mode: 'exam',
+        targetCount: 15,
+      });
+
+      selected.forEach(item => {
+        if (item.correctChoiceKey) {
+          observedCorrectKeys.add(item.correctChoiceKey);
+        }
+      });
+    }
+
+    // Must have observed choices across all letters (A, B, C, D), NOT just 'A'
+    expect(observedCorrectKeys.has('A')).toBe(true);
+    expect(observedCorrectKeys.has('B')).toBe(true);
+    expect(observedCorrectKeys.has('C')).toBe(true);
+    expect(observedCorrectKeys.has('D')).toBe(true);
+    expect(observedCorrectKeys.size).toBe(4);
+  });
 });

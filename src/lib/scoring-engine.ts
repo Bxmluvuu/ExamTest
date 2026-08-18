@@ -147,7 +147,7 @@ export function gradeExamAttempt(
     } else {
       // Default: single_choice or numeric
       const selectedKey = userAns?.selected_choice_key;
-      const correctKey = keyRecord?.correct_choice_key || 'A';
+      const correctKey = q.correct_choice_key || keyRecord?.correct_choice_key || 'A';
 
       isAttempted = Boolean(selectedKey);
       isCorrect = isAttempted && selectedKey === correctKey;

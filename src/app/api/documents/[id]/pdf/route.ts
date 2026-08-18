@@ -38,25 +38,26 @@ export async function GET(
 
   // 2. Check in content directories
   const isExam = (doc.file_path || '').includes('past-exams');
-  const baseDir = path.join(
-    process.cwd(),
-    'content',
-    'subjects',
-    'internetworking',
-    isExam ? 'past-exams' : 'slides'
-  );
   const baseName = path.basename(doc.file_path || '');
-  const localFile = path.join(baseDir, baseName);
+  const candidateDirs = [
+    path.join(process.cwd(), 'content', 'subjects', 'cybersecurity-defense', isExam ? 'past-exams' : 'slides'),
+    path.join(process.cwd(), 'content', 'subjects', 'database-security', isExam ? 'past-exams' : 'slides'),
+    path.join(process.cwd(), 'content', 'subjects', 'internetworking', isExam ? 'past-exams' : 'slides'),
+    path.join(process.cwd(), 'content', 'subjects', 'database-systems', isExam ? 'past-exams' : 'slides'),
+  ];
 
-  if (fs.existsSync(localFile)) {
-    const fileBuffer = fs.readFileSync(localFile);
-    return new Response(fileBuffer, {
-      status: 200,
-      headers: {
-        ...responseHeaders,
-        'Content-Disposition': `inline; filename="${encodeURIComponent(baseName)}"`,
-      },
-    });
+  for (const baseDir of candidateDirs) {
+    const localFile = path.join(baseDir, baseName);
+    if (fs.existsSync(localFile)) {
+      const fileBuffer = fs.readFileSync(localFile);
+      return new Response(fileBuffer, {
+        status: 200,
+        headers: {
+          ...responseHeaders,
+          'Content-Disposition': `inline; filename="${encodeURIComponent(baseName)}"`,
+        },
+      });
+    }
   }
 
   // 3. Fallback: Download from Supabase Storage

@@ -1,8 +1,18 @@
-import type { Question, ExamBlueprint, QuestionDifficulty, AttemptQuestion, ExamMode } from './types/database';
+import type {
+  Question,
+  ExamBlueprint,
+  QuestionDifficulty,
+  AttemptQuestion,
+  ExamMode,
+  QuestionChoice,
+  QuestionAnswerKey,
+} from './types/database';
 
 export interface BlueprintSelectionParams {
   blueprint?: ExamBlueprint;
   allQuestions: Question[];
+  allAnswerKeys?: Record<string, QuestionAnswerKey>;
+  allChoices?: QuestionChoice[];
   mode: ExamMode;
   targetCount: number;
   selectedChapterId?: string;
@@ -16,6 +26,7 @@ export interface BlueprintSelectionParams {
 export interface SelectedQuestionItem {
   question: Question;
   shuffledChoices: Array<{ key: string; text: string }>;
+  correctChoiceKey?: 'A' | 'B' | 'C' | 'D' | string;
   snapshot: {
     text: string;
     difficulty: QuestionDifficulty;
@@ -107,10 +118,22 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
     return [];
   }
 
+  // If a specific difficulty filter is requested (easy / medium / hard), strictly restrict pool
+  if (selectedDifficulty) {
+    const diffPool = availablePool.filter(q => q.difficulty === selectedDifficulty);
+    if (diffPool.length > 0) {
+      availablePool = diffPool;
+    }
+  }
+
   const selectedSet = new Set<string>();
   const chosenQuestions: Question[] = [];
 
   const addQuestion = (q: Question) => {
+    // If strict difficulty is requested, enforce it
+    if (selectedDifficulty && q.difficulty !== selectedDifficulty) {
+      return false;
+    }
     if (chosenQuestions.length < targetCount && !selectedSet.has(q.id)) {
       selectedSet.add(q.id);
       chosenQuestions.push(q);
@@ -149,16 +172,7 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
       chapterPool = availablePool; // Fallback to all if chapter filter was empty
     }
 
-    // Difficulty preference
-    if (selectedDifficulty) {
-      const matchingDiff = chapterPool.filter(q => q.difficulty === selectedDifficulty);
-      const nonRecent = matchingDiff.filter(q => !recentSet.has(q.id));
-      for (const q of shuffleArray(nonRecent.length > 0 ? nonRecent : matchingDiff)) {
-        addQuestion(q);
-      }
-    }
-
-    // Fill remaining within chapter pool avoiding recent if possible
+    // Pick non-recent first
     const nonRecentChapter = chapterPool.filter(q => !recentSet.has(q.id));
     for (const q of shuffleArray(nonRecentChapter)) {
       addQuestion(q);
@@ -167,7 +181,7 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
       addQuestion(q);
     }
 
-    // If still need more questions and specific chapter was too small, fill from rest of subject
+    // If still need more questions and specific chapter was too small, fill from rest of subject matching difficulty
     if (chosenQuestions.length < targetCount) {
       for (const q of shuffleArray(availablePool)) {
         addQuestion(q);
@@ -189,7 +203,7 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
     }
   } else {
     // Mode: 'exam' (Blueprint Mode)
-    if (blueprint && blueprint.topic_distribution && blueprint.topic_distribution.length > 0) {
+    if (!selectedDifficulty && blueprint && blueprint.topic_distribution && blueprint.topic_distribution.length > 0) {
       const quotas = calculateBlueprintQuota(
         targetCount,
         blueprint.topic_distribution,
@@ -214,8 +228,8 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
           );
         }
 
-        // Fallback 2: Allow any difficulty from same topic
-        if (matching.length < quota.count) {
+        // Fallback 2: Allow any difficulty from same topic only if difficulty is not locked
+        if (matching.length < quota.count && !selectedDifficulty) {
           matching = availablePool.filter(q => 
             q.topic_title?.toLowerCase() === quota.topic.toLowerCase() &&
             !selectedSet.has(q.id)
@@ -229,13 +243,14 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
       }
     }
 
-    // Fallback: If still under targetCount, fill with remaining non-recent questions
+    // If a specific difficulty was requested or blueprint was filled:
+    // Non-recent questions of the available difficulty pool
     const remainingNonRecent = availablePool.filter(q => !selectedSet.has(q.id) && !recentSet.has(q.id));
     for (const q of shuffleArray(remainingNonRecent)) {
       addQuestion(q);
     }
 
-    // Ultimate fallback: Any remaining published question across all chapters
+    // Any remaining questions in availablePool
     const remainingAny = availablePool.filter(q => !selectedSet.has(q.id));
     for (const q of shuffleArray(remainingAny)) {
       addQuestion(q);
@@ -287,25 +302,47 @@ export function selectQuestionsForAttempt(params: BlueprintSelectionParams): Sel
       };
     }
 
-    const rawChoices = q.choices && q.choices.length > 0 ? q.choices : [
-      { choice_key: 'A' as const, choice_text: 'ตัวเลือก A' },
-      { choice_key: 'B' as const, choice_text: 'ตัวเลือก B' },
-      { choice_key: 'C' as const, choice_text: 'ตัวเลือก C' },
-      { choice_key: 'D' as const, choice_text: 'ตัวเลือก D' },
-    ];
+    // 1. Gather choices for question
+    let rawChoices = q.choices;
+    if (!rawChoices || rawChoices.length === 0) {
+      if (params.allChoices && params.allChoices.length > 0) {
+        rawChoices = params.allChoices.filter(c => c.question_id === q.id);
+      }
+    }
 
-    // Maintain stable keys or shuffle
-    const choices = rawChoices.map((c, index) => {
-      const displayKey = (c.choice_key || c.key || ['A', 'B', 'C', 'D'][index] || 'A') as 'A' | 'B' | 'C' | 'D';
+    if (!rawChoices || rawChoices.length === 0) {
+      rawChoices = [
+        { choice_key: 'A' as const, choice_text: 'ตัวเลือก A' },
+        { choice_key: 'B' as const, choice_text: 'ตัวเลือก B' },
+        { choice_key: 'C' as const, choice_text: 'ตัวเลือก C' },
+        { choice_key: 'D' as const, choice_text: 'ตัวเลือก D' },
+      ];
+    }
+
+    // 2. Identify original correct choice key
+    const originalCorrectKey = params.allAnswerKeys?.[q.id]?.correct_choice_key || 'A';
+
+    // 3. Shuffle choices array randomly using Fisher-Yates
+    const randomized = shuffleArray([...rawChoices]);
+    const keys: Array<'A' | 'B' | 'C' | 'D'> = ['A', 'B', 'C', 'D'];
+
+    let newCorrectKey: 'A' | 'B' | 'C' | 'D' = 'A';
+    const finalShuffledChoices = randomized.map((c: any, index) => {
+      const assignedKey = keys[index] || 'A';
+      const origKey = c.choice_key || c.key || keys[index] || 'A';
+      if (origKey === originalCorrectKey) {
+        newCorrectKey = assignedKey;
+      }
       return {
-        key: displayKey,
+        key: assignedKey,
         text: c.choice_text || c.text || '',
       };
     });
 
     return {
       question: q,
-      shuffledChoices: choices,
+      shuffledChoices: finalShuffledChoices,
+      correctChoiceKey: newCorrectKey,
       snapshot: {
         text: q.question_text,
         difficulty: q.difficulty || 'medium',

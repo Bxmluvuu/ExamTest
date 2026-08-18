@@ -76,11 +76,18 @@ function ExamSetupForm() {
 
   const activeSubject = subjects.find(s => s.id === selectedSubjectId);
 
-  // Available questions check
+  // Available questions check reflecting difficulty and chapter filter
   const availableQuestionsCount = React.useMemo(() => {
     const store = getDataStore();
-    return store.questions.filter(q => q.subject_id === selectedSubjectId && q.status === 'published').length;
-  }, [selectedSubjectId]);
+    let pool = store.questions.filter(q => q.subject_id === selectedSubjectId && q.status === 'published');
+    if (mode === 'chapter' && selectedChapterId) {
+      pool = pool.filter(q => q.chapter_id === selectedChapterId);
+    }
+    if (difficulty !== 'all') {
+      pool = pool.filter(q => q.difficulty === difficulty);
+    }
+    return pool.length;
+  }, [selectedSubjectId, mode, selectedChapterId, difficulty]);
 
   const handleStartExam = async () => {
     if (!selectedSubjectId || isStarting) return;

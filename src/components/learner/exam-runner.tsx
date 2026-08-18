@@ -327,7 +327,7 @@ export function ExamRunner({
         <div className="md:col-span-8 space-y-6">
           <QuestionTransition questionKey={currentQuestion.question_id}>
             <Card className="border-[var(--border)] shadow-xs">
-              <CardContent className="p-6 sm:p-8 space-y-6">
+              <CardContent className="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
                 {/* Question Metadata */}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border)] pb-4">
                   <div className="flex flex-wrap items-center gap-2">
@@ -344,7 +344,7 @@ export function ExamRunner({
                   <button
                     onClick={handleToggleBookmark}
                     className={cn(
-                      'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded transition-colors cursor-pointer border',
+                      'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded transition-colors cursor-pointer border touch-manipulation',
                       bookmarkedSet.has(currentIndex)
                         ? 'bg-amber-50 text-amber-700 border-amber-300 font-semibold'
                         : 'text-[var(--foreground-muted)] border-[var(--border)] hover:bg-[var(--surface-subtle)]'
@@ -366,7 +366,7 @@ export function ExamRunner({
                   />
                 ) : (currentQuestion.question_snapshot.question_type === 'matching' || currentQuestion.question_type === 'matching') ? (
                   <div className="space-y-4">
-                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
+                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed break-words">
                       {currentQuestion.question_snapshot.text}
                     </div>
                     <MatchingPlayer
@@ -377,14 +377,14 @@ export function ExamRunner({
                     />
                   </div>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                     {/* Question Text */}
-                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed">
+                    <div className="text-base sm:text-lg font-medium text-[var(--foreground)] leading-relaxed break-words">
                       {currentQuestion.question_snapshot.text}
                     </div>
 
                     {/* Choices List */}
-                    <div className="space-y-3 pt-2" role="radiogroup" aria-label="Question choices">
+                    <div className="space-y-2.5 sm:space-y-3 pt-1" role="radiogroup" aria-label="Question choices">
                       {currentQuestion.shuffled_choices.map((choice, cIdx) => {
                         const isSelected = selectedChoice === choice.key;
                         return (
@@ -401,15 +401,15 @@ export function ExamRunner({
                               }
                             }}
                             className={cn(
-                              'flex items-start gap-3.5 p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-all duration-120 cursor-pointer select-none min-h-[48px]',
+                              'flex items-start gap-3 p-3.5 sm:p-4 rounded-[var(--radius)] border text-sm sm:text-base transition-colors duration-150 cursor-pointer select-none min-h-[48px] touch-manipulation w-full',
                               isSelected
-                                ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-semibold ring-1 ring-[var(--primary)]'
-                                : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)] active:scale-[0.995]'
+                                ? 'border-[var(--primary)] bg-[var(--primary-subtle)] text-[var(--primary)] font-semibold ring-1 ring-[var(--primary)] shadow-2xs'
+                                : 'border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-subtle)]'
                             )}
                           >
                             <div
                               className={cn(
-                                'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors',
+                                'h-7 w-7 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-colors mt-0.5',
                                 isSelected
                                   ? 'bg-[var(--primary)] text-white'
                                   : 'bg-[var(--surface-subtle)] text-[var(--foreground-secondary)] border border-[var(--border)]'
@@ -417,7 +417,7 @@ export function ExamRunner({
                             >
                               {choice.key}
                             </div>
-                            <div className="pt-0.5 leading-relaxed flex-1">{choice.text}</div>
+                            <div className="pt-0.5 leading-relaxed flex-1 break-words">{choice.text}</div>
                           </div>
                         );
                       })}
@@ -429,12 +429,13 @@ export function ExamRunner({
           </QuestionTransition>
 
           {/* Navigation Buttons Footer */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-4 pb-6 mt-2 relative z-10">
             <Button
               variant="outline"
               size="md"
               disabled={currentIndex === 0}
               onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))}
+              className="h-10 px-4 touch-manipulation"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               <span>ข้อก่อนหน้า</span>
@@ -449,6 +450,7 @@ export function ExamRunner({
                 variant="primary"
                 size="md"
                 onClick={() => setCurrentIndex(prev => Math.min(totalQuestions - 1, prev + 1))}
+                className="h-10 px-4 bg-blue-600 hover:bg-blue-700 touch-manipulation"
               >
                 <span>ข้อถัดไป</span>
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -457,11 +459,11 @@ export function ExamRunner({
               <Button
                 variant="primary"
                 size="md"
-                className="bg-blue-600 hover:bg-blue-700"
+                className="h-10 px-4 bg-blue-600 hover:bg-blue-700 touch-manipulation shadow-xs"
                 onClick={() => setIsSubmitModalOpen(true)}
               >
                 <Send className="h-4 w-4 mr-1.5" />
-                <span>ตรวจสอบและส่งข้อสอบ</span>
+                <span>ตรวจ & ส่งข้อสอบ</span>
               </Button>
             )}
           </div>

@@ -127,7 +127,7 @@ test.describe('Learner App vs Admin Console Separation E2E Flows', () => {
     if (!testInfo.project.name.includes('mobile')) {
       await page.locator('aside[aria-label="Admin Navigation"] a:has-text("เปิดมุมมองผู้เรียน")').click();
       await page.waitForURL('**/dashboard');
-      await expect(page.locator('h1')).toContainText('สวัสดี');
+      await expect(page.locator('h1').first()).toContainText('สวัสดี');
     }
   });
 

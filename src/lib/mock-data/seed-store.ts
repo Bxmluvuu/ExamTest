@@ -22,6 +22,28 @@ import type {
   GenerationRun,
 } from '../types/database';
 import internetworkingData from './internetworking-data.json';
+import {
+  dbSecSubject,
+  dbSecChapters,
+  dbSecTopics,
+  dbSecDocuments,
+  dbSecBlueprints,
+  dbSecQuestions,
+  dbSecChoices,
+  dbSecAnswerKeys,
+  dbSecSources,
+} from './database-security-data';
+import {
+  idsSubject,
+  idsChapters,
+  idsTopics,
+  idsDocuments,
+  idsBlueprints,
+  idsQuestions,
+  idsChoices,
+  idsAnswerKeys,
+  idsSources,
+} from './cybersecurity-defense-data';
 
 export interface DataStore {
   profiles: Profile[];
@@ -655,16 +677,16 @@ export function createInitialSeedData(): DataStore {
     user_sessions: defaultSessions,
     password_history: [],
     auth_audit_logs: [],
-    subjects: [inet.subject as Subject],
-    chapters: inet.chapters as Chapter[],
-    topics: inet.topics as Topic[],
-    source_documents: inet.documents as SourceDocument[],
+    subjects: [inet.subject as Subject, dbSecSubject, idsSubject],
+    chapters: [...(inet.chapters as Chapter[]), ...dbSecChapters, ...idsChapters],
+    topics: [...(inet.topics as Topic[]), ...dbSecTopics, ...idsTopics],
+    source_documents: [...(inet.documents as SourceDocument[]), ...dbSecDocuments, ...idsDocuments],
     source_pages: [],
-    exam_blueprints: inet.blueprints as ExamBlueprint[],
-    questions: [...extraQuestions, ...(inet.questions as Question[])],
-    question_choices: inet.question_choices as QuestionChoice[],
-    question_answer_keys: [...extraKeys, ...(inet.question_answer_keys as QuestionAnswerKey[])],
-    question_sources: [...extraSources, ...(inet.question_sources as QuestionSource[])],
+    exam_blueprints: [...(inet.blueprints as ExamBlueprint[]), ...dbSecBlueprints, ...idsBlueprints],
+    questions: [...extraQuestions, ...(inet.questions as Question[]), ...dbSecQuestions, ...idsQuestions],
+    question_choices: [...(inet.question_choices as QuestionChoice[]), ...dbSecChoices, ...idsChoices],
+    question_answer_keys: [...extraKeys, ...(inet.question_answer_keys as QuestionAnswerKey[]), ...dbSecAnswerKeys, ...idsAnswerKeys],
+    question_sources: [...extraSources, ...(inet.question_sources as QuestionSource[]), ...dbSecSources, ...idsSources],
     question_quality_flags: [],
     exam_attempts: [],
     attempt_questions: [],
