@@ -40,6 +40,7 @@ export async function GET(
   const isExam = (doc.file_path || '').includes('past-exams');
   const baseName = path.basename(doc.file_path || '');
   const candidateDirs = [
+    path.join(process.cwd(), 'content', 'subjects', 'malware-analysis', isExam ? 'past-exams' : 'slides'),
     path.join(process.cwd(), 'content', 'subjects', 'cybersecurity-defense', isExam ? 'past-exams' : 'slides'),
     path.join(process.cwd(), 'content', 'subjects', 'database-security', isExam ? 'past-exams' : 'slides'),
     path.join(process.cwd(), 'content', 'subjects', 'internetworking', isExam ? 'past-exams' : 'slides'),

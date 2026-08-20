@@ -8,33 +8,38 @@ import type { AttemptQuestion, QuestionDifficulty } from '@/lib/types/database';
 export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) {
   // Aggregate stats by topic
   const topicStats = React.useMemo(() => {
-    const map = new Map<string, { correct: number; total: number }>();
+    const map = new Map<string, { correct: number; points: number; total: number }>();
     questions.forEach(q => {
       const top = q.question_snapshot?.topic_title || q.topic_title || q.chapter_title || 'General';
-      const cur = map.get(top) || { correct: 0, total: 0 };
+      const cur = map.get(top) || { correct: 0, points: 0, total: 0 };
       cur.total += 1;
+      const pts = q.points_earned ?? (q.is_correct ? 1 : 0);
+      cur.points += pts;
       if (q.is_correct) cur.correct += 1;
       map.set(top, cur);
     });
     return Array.from(map.entries()).map(([topic, stat]) => ({
       topic,
       correct: stat.correct,
+      points: Number(stat.points.toFixed(2)),
       total: stat.total,
-      percentage: stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0,
+      percentage: stat.total > 0 ? Math.round((stat.points / stat.total) * 100) : 0,
     }));
   }, [questions]);
 
   // Aggregate stats by difficulty
   const diffStats = React.useMemo(() => {
-    const map: Record<QuestionDifficulty, { correct: number; total: number }> = {
-      easy: { correct: 0, total: 0 },
-      medium: { correct: 0, total: 0 },
-      hard: { correct: 0, total: 0 },
+    const map: Record<QuestionDifficulty, { correct: number; points: number; total: number }> = {
+      easy: { correct: 0, points: 0, total: 0 },
+      medium: { correct: 0, points: 0, total: 0 },
+      hard: { correct: 0, points: 0, total: 0 },
     };
     questions.forEach(q => {
       const d = ((q.question_snapshot?.difficulty || q.difficulty || 'medium') as QuestionDifficulty);
       if (map[d]) {
         map[d].total += 1;
+        const pts = q.points_earned ?? (q.is_correct ? 1 : 0);
+        map[d].points += pts;
         if (q.is_correct) map[d].correct += 1;
       }
     });
@@ -56,7 +61,7 @@ export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) 
               <div className="flex justify-between text-xs">
                 <span className="font-medium text-[var(--foreground)] truncate max-w-[200px]">{item.topic}</span>
                 <span className="text-[var(--foreground-muted)]">
-                  {item.correct} / {item.total} ({item.percentage}%)
+                  {item.points !== undefined && item.points !== item.correct ? `${item.points} คะแนน / ${item.total} ข้อ` : `${item.correct} / ${item.total}`} ({item.percentage}%)
                 </span>
               </div>
               <Progress
@@ -78,7 +83,7 @@ export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) 
         <CardContent className="space-y-3 pt-2">
           {(['easy', 'medium', 'hard'] as QuestionDifficulty[]).map(diff => {
             const stat = diffStats[diff];
-            const pct = stat.total > 0 ? Math.round((stat.correct / stat.total) * 100) : 0;
+            const pct = stat.total > 0 ? Math.round((stat.points / stat.total) * 100) : 0;
             const labels = { easy: 'ง่าย (Easy)', medium: 'ปานกลาง (Medium)', hard: 'ยาก (Hard)' };
 
             return (
@@ -86,7 +91,7 @@ export function ScoreBreakdown({ questions }: { questions: AttemptQuestion[] }) 
                 <div className="flex justify-between text-xs">
                   <span className="font-medium text-[var(--foreground)]">{labels[diff]}</span>
                   <span className="text-[var(--foreground-muted)]">
-                    {stat.correct} / {stat.total} ({pct}%)
+                    {stat.points !== undefined && stat.points !== stat.correct ? `${Number(stat.points.toFixed(2))} คะแนน / ${stat.total} ข้อ` : `${stat.correct} / ${stat.total}`} ({pct}%)
                   </span>
                 </div>
                 <Progress

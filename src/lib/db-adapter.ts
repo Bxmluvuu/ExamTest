@@ -294,6 +294,11 @@ export async function getExamAttempt(attemptId: string, userId: string): Promise
         fill_blank_answers: userAns?.fill_blank_answers,
         matching_answers: userAns?.matching_answers,
         is_correct: userAns?.is_correct,
+        points_earned: userAns?.points_earned,
+        points_possible: userAns?.points_possible,
+        correct_sub_count: userAns?.correct_sub_count,
+        total_sub_count: userAns?.total_sub_count,
+        is_partially_correct: userAns?.is_partially_correct,
         correct_choice_key: q.correct_choice_key || key?.correct_choice_key,
         correct_blank_answers: key?.correct_blank_answers,
         correct_matching: key?.correct_matching,
@@ -417,6 +422,11 @@ export async function submitExamAttemptAction(params: {
     );
     if (ans) {
       ans.is_correct = graded.is_correct;
+      ans.is_partially_correct = graded.is_partially_correct;
+      ans.points_earned = graded.points_earned;
+      ans.points_possible = graded.points_possible;
+      ans.correct_sub_count = graded.correct_sub_count;
+      ans.total_sub_count = graded.total_sub_count;
     } else {
       // Unanswered question record
       store.attempt_answers.push({
@@ -425,6 +435,11 @@ export async function submitExamAttemptAction(params: {
         question_id: graded.question_id,
         selected_choice_key: '' as any,
         is_correct: false,
+        is_partially_correct: false,
+        points_earned: 0,
+        points_possible: graded.points_possible || 1,
+        correct_sub_count: 0,
+        total_sub_count: graded.total_sub_count || 1,
         answered_at: new Date().toISOString(),
       });
     }

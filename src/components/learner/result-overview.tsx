@@ -42,20 +42,24 @@ export function ResultOverview({
   questions: AttemptQuestion[];
   subjectSlug?: string;
 }) {
-  const [filterMode, setFilterMode] = React.useState<'all' | 'incorrect' | 'correct'>('all');
+  const [filterMode, setFilterMode] = React.useState<'all' | 'incorrect' | 'correct' | 'partial'>('all');
 
   const totalQuestions = questions.length;
   const correctCount = questions.filter(q => q.is_correct === true).length;
-  const incorrectCount = questions.filter(q => q.is_correct === false && isQuestionAttempted(q)).length;
+  const partiallyCorrectCount = questions.filter(q => q.is_partially_correct === true || ((q.points_earned ?? 0) > 0 && (q.points_earned ?? 0) < (q.points_possible ?? 1))).length;
+  const incorrectCount = questions.filter(q => q.is_correct !== true && !q.is_partially_correct && (q.points_earned ?? 0) === 0 && isQuestionAttempted(q)).length;
   const unansweredCount = questions.filter(q => !isQuestionAttempted(q)).length;
 
   const filteredQuestions = questions.filter(q => {
-    if (filterMode === 'incorrect') return q.is_correct === false;
+    const isPartially = q.is_partially_correct === true || ((q.points_earned ?? 0) > 0 && (q.points_earned ?? 0) < (q.points_possible ?? 1));
+    if (filterMode === 'incorrect') return q.is_correct === false && !isPartially;
     if (filterMode === 'correct') return q.is_correct === true;
+    if (filterMode === 'partial') return isPartially;
     return true;
   });
 
   const isPass = attempt.score_percentage >= 60;
+  const hasDecimals = !Number.isInteger(attempt.score_total);
 
   return (
     <div className="space-y-6 motion-fade-in">
@@ -76,7 +80,7 @@ export function ResultOverview({
                 {attempt.blueprint_name || attempt.subject_name || 'ผลการทดสอบ'}
               </h1>
               <p className="text-sm text-[var(--foreground-muted)] mt-1">
-                ระบบตรวจและประมวลผลคำตอบเรียบร้อยแล้ว
+                ระบบตรวจและประมวลผลคำตอบเรียบร้อยแล้ว (รองรับการคิดคะแนนย่อยแบบ Partial Credit)
               </p>
             </div>
 
@@ -85,7 +89,7 @@ export function ResultOverview({
               <div className="text-center">
                 <div className="text-xs text-[var(--foreground-muted)] font-medium">คะแนนรวม</div>
                 <div className="text-3xl font-bold text-[var(--foreground)] mt-0.5">
-                  <AnimatedNumber value={attempt.score_total} />{' '}
+                  <AnimatedNumber value={attempt.score_total} decimals={hasDecimals ? 2 : 0} />{' '}
                   <span className="text-lg font-normal text-[var(--foreground-muted)]">/ {attempt.score_max}</span>
                 </div>
               </div>
@@ -93,23 +97,35 @@ export function ResultOverview({
               <div className="text-center">
                 <div className="text-xs text-[var(--foreground-muted)] font-medium">คิดเป็น</div>
                 <div className={cn('text-3xl font-bold mt-0.5', isPass ? 'text-[var(--success)]' : 'text-[var(--danger)]')}>
-                  <AnimatedNumber value={attempt.score_percentage} suffix="%" />
+                  <AnimatedNumber value={attempt.score_percentage} decimals={1} suffix="%" />
                 </div>
               </div>
             </div>
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6">
+          <div className={cn('grid gap-4 pt-6', partiallyCorrectCount > 0 ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-4')}>
             <div className="p-3 rounded bg-[var(--success-subtle)] border border-green-200 flex items-center gap-3">
               <CheckCircle2 className="h-5 w-5 text-[var(--success)] shrink-0" />
               <div>
-                <div className="text-xs text-[var(--foreground-muted)]">ตอบถูกต้อง</div>
+                <div className="text-xs text-[var(--foreground-muted)]">ตอบถูกเต็ม</div>
                 <div className="text-base font-semibold text-[var(--success)]">
                   <AnimatedNumber value={correctCount} suffix=" ข้อ" />
                 </div>
               </div>
             </div>
+
+            {partiallyCorrectCount > 0 && (
+              <div className="p-3 rounded bg-amber-50 border border-amber-200 flex items-center gap-3">
+                <CheckCircle2 className="h-5 w-5 text-amber-600 shrink-0" />
+                <div>
+                  <div className="text-xs text-amber-800">ถูกบางส่วน</div>
+                  <div className="text-base font-semibold text-amber-700">
+                    <AnimatedNumber value={partiallyCorrectCount} suffix=" ข้อ" />
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="p-3 rounded bg-[var(--danger-subtle)] border border-red-200 flex items-center gap-3">
               <XCircle className="h-5 w-5 text-[var(--danger)] shrink-0" />
@@ -195,6 +211,26 @@ export function ResultOverview({
               ทั้งหมด ({totalQuestions})
             </button>
             <button
+              onClick={() => setFilterMode('correct')}
+              className={cn(
+                'px-2.5 py-1 rounded font-medium transition-colors cursor-pointer',
+                filterMode === 'correct' ? 'bg-green-100 text-green-700 font-semibold' : 'text-[var(--foreground-muted)]'
+              )}
+            >
+              ถูกเต็ม ({correctCount})
+            </button>
+            {partiallyCorrectCount > 0 && (
+              <button
+                onClick={() => setFilterMode('partial')}
+                className={cn(
+                  'px-2.5 py-1 rounded font-medium transition-colors cursor-pointer',
+                  filterMode === 'partial' ? 'bg-amber-100 text-amber-800 font-semibold' : 'text-[var(--foreground-muted)]'
+                )}
+              >
+                ถูกบางส่วน ({partiallyCorrectCount})
+              </button>
+            )}
+            <button
               onClick={() => setFilterMode('incorrect')}
               className={cn(
                 'px-2.5 py-1 rounded font-medium transition-colors cursor-pointer',
@@ -203,15 +239,6 @@ export function ResultOverview({
             >
               เฉพาะข้อที่ผิด ({incorrectCount + unansweredCount})
             </button>
-            <button
-              onClick={() => setFilterMode('correct')}
-              className={cn(
-                'px-2.5 py-1 rounded font-medium transition-colors cursor-pointer',
-                filterMode === 'correct' ? 'bg-green-100 text-green-700 font-semibold' : 'text-[var(--foreground-muted)]'
-              )}
-            >
-              เฉพาะข้อที่ถูก ({correctCount})
-            </button>
           </div>
         </div>
 
@@ -219,6 +246,7 @@ export function ResultOverview({
         <div className="space-y-4">
           {filteredQuestions.map((q, idx) => {
             const isCorrect = q.is_correct === true;
+            const isPartiallyCorrect = q.is_partially_correct === true || ((q.points_earned ?? 0) > 0 && (q.points_earned ?? 0) < (q.points_possible ?? 1));
             const isAttempted = isQuestionAttempted(q);
             const isUnanswered = !isAttempted;
             const qType = q.question_snapshot?.question_type || q.question_type || 'single_choice';
@@ -228,7 +256,7 @@ export function ResultOverview({
                 key={q.id}
                 className={cn(
                   'border transition-colors duration-150',
-                  isCorrect ? 'border-green-200' : isUnanswered ? 'border-[var(--border)]' : 'border-red-200'
+                  isCorrect ? 'border-green-200' : isPartiallyCorrect ? 'border-amber-300 bg-amber-50/10' : isUnanswered ? 'border-[var(--border)]' : 'border-red-200'
                 )}
               >
                 <CardContent className="p-5 space-y-4">
@@ -241,7 +269,11 @@ export function ResultOverview({
                       <QuestionTypeBadge type={qType} />
                       {isCorrect ? (
                         <span className="inline-flex items-center text-xs font-semibold text-[var(--success)] bg-[var(--success-subtle)] px-2 py-0.5 rounded border border-green-200">
-                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> ถูกต้อง
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> ถูกต้อง (+1 คะแนน)
+                        </span>
+                      ) : isPartiallyCorrect ? (
+                        <span className="inline-flex items-center text-xs font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">
+                          <CheckCircle2 className="h-3.5 w-3.5 mr-1" /> ถูกบางส่วน ({q.correct_sub_count ?? '?'}/{q.total_sub_count ?? '?'} จุด • +{q.points_earned} คะแนน)
                         </span>
                       ) : isUnanswered ? (
                         <span className="inline-flex items-center text-xs font-medium text-[var(--foreground-muted)] bg-[var(--surface-subtle)] px-2 py-0.5 rounded border border-[var(--border)]">
@@ -249,7 +281,7 @@ export function ResultOverview({
                         </span>
                       ) : (
                         <span className="inline-flex items-center text-xs font-semibold text-[var(--danger)] bg-[var(--danger-subtle)] px-2 py-0.5 rounded border border-red-200">
-                          <XCircle className="h-3.5 w-3.5 mr-1" /> ตอบผิด
+                          <XCircle className="h-3.5 w-3.5 mr-1" /> ตอบผิด (0 คะแนน)
                         </span>
                       )}
                       <span className="text-xs text-[var(--foreground-muted)]">

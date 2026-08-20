@@ -272,6 +272,11 @@ export interface AttemptQuestion {
   is_marked_for_review?: boolean;
   time_spent_seconds?: number;
   is_correct?: boolean;
+  points_earned?: number;
+  points_possible?: number;
+  correct_sub_count?: number;
+  total_sub_count?: number;
+  is_partially_correct?: boolean;
   correct_choice_key?: 'A' | 'B' | 'C' | 'D' | string;
   correct_blank_answers?: Record<string, string>;
   correct_matching?: Record<string, string>;
@@ -290,6 +295,11 @@ export interface AttemptAnswer {
   matching_answers?: Record<string, string> | null;
   numeric_answer?: number | null;
   is_correct?: boolean;
+  points_earned?: number;
+  points_possible?: number;
+  correct_sub_count?: number;
+  total_sub_count?: number;
+  is_partially_correct?: boolean;
   time_spent_seconds?: number;
   response_time_seconds?: number;
   is_marked_for_review?: boolean;

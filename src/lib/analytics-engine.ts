@@ -70,7 +70,7 @@ export function computeUserAnalytics(
   });
 
   // Topic Accuracies
-  const topicMap = new Map<string, { topic: string; chapter: string; total: number; correct: number }>();
+  const topicMap = new Map<string, { topic: string; chapter: string; total: number; correct: number; points: number }>();
   const questionMap = new Map<string, Question>();
   for (const q of allQuestions) {
     questionMap.set(q.id, q);
@@ -87,9 +87,12 @@ export function computeUserAnalytics(
       chapter: chapterName,
       total: 0,
       correct: 0,
+      points: 0,
     };
 
     stat.total += 1;
+    const pts = ans.points_earned ?? (ans.is_correct ? 1 : 0);
+    stat.points += pts;
     if (ans.is_correct) {
       stat.correct += 1;
     }
@@ -97,7 +100,7 @@ export function computeUserAnalytics(
   }
 
   const topicAccuracies = Array.from(topicMap.values()).map(t => {
-    const pct = t.total > 0 ? Number(((t.correct / t.total) * 100).toFixed(1)) : 0;
+    const pct = t.total > 0 ? Number(((t.points / t.total) * 100).toFixed(1)) : 0;
     let status: 'strong' | 'moderate' | 'weak' = 'moderate';
     if (pct >= 75) status = 'strong';
     else if (pct < 55) status = 'weak';
@@ -107,6 +110,7 @@ export function computeUserAnalytics(
       chapter: t.chapter,
       total_answered: t.total,
       correct_count: t.correct,
+      points_earned: Number(t.points.toFixed(2)),
       accuracy_percentage: pct,
       status,
     };

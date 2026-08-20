@@ -125,7 +125,7 @@ export default function HistoryPage() {
                     {isSubmitted ? (
                       <div className="text-right">
                         <div className={cn('text-xl font-bold', isPass ? 'text-[var(--success)]' : 'text-[var(--danger)]')}>
-                          {att.score_total} / {att.score_max}
+                          {Number.isInteger(att.score_total) ? att.score_total : att.score_total.toFixed(2)} / {att.score_max}
                         </div>
                         <div className="text-xs text-[var(--foreground-muted)]">
                           คิดเป็น {att.score_percentage}%
