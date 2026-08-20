@@ -9,7 +9,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { PageTransition } from '@/components/ui/page-transition';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserAttempts, getCurrentSessionUser, getSubjects } from '@/lib/db-adapter';
-import { History, ArrowRight, Clock, Calendar } from 'lucide-react';
+import { History, ArrowRight, Clock, Calendar, Info } from 'lucide-react';
 import { formatDuration, formatThaiDate, cn } from '@/lib/utils';
 import type { ExamAttempt, Subject } from '@/lib/types/database';
 
@@ -43,6 +43,19 @@ export default function HistoryPage() {
         title="ประวัติการสอบ (Exam History)"
         description="ตรวจสอบผลคะแนนย้อนหลัง ทบทวนข้อที่เคยทำ และติดตามพัฒนาการของคุณ"
       />
+
+      {/* 7-Day Retention Notice Banner */}
+      <div className="p-3.5 sm:p-4 rounded-[var(--radius)] bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-amber-900 dark:text-amber-200 motion-slide-up">
+        <Info className="h-5 w-5 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+        <div className="text-xs sm:text-sm space-y-0.5">
+          <div className="font-semibold text-amber-900 dark:text-amber-200">
+            นโยบายการจัดเก็บข้อมูล (7-Day Retention Policy)
+          </div>
+          <p className="text-amber-800/90 dark:text-amber-300/90 leading-relaxed text-xs sm:text-sm">
+            ระบบจะจัดเก็บประวัติการทำข้อสอบย้อนหลังเป็นเวลา <strong>7 วัน</strong> เพื่อบริหารพื้นที่ฐานข้อมูลและรักษาความเร็วในการประมวลผล โปรดทบทวนข้อสอบและบันทึกคะแนนที่คุณสนใจภายในระยะเวลาดังกล่าว
+          </p>
+        </div>
+      </div>
 
       {/* Filter Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
@@ -92,18 +105,23 @@ export default function HistoryPage() {
           {filteredAttempts.map(att => {
             const isSubmitted = att.status === 'submitted';
             const isPass = att.score_percentage >= 60;
+            const daysLeft = Math.max(1, 7 - Math.floor((Date.now() - new Date(att.started_at).getTime()) / (1000 * 60 * 60 * 24)));
 
             return (
               <Card key={att.id} className="hover:border-[var(--border-strong)] transition-all motion-slide-up">
                 <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-semibold px-2 py-0.5 rounded bg-[var(--primary-subtle)] text-[var(--primary)] border border-blue-200">
                         {att.mode.toUpperCase()}
                       </span>
                       <span className="text-xs text-[var(--foreground-muted)] flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5" />
                         {formatThaiDate(att.started_at)}
+                      </span>
+                      <span className="text-[11px] font-medium text-amber-700 bg-amber-100/70 dark:bg-amber-900/30 dark:text-amber-300 px-2 py-0.5 rounded flex items-center gap-1 border border-amber-300/50">
+                        <Clock className="h-3 w-3" />
+                        <span>เหลือเวลา {daysLeft} วัน</span>
                       </span>
                     </div>
 

@@ -158,6 +158,12 @@ export function ResultOverview({
             </div>
           </div>
 
+          {/* 7-Day Retention Notice */}
+          <div className="mt-4 p-2.5 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300">
+            <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>ผลคะแนนและเฉลยละเอียดชุดนี้จะถูกจัดเก็บไว้ในระบบเป็นเวลา <strong>7 วัน</strong> คุณสามารถกลับมาทบทวนได้ตลอดเวลาผ่านหน้าประวัติการสอบ</span>
+          </div>
+
           {/* Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-6 mt-6 border-t border-[var(--border)]">
             <div className="flex gap-2">

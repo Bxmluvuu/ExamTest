@@ -12,7 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { PageTransition } from '@/components/ui/page-transition';
 import { ListSkeleton } from '@/components/ui/skeleton';
 import { getUserAnalyticsData, getCurrentSessionUser } from '@/lib/db-adapter';
-import { Sparkles, ArrowRight, BookOpen } from 'lucide-react';
+import { Sparkles, ArrowRight, BookOpen, Clock } from 'lucide-react';
 import type { UserAnalyticsSummary } from '@/lib/types/database';
 
 export default function AnalyticsPage() {
@@ -34,6 +34,12 @@ export default function AnalyticsPage() {
         title="สถิติและการวิเคราะห์จุดอ่อน (Analytics & Insights)"
         description="ระบบวิเคราะห์ผลคะแนนย้อนหลัง อัตราความแม่นยำรายหัวข้อ และข้อเสนอแนะในการทบทวน"
       />
+
+      {/* 7-Day Rolling Window Notice */}
+      <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)] px-1">
+        <Clock className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+        <span>ข้อมูลสถิติและจุดอ่อนประมวลผลจากการฝึกทำข้อสอบในรอบ <strong>7 วันล่าสุด</strong></span>
+      </div>
 
       {/* Top Metric Strip */}
       <MetricStrip
